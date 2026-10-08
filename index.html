@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI Content Agent</title>
+
+    <link rel="stylesheet" href="style.css">
+
+
+    <!-- ==========================================
+         AUTH UI STYLES
+    ========================================== -->
+
+    <style>
+
+        #authScreen {
+
+            min-height: 100vh;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            padding: 20px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #5657ed,
+                    #7475ff
+                );
+
+        }
+
+
+        .auth-card {
+
+            width: 100%;
+
+            max-width: 430px;
+
+            background: #ffffff;
+
+            border-radius: 22px;
+
+            padding: 32px;
+
+            box-shadow:
+                0 20px 50px
+                rgba(20, 25, 80, 0.20);
+
+        }
+
+
+        .auth-logo {
+
+            width: 58px;
+
+            height: 58px;
+
+            margin: 0 auto 18px;
+
+            border-radius: 17px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #5b5cf0,
+                    #7778ff
+                );
+
+            color: white;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            font-size: 25px;
+
+            font-weight: bold;
+
+        }
+
+
+        .auth-card h2 {
+
+            text-align: center;
+
+            font-size: 23px;
+
+            color: #17182b;
+
+            margin-bottom: 8px;
+
+        }
+
+
+        .auth-card > p {
+
+            text-align: center;
+
+            color: #73758a;
+
+            font-size: 13px;
+
+            line-height: 1.5;
+
+            margin-bottom: 24px;
+
+        }
+
+
+        .auth-field {
+
+            margin-bottom: 15px;
+
+        }
+
+
+        .auth-field label {
+
+            display: block;
+
+            margin-bottom: 7px;
+
+            font-size: 13px;
+
+            font-weight: 600;
+
+            color: #17182b;
+
+        }
+
+
+        .auth-field input {
+
+            width: 100%;
+
+            padding: 13px;
+
+            border: 1px solid #e9eaf3;
+
+            border-radius: 12px;
+
+            background: #fafaff;
+
+            font-family: inherit;
+
+            font-size: 14px;
+
+            outline: none;
+
+        }
+
+
+        .auth-field input:focus {
+
+            border-color: #5b5cf0;
+
+        }
+
+
+        #authButton {
+
+            width: 100%;
+
+            border: none;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #5b5cf0,
+                    #7778ff
+                );
+
+            color: white;
+
+            padding: 13px;
+
+            border-radius: 12px;
+
+            font-weight: 600;
+
+            font-size: 14px;
+
+            cursor: pointer;
+
+            margin-top: 4px;
+
+        }
+
+
+        #authButton:disabled {
+
+            cursor: not-allowed;
+
+            opacity: 0.7;
+
+        }
+
+
+        #authMessage {
+
+            display: none;
+
+            margin-top: 13px;
+
+            padding: 10px 12px;
+
+            border-radius: 10px;
+
+            background: #fff5f5;
+
+            font-size: 13px;
+
+            line-height: 1.4;
+
+            text-align: center;
+
+        }
+
+
+        #authToggle {
+
+            margin-top: 20px;
+
+            text-align: center;
+
+            color: #73758a;
+
+            font-size: 13px;
+
+        }
+
+
+        #authToggle button {
+
+            border: none;
+
+            background: none;
+
+            color: #5b5cf0;
+
+            font-weight: 600;
+
+            cursor: pointer;
+
+            padding: 0;
+
+            font-size: 13px;
+
+        }
+
+
+        #appContent {
+
+            display: none;
+
+        }
+
+
+        .topbar-right {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+        }
+
+
+        #logoutBtn {
+
+            display: none;
+
+            border: 1px solid rgba(255,255,255,0.35);
+
+            background: rgba(255,255,255,0.15);
+
+            color: white;
+
+            padding: 9px 12px;
+
+            border-radius: 10px;
+
+            font-size: 12px;
+
+            font-weight: 600;
+
+            cursor: pointer;
+
+        }
+
+
+        #logoutBtn:hover {
+
+            background:
+                rgba(255,255,255,0.25);
+
+        }
+
+
+        @media (max-width: 500px) {
+
+            #authScreen {
+
+                padding: 16px;
+
+            }
+
+
+            .auth-card {
+
+                padding: 24px 20px;
+
+                border-radius: 19px;
+
+            }
+
+
+            .auth-card h2 {
+
+                font-size: 21px;
+
+            }
+
+
+            .topbar-right {
+
+                gap: 6px;
+
+            }
+
+
+            #logoutBtn {
+
+                padding: 8px 9px;
+
+                font-size: 11px;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- ==========================================
+     LOGIN / REGISTER SCREEN
+========================================== -->
+
+<section id="authScreen">
+
+    <div class="auth-card">
+
+
+        <div class="auth-logo">
+            AI
+        </div>
+
+
+        <h2 id="authTitle">
+            Welcome Back
+        </h2>
+
+
+        <p id="authSubtitle">
+            Login to continue creating smarter content with AI.
+        </p>
+
+
+        <form id="authForm">
+
+
+            <div class="auth-field">
+
+                <label for="authEmail">
+                    Email Address
+                </label>
+
+                <input
+                    type="email"
+                    id="authEmail"
+                    placeholder="Enter your email"
+                    autocomplete="email"
+                    required
+                >
+
+            </div>
+
+
+            <div class="auth-field">
+
+                <label for="authPassword">
+                    Password
+                </label>
+
+                <input
+                    type="password"
+                    id="authPassword"
+                    placeholder="Enter your password"
+                    autocomplete="current-password"
+                    minlength="6"
+                    required
+                >
+
+            </div>
+
+
+            <button
+                type="submit"
+                id="authButton"
+            >
+                🔐 Login
+            </button>
+
+
+            <div id="authMessage"></div>
+
+
+            <div id="authToggle">
+
+                Don't have an account?
+
+                <button
+                    type="button"
+                    id="switchAuthMode"
+                >
+                    Create Account
+                </button>
+
+            </div>
+
+
+        </form>
+
+
+    </div>
+
+</section>
+
+
+
+<!-- ==========================================
+     MAIN APP
+========================================== -->
+
+<div
+    class="app"
+    id="appContent"
+>
+
+
+    <!-- TOP BAR -->
+
+    <header class="topbar">
+
+        <div>
+
+            <h1>
+                AI Content Agent
+            </h1>
+
+            <p>
+                Create smarter content with AI
+            </p>
+
+        </div>
+
+
+        <div class="topbar-right">
+
+
+            <button
+                id="logoutBtn"
+                type="button"
+            >
+                🚪 Logout
+            </button>
+
+
+            <div
+                class="profile"
+                title="Logged-in user"
+            >
+                AI
+            </div>
+
+
+        </div>
+
+    </header>
+
+
+
+    <main class="dashboard">
+
+
+        <!-- ==========================================
+             MAIN GENERATOR
+        ========================================== -->
+
+        <section class="hero">
+
+            <h2>
+                What do you want to create?
+            </h2>
+
+            <p>
+                Generate ideas, scripts, captions, hooks and more.
+            </p>
+
+
+            <textarea
+                id="topicInput"
+                placeholder="Example: Instagram reel about LIC savings..."
+            ></textarea>
+
+
+            <label for="contentType">
+                Content Type
+            </label>
+
+
+            <select id="contentType">
+
+                <option value="Instagram Reel">
+                    🎬 Instagram Reel
+                </option>
+
+                <option value="Instagram Post">
+                    📱 Instagram Post
+                </option>
+
+                <option value="YouTube Video">
+                    ▶️ YouTube Video
+                </option>
+
+                <option value="LinkedIn Post">
+                    💼 LinkedIn Post
+                </option>
+
+                <option value="Caption">
+                    📝 Caption
+                </option>
+
+                <option value="Ad Copy">
+                    🎯 Ad Copy
+                </option>
+
+            </select>
+
+
+            <label for="language">
+                Language
+            </label>
+
+
+            <select id="language">
+
+                <option value="Hindi">
+                    🇮🇳 Hindi
+                </option>
+
+                <option value="English">
+                    🇬🇧 English
+                </option>
+
+                <option value="Hinglish">
+                    🔄 Hinglish
+                </option>
+
+            </select>
+
+
+            <button id="generateBtn">
+                ✨ Generate Content
+            </button>
+
+        </section>
+
+
+
+        <!-- ==========================================
+             TOOLS
+        ========================================== -->
+
+        <section class="tools">
+
+
+            <div
+                class="tool-card"
+                id="contentIdeasCard"
+                role="button"
+                tabindex="0"
+                title="Open Content Ideas"
+            >
+
+                <span>💡</span>
+
+                <h3>
+                    Content Ideas
+                </h3>
+
+                <p>
+                    Generate fresh content ideas.
+                </p>
+
+            </div>
+
+
+
+            <div
+                class="tool-card"
+                id="imageGeneratorCard"
+                role="button"
+                tabindex="0"
+                title="Open AI Image Generator"
+            >
+
+                <span>🖼️</span>
+
+                <h3>
+                    AI Image
+                </h3>
+
+                <p>
+                    Create images for posts, stories and thumbnails.
+                </p>
+
+            </div>
+
+
+
+            <div class="tool-card">
+
+                <span>🎬</span>
+
+                <h3>
+                    Scripts
+                </h3>
+
+                <p>
+                    Create short-form video scripts.
+                </p>
+
+            </div>
+
+
+
+            <div class="tool-card">
+
+                <span>🪝</span>
+
+                <h3>
+                    Hooks
+                </h3>
+
+                <p>
+                    Create attention-grabbing hooks.
+                </p>
+
+            </div>
+
+
+
+            <div class="tool-card">
+
+                <span>📝</span>
+
+                <h3>
+                    Captions
+                </h3>
+
+                <p>
+                    Generate social media captions.
+                </p>
+
+            </div>
+
+
+
+            <div class="tool-card">
+
+                <span>#️⃣</span>
+
+                <h3>
+                    Hashtags
+                </h3>
+
+                <p>
+                    Find relevant hashtags.
+                </p>
+
+            </div>
+
+
+
+            <div class="tool-card">
+
+                <span>📢</span>
+
+                <h3>
+                    CTA
+                </h3>
+
+                <p>
+                    Create strong calls to action.
+                </p>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- ==========================================
+             AI RESULT
+        ========================================== -->
+
+        <section class="result-box">
+
+            <h2>
+                AI Result
+            </h2>
+
+            <div id="result">
+                Your generated content will appear here.
+            </div>
+
+        </section>
+
+
+
+        <!-- ==========================================
+             CONTENT IDEAS
+        ========================================== -->
+
+        <section
+            class="ideas-box"
+            id="contentIdeasSection"
+        >
+
+            <div class="ideas-header">
+
+                <div>
+
+                    <span class="ideas-icon">
+                        💡
+                    </span>
+
+                    <h2>
+                        Content Ideas
+                    </h2>
+
+                    <p>
+                        Generate fresh ideas for your next
+                        post, reel or video.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="ideas-controls">
+
+                <input
+                    type="text"
+                    id="ideasTopic"
+                    placeholder="Example: LIC savings, digital skills, YouTube growth..."
+                >
+
+
+                <select id="ideasLanguage">
+
+                    <option value="Hindi">
+                        🇮🇳 Hindi
+                    </option>
+
+                    <option value="English">
+                        🇬🇧 English
+                    </option>
+
+                    <option value="Hinglish">
+                        🔄 Hinglish
+                    </option>
+
+                </select>
+
+
+                <select id="ideasCount">
+
+                    <option value="5">
+                        5 Ideas
+                    </option>
+
+                    <option value="10" selected>
+                        10 Ideas
+                    </option>
+
+                    <option value="15">
+                        15 Ideas
+                    </option>
+
+                </select>
+
+
+                <button id="generateIdeasBtn">
+                    💡 Generate Ideas
+                </button>
+
+            </div>
+
+
+            <div id="ideasResult">
+                Your content ideas will appear here.
+            </div>
+
+        </section>
+
+
+
+        <!-- ==========================================
+             AI IMAGE GENERATOR
+        ========================================== -->
+
+        <section
+            class="image-box"
+            id="imageGeneratorSection"
+        >
+
+            <div class="image-header">
+
+                <span class="image-icon">
+                    🖼️
+                </span>
+
+                <div>
+
+                    <h2>
+                        AI Image Generator
+                    </h2>
+
+                    <p>
+                        Create visuals for Instagram,
+                        YouTube, posters and social media.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="image-controls">
+
+
+                <div class="image-field full">
+
+                    <label for="imagePrompt">
+                        What image do you want?
+                    </label>
+
+                    <textarea
+                        id="imagePrompt"
+                        placeholder="Example: A premium LIC savings awareness poster with a happy Indian family, professional blue theme, clean modern design..."
+                    ></textarea>
+
+                </div>
+
+
+                <div class="image-field">
+
+                    <label for="imageType">
+                        Image Type
+                    </label>
+
+                    <select id="imageType">
+
+                        <option value="Instagram Post">
+                            📱 Instagram Post
+                        </option>
+
+                        <option value="Instagram Story">
+                            📲 Instagram Story
+                        </option>
+
+                        <option value="YouTube Thumbnail">
+                            ▶️ YouTube Thumbnail
+                        </option>
+
+                        <option value="Poster">
+                            🖼️ Poster
+                        </option>
+
+                        <option value="Square Post">
+                            ⬜ Square Post
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="image-field">
+
+                    <label for="imageStyle">
+                        Visual Style
+                    </label>
+
+                    <select id="imageStyle">
+
+                        <option value="Modern Premium">
+                            ✨ Modern Premium
+                        </option>
+
+                        <option value="Clean Minimal">
+                            🧼 Clean Minimal
+                        </option>
+
+                        <option value="Professional">
+                            💼 Professional
+                        </option>
+
+                        <option value="Realistic">
+                            📸 Realistic
+                        </option>
+
+                        <option value="Cinematic">
+                            🎬 Cinematic
+                        </option>
+
+                        <option value="Creative">
+                            🎨 Creative
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="image-field">
+
+                    <label for="imageSize">
+                        Quality
+                    </label>
+
+                    <select id="imageSize">
+
+                        <option value="1K">
+                            1K
+                        </option>
+
+                        <option value="2K">
+                            2K
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <button
+                    id="generateImageBtn"
+                    class="image-generate-btn"
+                >
+                    🖼️ Generate Image
+                </button>
+
+            </div>
+
+
+            <div
+                id="imageResult"
+                class="image-result"
+            >
+
+                <div class="image-placeholder">
+
+                    <span>
+                        🖼️
+                    </span>
+
+                    <p>
+                        Your generated image will appear here.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+</div>
+
+
+
+<!-- ==========================================
+     EXISTING AI JAVASCRIPT
+========================================== -->
+
+<!-- HISTORY -->
+<script
+    type="module"
+    src="history.js"
+></script>
+
+
+<script src="script.js"></script>
+
+
+<!-- AI CHAT -->
+<script src="chat.js"></script>
+
+
+<!-- DASHBOARD / PROFILE / SETTINGS -->
+<script
+    type="module"
+    src="dashboard.js"
+></script>
+
+
+
+<!-- ==========================================
+     CARD SCROLL
+========================================== -->
+
+<script>
+
+    const contentIdeasCard =
+        document.getElementById("contentIdeasCard");
+
+    const contentIdeasSection =
+        document.getElementById("contentIdeasSection");
+
+
+    if (
+        contentIdeasCard &&
+        contentIdeasSection
+    ) {
+
+        contentIdeasCard.style.cursor =
+            "pointer";
+
+
+        contentIdeasCard.addEventListener(
+            "click",
+            function () {
+
+                contentIdeasSection.scrollIntoView({
+
+                    behavior: "smooth",
+
+                    block: "start"
+
+                });
+
+            }
+        );
+
+
+        contentIdeasCard.addEventListener(
+            "keydown",
+            function (event) {
+
+                if (
+                    event.key === "Enter" ||
+                    event.key === " "
+                ) {
+
+                    event.preventDefault();
+
+
+                    contentIdeasSection.scrollIntoView({
+
+                        behavior: "smooth",
+
+                        block: "start"
+
+                    });
+
+                }
+
+            }
+        );
+
+    }
+
+
+
+    /* IMAGE CARD SCROLL */
+
+    const imageGeneratorCard =
+        document.getElementById("imageGeneratorCard");
+
+    const imageGeneratorSection =
+        document.getElementById("imageGeneratorSection");
+
+
+    if (
+        imageGeneratorCard &&
+        imageGeneratorSection
+    ) {
+
+        imageGeneratorCard.style.cursor =
+            "pointer";
+
+
+        imageGeneratorCard.addEventListener(
+            "click",
+            function () {
+
+                imageGeneratorSection.scrollIntoView({
+
+                    behavior: "smooth",
+
+                    block: "start"
+
+                });
+
+            }
+        );
+
+
+        imageGeneratorCard.addEventListener(
+            "keydown",
+            function (event) {
+
+                if (
+                    event.key === "Enter" ||
+                    event.key === " "
+                ) {
+
+                    event.preventDefault();
+
+
+                    imageGeneratorSection.scrollIntoView({
+
+                        behavior: "smooth",
+
+                        block: "start"
+
+                    });
+
+                }
+
+            }
+        );
+
+    }
+
+</script>
+
+
+
+<!-- ==========================================
+     FIREBASE AUTH
+========================================== -->
+
+<script
+    type="module"
+    src="auth.js"
+></script>
+
+
+</body>
+
+</html>
