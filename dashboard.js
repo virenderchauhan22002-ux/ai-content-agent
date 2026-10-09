@@ -2299,7 +2299,7 @@ function createDashboard() {
 // OPEN DASHBOARD
 // ============================================================
 
-function openDashboard() {
+async function openDashboard() {
 
     if (!currentUser) {
 
@@ -2327,7 +2327,7 @@ function openDashboard() {
 
     loadProfile();
 
-    checkAdminAccess();
+    await checkAdminAccess();
 
 }
 
@@ -3021,30 +3021,22 @@ async function checkAdminAccess() {
 
     isAdmin = false;
 
-
     const adminNav =
         document.getElementById(
             "acaAdminNav"
         );
 
-
     if (adminNav) {
-
-        adminNav.style.display =
-            "none";
-
+        adminNav.style.display = "none";
     }
 
-
-    if (
-        !currentUser ||
-        !db
-    ) {
+    if (!currentUser || !db) {
         return false;
     }
 
-
     try {
+
+        await currentUser.getIdToken(true);
 
         const adminRef =
             doc(
@@ -3053,50 +3045,32 @@ async function checkAdminAccess() {
                 currentUser.uid
             );
 
-
         const snapshot =
             await getDoc(
                 adminRef
             );
 
-
-        if (
-            snapshot.exists()
-        ) {
+        if (snapshot.exists()) {
 
             const data =
                 snapshot.data();
 
-
-            if (
-                data &&
-                data.role === "admin"
-            ) {
+            if (data && data.role === "admin") {
 
                 isAdmin = true;
 
-
                 if (adminNav) {
-
-                    adminNav.style.display =
-                        "block";
-
+                    adminNav.style.display = "block";
                 }
-
 
                 const uidElement =
                     document.getElementById(
                         "acaAdminCurrentUid"
                     );
 
-
                 if (uidElement) {
-
-                    uidElement.textContent =
-                        currentUser.uid;
-
+                    uidElement.textContent = currentUser.uid;
                 }
-
 
                 return true;
 
@@ -3112,7 +3086,6 @@ async function checkAdminAccess() {
         );
 
     }
-
 
     return false;
 
