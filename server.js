@@ -19,19 +19,92 @@ const hf = new InferenceClient(process.env.HF_TOKEN);
 
 
 // ===============================
+// WAIT HELPER
+// ===============================
+
+function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
+// ===============================
 // GEMINI TEXT GENERATOR
 // ===============================
 
-async function generateGeminiText(
-    prompt,
-    model = "gemini-3.8-flash"
-) {
-    const response = await ai.models.generateContent({
-        model: model,
-        contents: prompt
-    });
+async function generateGeminiText(prompt, model) {
+    const maxRetries = 3;
 
-    return response.text || "";
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const response = await ai.models.generateContent({
+                model: model,
+                contents: prompt
+            });
+
+            return response.text || "";
+
+        } catch (error) {
+            console.error(
+                `${model} attempt ${attempt} failed:`,
+                error.message
+            );
+
+            const message = error.message || "";
+
+            const isTemporaryError =
+                message.includes("503") ||
+                message.includes("UNAVAILABLE") ||
+                message.includes("high demand") ||
+                message.includes("overloaded");
+
+            if (!isTemporaryError || attempt === maxRetries) {
+                throw error;
+            }
+
+            const delay =
+                attempt === 1
+                    ? 2000
+                    : attempt === 2
+                        ? 4000
+                        : 8000;
+
+            console.log(
+                `Retrying ${model} in ${delay / 1000} seconds...`
+            );
+
+            await wait(delay);
+        }
+    }
+
+    throw new Error("Gemini request failed.");
+}
+
+
+// ===============================
+// GEMINI WITH FALLBACK
+// ===============================
+
+async function generateWithFallback(prompt) {
+    try {
+        return await generateGeminiText(
+            prompt,
+            "gemini-3.8-flash"
+        );
+
+    } catch (primaryError) {
+        console.log(
+            "Gemini 3.8 unavailable after retries."
+        );
+
+        console.log(
+            "Trying Gemini 3.7 fallback..."
+        );
+
+        return await generateGeminiText(
+            prompt,
+            "gemini-3.7-flash"
+        );
+    }
 }
 
 
@@ -72,23 +145,7 @@ Requirements:
 - Give only the requested content.
 `;
 
-        let result = "";
-
-        try {
-            result = await generateGeminiText(
-                prompt,
-                "gemini-3.8-flash"
-            );
-        } catch (primaryError) {
-            console.log(
-                "Gemini 3.8 failed. Trying Gemini 3.7 fallback..."
-            );
-
-            result = await generateGeminiText(
-                prompt,
-                "gemini-3.7-flash"
-            );
-        }
+        const result = await generateWithFallback(prompt);
 
         res.json({
             success: true,
@@ -137,23 +194,7 @@ Rules:
 - Do not add unnecessary explanations.
 `;
 
-        let text = "";
-
-        try {
-            text = await generateGeminiText(
-                prompt,
-                "gemini-3.8-flash"
-            );
-        } catch (primaryError) {
-            console.log(
-                "Gemini 3.8 ideas failed. Trying Gemini 3.7 fallback..."
-            );
-
-            text = await generateGeminiText(
-                prompt,
-                "gemini-3.7-flash"
-            );
-        }
+        const text = await generateWithFallback(prompt);
 
         const ideas = text
             .split("\n")
@@ -220,23 +261,7 @@ Instructions:
 - Keep the answer clear and easy to understand.
 `;
 
-        let reply = "";
-
-        try {
-            reply = await generateGeminiText(
-                prompt,
-                "gemini-3.8-flash"
-            );
-        } catch (primaryError) {
-            console.log(
-                "Gemini 3.8 chat failed. Trying Gemini 3.7 fallback..."
-            );
-
-            reply = await generateGeminiText(
-                prompt,
-                "gemini-3.7-flash"
-            );
-        }
+        const reply = await generateWithFallback(prompt);
 
         res.json({
             success: true,
