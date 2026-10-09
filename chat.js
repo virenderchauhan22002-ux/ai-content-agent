@@ -7,82 +7,25 @@
 // RENDER BACKEND URL
 // ==========================================
 
-const API_BASE_URL =
+const AI_CHAT_API_BASE_URL =
     "https://ai-content-agent-3hb3.onrender.com";
-
-
-// ==========================================
-// FIREBASE CONFIG
-// ==========================================
-
-const firebaseConfig = {
-    apiKey: "AIzaSyAF9-LEijO0bI7OcaT5I74f2UtfGDdc78JGqQ",
-    authDomain: "ai-content-agent-a9820.firebaseapp.com",
-    projectId: "ai-content-agent-a9820",
-    storageBucket: "ai-content-agent-a9820.firebasestorage.app",
-    messagingSenderId: "833284009437",
-    appId: "1:833284009437:web:91859542fb1f87ccdb9a34"
-};
-
-
-// ==========================================
-// WAIT FOR FIREBASE
-// ==========================================
-
-async function getFirebaseAuth() {
-
-    const {
-        initializeApp,
-        getApps,
-        getApp
-    } = await import(
-        "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js"
-    );
-
-    const {
-        getAuth,
-        onAuthStateChanged
-    } = await import(
-        "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"
-    );
-
-
-    let firebaseApp;
-
-    if (getApps().length > 0) {
-
-        firebaseApp = getApp();
-
-    } else {
-
-        firebaseApp =
-            initializeApp(firebaseConfig);
-    }
-
-
-    const auth =
-        getAuth(firebaseApp);
-
-
-    return {
-        auth,
-        onAuthStateChanged
-    };
-}
 
 
 // ==========================================
 // DOM READY
 // ==========================================
 
-document.addEventListener(
-    "DOMContentLoaded",
-    () => {
+document.addEventListener("DOMContentLoaded", () => {
 
-        initializeAIChat();
+    const appContent =
+        document.getElementById("appContent");
 
-    }
-);
+    // appContent is not required for AI Chat.
+    // Do not stop execution if it is missing.
+
+    initializeAIChat();
+
+});
 
 
 // ==========================================
@@ -91,16 +34,14 @@ document.addEventListener(
 
 async function initializeAIChat() {
 
-    // Prevent duplicate chat
+    // Prevent duplicate initialization
     if (
         document.getElementById("aiChatLauncher") ||
         document.getElementById("aiChatPanel")
     ) {
-
         console.log(
             "AI Chat already initialized."
         );
-
         return;
     }
 
@@ -118,566 +59,300 @@ async function initializeAIChat() {
     style.textContent = `
 
         #aiChatLauncher {
-
             position: fixed;
-
             right: 22px;
             bottom: 22px;
-
             z-index: 10000;
-
             border: none;
-
             border-radius: 50px;
-
             padding: 14px 20px;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #5b5cf0,
-                    #4546d8
-                );
-
+            background: linear-gradient(
+                135deg,
+                #5b5cf0,
+                #4546d8
+            );
             color: white;
-
             font-size: 15px;
-
             font-weight: 700;
-
             cursor: pointer;
-
             box-shadow:
-                0 10px 30px
-                rgba(69,70,216,0.30);
-
-            transition:
-                0.2s ease;
+                0 10px 30px rgba(69,70,216,0.30);
+            transition: 0.2s ease;
         }
-
 
         #aiChatLauncher:hover {
-
-            transform:
-                translateY(-2px);
-
-            box-shadow:
-                0 14px 35px
-                rgba(69,70,216,0.38);
+            transform: translateY(-2px);
         }
 
-
         #aiChatPanel {
-
             position: fixed;
-
             right: 22px;
-
             bottom: 82px;
-
-            width:
-                min(
-                    420px,
-                    calc(100vw - 28px)
-                );
-
-            height:
-                min(
-                    650px,
-                    calc(100vh - 120px)
-                );
-
-            background:
-                #ffffff;
-
-            border:
-                1px solid #e9eaf3;
-
-            border-radius:
-                20px;
-
+            width: min(420px, calc(100vw - 28px));
+            height: min(650px, calc(100vh - 120px));
+            background: #ffffff;
+            border: 1px solid #e9eaf3;
+            border-radius: 20px;
             box-shadow:
-                0 20px 60px
-                rgba(23,24,43,0.20);
-
+                0 20px 60px rgba(23,24,43,0.20);
             z-index: 9999;
-
             display: none;
-
             flex-direction: column;
-
             overflow: hidden;
         }
 
-
         #aiChatPanel.open {
-
             display: flex;
         }
 
-
         .ai-chat-header {
-
-            padding:
-                16px 18px;
-
+            padding: 16px 18px;
             background:
                 linear-gradient(
                     135deg,
                     #5b5cf0,
                     #4546d8
                 );
-
             color: white;
-
             display: flex;
-
             align-items: center;
-
-            justify-content:
-                space-between;
+            justify-content: space-between;
         }
 
-
         .ai-chat-header-left {
-
             display: flex;
-
             align-items: center;
-
             gap: 10px;
         }
 
-
         .ai-chat-avatar {
-
             width: 38px;
-
             height: 38px;
-
             border-radius: 50%;
-
             background:
-                rgba(
-                    255,
-                    255,
-                    255,
-                    0.18
-                );
-
+                rgba(255,255,255,0.18);
             display: flex;
-
             align-items: center;
-
             justify-content: center;
-
             font-size: 19px;
         }
 
-
         .ai-chat-title {
-
             font-size: 16px;
-
             font-weight: 700;
         }
 
-
         .ai-chat-status {
-
             font-size: 11px;
-
             opacity: 0.85;
-
             margin-top: 2px;
         }
 
-
         .ai-chat-header-actions {
-
             display: flex;
-
             gap: 6px;
         }
 
-
         .ai-chat-header-btn {
-
             border: none;
-
             background:
-                rgba(
-                    255,
-                    255,
-                    255,
-                    0.14
-                );
-
+                rgba(255,255,255,0.14);
             color: white;
-
             border-radius: 9px;
-
-            padding:
-                8px 9px;
-
+            padding: 8px 9px;
             cursor: pointer;
-
             font-size: 13px;
         }
 
-
         .ai-chat-header-btn:hover {
-
             background:
-                rgba(
-                    255,
-                    255,
-                    255,
-                    0.24
-                );
+                rgba(255,255,255,0.24);
         }
-
 
         #aiChatMessages {
-
             flex: 1;
-
             overflow-y: auto;
-
             padding: 16px;
-
-            background:
-                #f7f8fc;
+            background: #f7f8fc;
         }
 
-
         .ai-chat-message {
-
             display: flex;
-
             margin-bottom: 13px;
         }
 
-
         .ai-chat-message.user {
-
-            justify-content:
-                flex-end;
+            justify-content: flex-end;
         }
-
 
         .ai-chat-message.assistant {
-
-            justify-content:
-                flex-start;
+            justify-content: flex-start;
         }
-
 
         .ai-chat-bubble {
-
             max-width: 84%;
-
-            padding:
-                11px 13px;
-
+            padding: 11px 13px;
             border-radius: 15px;
-
             font-size: 14px;
-
             line-height: 1.55;
-
-            word-break:
-                break-word;
+            word-break: break-word;
         }
-
 
         .ai-chat-message.user
         .ai-chat-bubble {
-
-            background:
-                #5b5cf0;
-
+            background: #5b5cf0;
             color: white;
-
-            border-bottom-right-radius:
-                5px;
+            border-bottom-right-radius: 5px;
         }
-
 
         .ai-chat-message.assistant
         .ai-chat-bubble {
-
-            background:
-                white;
-
-            color:
-                #17182b;
-
-            border:
-                1px solid #e9eaf3;
-
-            border-bottom-left-radius:
-                5px;
+            background: white;
+            color: #17182b;
+            border: 1px solid #e9eaf3;
+            border-bottom-left-radius: 5px;
         }
-
 
         .ai-chat-welcome {
-
             text-align: center;
-
-            padding:
-                35px 18px;
-
-            color:
-                #73758a;
+            padding: 35px 18px;
+            color: #73758a;
         }
 
-
         .ai-chat-welcome-icon {
-
             font-size: 38px;
-
             margin-bottom: 10px;
         }
 
-
         .ai-chat-welcome-title {
-
-            color:
-                #17182b;
-
+            color: #17182b;
             font-size: 18px;
-
             font-weight: 700;
-
             margin-bottom: 6px;
         }
 
-
         .ai-chat-welcome-text {
-
             font-size: 13px;
-
             line-height: 1.5;
         }
 
-
         .ai-chat-input-area {
-
             padding: 12px;
-
-            background:
-                white;
-
-            border-top:
-                1px solid #e9eaf3;
+            background: white;
+            border-top: 1px solid #e9eaf3;
         }
-
 
         .ai-chat-input-row {
-
             display: flex;
-
             gap: 8px;
-
-            align-items:
-                flex-end;
+            align-items: flex-end;
         }
-
 
         #aiChatInput {
-
             flex: 1;
-
             min-height: 45px;
-
             max-height: 130px;
-
             resize: none;
-
-            border:
-                1px solid #dfe1ec;
-
+            border: 1px solid #dfe1ec;
             border-radius: 13px;
-
-            padding:
-                11px 12px;
-
-            font-family:
-                inherit;
-
+            padding: 11px 12px;
+            font-family: inherit;
             font-size: 14px;
-
             outline: none;
-
-            color:
-                #17182b;
-
-            background:
-                #fafbfe;
+            color: #17182b;
+            background: #fafbfe;
         }
-
 
         #aiChatInput:focus {
-
-            border-color:
-                #5b5cf0;
-
-            background:
-                white;
+            border-color: #5b5cf0;
+            background: white;
         }
 
-
         #aiChatSend {
-
             width: 45px;
-
             height: 45px;
-
             flex-shrink: 0;
-
             border: none;
-
             border-radius: 13px;
-
-            background:
-                #5b5cf0;
-
+            background: #5b5cf0;
             color: white;
-
             font-size: 18px;
-
             cursor: pointer;
         }
 
-
         #aiChatSend:disabled {
-
             opacity: 0.55;
-
-            cursor:
-                not-allowed;
+            cursor: not-allowed;
         }
 
-
         .ai-chat-hint {
-
             font-size: 10px;
-
-            color:
-                #9294a4;
-
+            color: #9294a4;
             margin-top: 6px;
-
             padding-left: 2px;
         }
 
-
         .ai-chat-typing {
-
             display: inline-flex;
-
             gap: 4px;
-
             align-items: center;
         }
 
-
         .ai-chat-typing span {
-
             width: 5px;
-
             height: 5px;
-
             border-radius: 50%;
-
-            background:
-                #8b8da0;
-
-            animation:
-                aiChatTyping 1s infinite;
+            background: #8b8da0;
+            animation: aiChatTyping 1s infinite;
         }
-
 
         .ai-chat-typing span:nth-child(2) {
-
-            animation-delay:
-                0.15s;
+            animation-delay: 0.15s;
         }
-
 
         .ai-chat-typing span:nth-child(3) {
-
-            animation-delay:
-                0.30s;
+            animation-delay: 0.30s;
         }
-
 
         @keyframes aiChatTyping {
-
-            0%,
-            60%,
-            100% {
-
+            0%, 60%, 100% {
                 opacity: 0.3;
-
-                transform:
-                    translateY(0);
+                transform: translateY(0);
             }
-
 
             30% {
-
                 opacity: 1;
-
-                transform:
-                    translateY(-3px);
+                transform: translateY(-3px);
             }
         }
-
 
         @media (max-width: 600px) {
 
             #aiChatLauncher {
-
                 right: 15px;
-
                 bottom: 15px;
-
-                padding:
-                    13px 17px;
+                padding: 13px 17px;
             }
 
-
             #aiChatPanel {
-
                 right: 8px;
-
                 bottom: 72px;
-
-                width:
-                    calc(100vw - 16px);
-
-                height:
-                    calc(100vh - 95px);
-
+                width: calc(100vw - 16px);
+                height: calc(100vh - 95px);
                 border-radius: 18px;
             }
 
-
             .ai-chat-bubble {
-
                 max-width: 90%;
             }
         }
     `;
 
-
     document.head.appendChild(style);
 
 
     // ==========================================
-    // CREATE LAUNCHER
+    // CREATE CHAT LAUNCHER
     // ==========================================
 
     const launcher =
@@ -695,13 +370,11 @@ async function initializeAIChat() {
     launcher.style.display =
         "none";
 
-    document.body.appendChild(
-        launcher
-    );
+    document.body.appendChild(launcher);
 
 
     // ==========================================
-    // CREATE PANEL
+    // CREATE CHAT PANEL
     // ==========================================
 
     const panel =
@@ -734,7 +407,6 @@ async function initializeAIChat() {
 
             </div>
 
-
             <div class="ai-chat-header-actions">
 
                 <button
@@ -746,7 +418,6 @@ async function initializeAIChat() {
                     ↻
 
                 </button>
-
 
                 <button
                     type="button"
@@ -776,12 +447,9 @@ async function initializeAIChat() {
                 </div>
 
                 <div class="ai-chat-welcome-text">
-
                     Normal baat karo,
                     questions pucho,
-                    ideas lo ya content
-                    banwao.
-
+                    ideas lo ya content banwao.
                 </div>
 
             </div>
@@ -798,7 +466,6 @@ async function initializeAIChat() {
                     placeholder="Message AI Assistant..."
                     rows="1"></textarea>
 
-
                 <button
                     type="button"
                     id="aiChatSend"
@@ -810,20 +477,14 @@ async function initializeAIChat() {
 
             </div>
 
-
             <div class="ai-chat-hint">
-
                 Enter = Send • Shift + Enter = New line
-
             </div>
 
         </div>
     `;
 
-
-    document.body.appendChild(
-        panel
-    );
+    document.body.appendChild(panel);
 
 
     // ==========================================
@@ -857,15 +518,56 @@ async function initializeAIChat() {
 
 
     // ==========================================
-    // AUTH VISIBILITY
+    // FIREBASE AUTH
     // ==========================================
 
     try {
 
         const {
-            auth,
+            initializeApp,
+            getApps,
+            getApp
+        } = await import(
+            "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js"
+        );
+
+        const {
+            getAuth,
             onAuthStateChanged
-        } = await getFirebaseAuth();
+        } = await import(
+            "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"
+        );
+
+
+        const firebaseConfig = {
+            apiKey:
+                "AIzaSyAF9-LEijO0bI7OcaT5I74f2UtfGDdc78JGqQ",
+
+            authDomain:
+                "ai-content-agent-a9820.firebaseapp.com",
+
+            projectId:
+                "ai-content-agent-a9820",
+
+            storageBucket:
+                "ai-content-agent-a9820.firebasestorage.app",
+
+            messagingSenderId:
+                "833284009437",
+
+            appId:
+                "1:833284009437:web:91859542fb1f87ccdb9a34"
+        };
+
+
+        const firebaseApp =
+            getApps().length
+                ? getApp()
+                : initializeApp(firebaseConfig);
+
+
+        const auth =
+            getAuth(firebaseApp);
 
 
         onAuthStateChanged(
@@ -873,10 +575,6 @@ async function initializeAIChat() {
             (user) => {
 
                 if (user) {
-
-                    // =========================
-                    // LOGGED IN
-                    // =========================
 
                     launcher.style.display =
                         "block";
@@ -886,10 +584,6 @@ async function initializeAIChat() {
                     );
 
                 } else {
-
-                    // =========================
-                    // LOGGED OUT
-                    // =========================
 
                     launcher.style.display =
                         "none";
@@ -923,6 +617,15 @@ async function initializeAIChat() {
 
 
     // ==========================================
+    // CHAT MEMORY
+    // ==========================================
+
+    let messages = [];
+
+    let isSending = false;
+
+
+    // ==========================================
     // OPEN / CLOSE
     // ==========================================
 
@@ -934,7 +637,6 @@ async function initializeAIChat() {
                 "open"
             );
 
-
             if (
                 panel.classList.contains(
                     "open"
@@ -943,9 +645,7 @@ async function initializeAIChat() {
 
                 setTimeout(
                     () => {
-
                         input.focus();
-
                     },
                     100
                 );
@@ -969,11 +669,6 @@ async function initializeAIChat() {
     // ==========================================
     // NEW CHAT
     // ==========================================
-
-    let messages = [];
-
-    let isSending = false;
-
 
     newChatButton.addEventListener(
         "click",
@@ -1021,14 +716,10 @@ async function initializeAIChat() {
     function escapeHTML(value) {
 
         const div =
-            document.createElement(
-                "div"
-            );
-
+            document.createElement("div");
 
         div.textContent =
             String(value || "");
-
 
         return div.innerHTML;
     }
@@ -1041,21 +732,9 @@ async function initializeAIChat() {
     function formatMessage(text) {
 
         return escapeHTML(text)
-
-            .replace(
-                /\r\n/g,
-                "\n"
-            )
-
-            .replace(
-                /\r/g,
-                "\n"
-            )
-
-            .replace(
-                /\n/g,
-                "<br>"
-            );
+            .replace(/\r\n/g, "\n")
+            .replace(/\r/g, "\n")
+            .replace(/\n/g, "<br>");
     }
 
 
@@ -1069,41 +748,25 @@ async function initializeAIChat() {
     ) {
 
         const message =
-            document.createElement(
-                "div"
-            );
-
+            document.createElement("div");
 
         message.className =
-            "ai-chat-message " +
-            role;
+            "ai-chat-message " + role;
 
 
         const bubble =
-            document.createElement(
-                "div"
-            );
-
+            document.createElement("div");
 
         bubble.className =
             "ai-chat-bubble";
 
-
         bubble.innerHTML =
-            formatMessage(
-                content
-            );
+            formatMessage(content);
 
 
-        message.appendChild(
-            bubble
-        );
+        message.appendChild(bubble);
 
-
-        messagesBox.appendChild(
-            message
-        );
-
+        messagesBox.appendChild(message);
 
         messagesBox.scrollTop =
             messagesBox.scrollHeight;
@@ -1120,18 +783,13 @@ async function initializeAIChat() {
     function addTypingIndicator() {
 
         const message =
-            document.createElement(
-                "div"
-            );
-
+            document.createElement("div");
 
         message.className =
             "ai-chat-message assistant";
 
-
         message.id =
             "aiChatTypingMessage";
-
 
         message.innerHTML = `
 
@@ -1149,10 +807,7 @@ async function initializeAIChat() {
         `;
 
 
-        messagesBox.appendChild(
-            message
-        );
-
+        messagesBox.appendChild(message);
 
         messagesBox.scrollTop =
             messagesBox.scrollHeight;
@@ -1166,11 +821,8 @@ async function initializeAIChat() {
                 "aiChatTypingMessage"
             );
 
-
         if (typing) {
-
             typing.remove();
-
         }
     }
 
@@ -1207,8 +859,6 @@ async function initializeAIChat() {
             true;
 
 
-        // Remove welcome message
-
         const welcome =
             messagesBox.querySelector(
                 ".ai-chat-welcome"
@@ -1216,13 +866,9 @@ async function initializeAIChat() {
 
 
         if (welcome) {
-
             welcome.remove();
-
         }
 
-
-        // User message
 
         addMessage(
             "user",
@@ -1231,11 +877,8 @@ async function initializeAIChat() {
 
 
         messages.push({
-
             role: "user",
-
             content: text
-
         });
 
 
@@ -1252,19 +895,17 @@ async function initializeAIChat() {
 
             const response =
                 await fetch(
-                    `${API_BASE_URL}/chat`,
+                    `${AI_CHAT_API_BASE_URL}/chat`,
                     {
                         method: "POST",
 
                         headers: {
-
                             "Content-Type":
                                 "application/json"
                         },
 
                         body:
                             JSON.stringify({
-
                                 messages:
                                     messages,
 
@@ -1325,7 +966,6 @@ async function initializeAIChat() {
 
 
             messages.push({
-
                 role:
                     "assistant",
 
@@ -1408,7 +1048,6 @@ async function initializeAIChat() {
 
             input.style.height =
                 "45px";
-
 
             input.style.height =
                 Math.min(
