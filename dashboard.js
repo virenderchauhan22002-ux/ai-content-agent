@@ -2331,6 +2331,37 @@ async function openDashboard() {
 
     await checkAdminAccess();
 
+    if (isAdmin) {
+
+        const adminNav =
+            document.getElementById(
+                "acaAdminNav"
+            );
+
+        if (adminNav) {
+
+            adminNav.style.setProperty(
+                "display",
+                "block",
+                "important"
+            );
+
+            adminNav.style.setProperty(
+                "visibility",
+                "visible",
+                "important"
+            );
+
+            adminNav.style.setProperty(
+                "opacity",
+                "1",
+                "important"
+            );
+
+        }
+
+    }
+
 }
 
 
@@ -3029,12 +3060,31 @@ async function checkAdminAccess() {
         );
 
     if (adminNav) {
-        adminNav.style.display = "none";
-        adminNav.style.visibility = "hidden";
-        adminNav.style.opacity = "0";
+
+        adminNav.style.setProperty(
+            "display",
+            "none",
+            "important"
+        );
+
+        adminNav.style.setProperty(
+            "visibility",
+            "hidden",
+            "important"
+        );
+
+        adminNav.style.setProperty(
+            "opacity",
+            "0",
+            "important"
+        );
+
     }
 
-    if (!currentUser || !db) {
+    if (
+        !currentUser ||
+        !db
+    ) {
         return false;
     }
 
@@ -3054,19 +3104,40 @@ async function checkAdminAccess() {
                 adminRef
             );
 
-        if (snapshot.exists()) {
+        if (
+            snapshot.exists()
+        ) {
 
             const data =
                 snapshot.data();
 
-            if (data && data.role === "admin") {
+            if (
+                data &&
+                data.role === "admin"
+            ) {
 
                 isAdmin = true;
 
                 if (adminNav) {
-                    adminNav.style.display = "block";
-                    adminNav.style.visibility = "visible";
-                    adminNav.style.opacity = "1";
+
+                    adminNav.style.setProperty(
+                        "display",
+                        "block",
+                        "important"
+                    );
+
+                    adminNav.style.setProperty(
+                        "visibility",
+                        "visible",
+                        "important"
+                    );
+
+                    adminNav.style.setProperty(
+                        "opacity",
+                        "1",
+                        "important"
+                    );
+
                 }
 
                 const uidElement =
@@ -3075,7 +3146,10 @@ async function checkAdminAccess() {
                     );
 
                 if (uidElement) {
-                    uidElement.textContent = currentUser.uid;
+
+                    uidElement.textContent =
+                        currentUser.uid;
+
                 }
 
                 return true;
