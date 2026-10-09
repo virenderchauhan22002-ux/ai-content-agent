@@ -386,7 +386,6 @@ function addStyles() {
             padding: 14px 18px;
             margin-bottom: 18px;
             color: #3730a3;
-            animation: acaFadeIn 0.3s ease-in-out;
         }
 
         #acaCustomerAnnouncement strong {
@@ -415,7 +414,6 @@ function addStyles() {
             font-size: 13px;
             font-weight: 600;
             line-height: 1.5;
-            animation: acaFadeIn 0.3s ease-in-out;
         }
 
         /* Customer Plan Badge */
@@ -436,11 +434,6 @@ function addStyles() {
         .acaPlanBadge.paid {
             background: #dcfce7;
             color: #15803d;
-        }
-
-        @keyframes acaFadeIn {
-            from { opacity: 0; transform: translateY(-4px); }
-            to { opacity: 1; transform: translateY(0); }
         }
 
         @media (max-width: 700px) {
@@ -1047,6 +1040,8 @@ function createDashboard() {
 
     document.body.appendChild(overlay);
 
+    applyPublicSettingsToUI();
+
 
     // ========================================================
     // EXISTING PROFILE
@@ -1282,7 +1277,7 @@ async function fetchPublicSettings() {
 
     try {
 
-        // 1. Ads Configuration (adminSettings/ads)
+        // 1. Ads Settings
         const adsSnap = await getDoc(doc(db, "adminSettings", "ads"));
         if (adsSnap.exists()) {
             const data = adsSnap.data();
@@ -1295,7 +1290,7 @@ async function fetchPublicSettings() {
             };
         }
 
-        // 2. Announcements (adminSettings/announcement)
+        // 2. Announcements
         const announcementSnap = await getDoc(doc(db, "adminSettings", "announcement"));
         if (announcementSnap.exists()) {
             const data = announcementSnap.data();
@@ -1306,7 +1301,7 @@ async function fetchPublicSettings() {
             };
         }
 
-        // 3. Plans & Usage Limits (adminSettings/plans)
+        // 3. Plans & Usage Limits
         const plansSnap = await getDoc(doc(db, "adminSettings", "plans"));
         if (plansSnap.exists()) {
             const data = plansSnap.data();
@@ -1318,7 +1313,7 @@ async function fetchPublicSettings() {
             };
         }
 
-        // 4. App Settings & Version (adminSettings/app)
+        // 4. App Settings & Version
         const appSnap = await getDoc(doc(db, "adminSettings", "app"));
         if (appSnap.exists()) {
             const data = appSnap.data();
@@ -1467,9 +1462,9 @@ async function openDashboard() {
 
     showSection("profile");
 
-    loadProfile();
-
     await fetchPublicSettings();
+
+    await loadProfile();
 
 }
 
@@ -2208,6 +2203,9 @@ async function startDashboard() {
                     );
 
 
+                    // Sequence: fetch remote settings first, then sync profile & UI
+                    await fetchPublicSettings();
+
                     if (
                         dashboardCreated
                     ) {
@@ -2217,8 +2215,6 @@ async function startDashboard() {
                         loadSettings();
 
                     }
-
-                    await fetchPublicSettings();
 
                 } else {
 
