@@ -1,6 +1,6 @@
 // ============================================================
 // AI CONTENT AGENT
-// DASHBOARD / PROFILE / SETTINGS / ADMIN PANEL
+// DASHBOARD / PROFILE / SETTINGS / CUSTOMER PORTAL
 // ============================================================
 
 import {
@@ -40,7 +40,37 @@ let db = null;
 
 let currentUser = null;
 let dashboardCreated = false;
-let isAdmin = false;
+
+// Public Admin-Controlled Settings State (Read-Only)
+let activeAppSettings = {
+    ads: {
+        enabled: true,
+        frequency: "medium",
+        duration: "10",
+        placement: "between-actions",
+        network: "none"
+    },
+    announcement: {
+        enabled: false,
+        title: "",
+        message: ""
+    },
+    plans: {
+        freeContentLimit: 10,
+        freeChatLimit: 10,
+        freeImageLimit: 3,
+        paidNoAds: true
+    },
+    app: {
+        appVersion: APP_VERSION,
+        maintenanceMode: false
+    }
+};
+
+let userPlan = {
+    isPaid: false,
+    planType: "free"
+};
 
 
 // ============================================================
@@ -231,21 +261,6 @@ function addStyles() {
             background: #e2e3ff;
             color: #5556df;
             font-weight: 600;
-        }
-
-        .acaAdminNav {
-
-            margin-top: 12px;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #eef0ff,
-                    #f4edff
-                );
-
-            color: #5546c7;
-            font-weight: 700;
         }
 
         #acaDashboardContent {
@@ -486,235 +501,39 @@ function addStyles() {
             padding: 16px;
         }
 
-
-        /* ====================================================
-           ADMIN
-        ==================================================== */
-
-        .acaAdminHeader {
-
-            display: flex;
-
-            justify-content: space-between;
-            align-items: center;
-
-            gap: 15px;
-
-            margin-bottom: 18px;
-        }
-
-        .acaAdminBadge {
-
-            display: inline-block;
-
-            padding: 6px 10px;
-
-            border-radius: 999px;
-
-            background: #eeeaff;
-
-            color: #5546c7;
-
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .acaAdminGrid {
-
-            display: grid;
-
-            grid-template-columns:
-                repeat(4, minmax(0, 1fr));
-
-            gap: 12px;
-
-            margin-bottom: 18px;
-        }
-
-        .acaAdminStat {
-
-            background: #ffffff;
-
-            border:
-                1px solid #e4e5ee;
-
-            border-radius: 14px;
-
-            padding: 15px;
-        }
-
-        .acaAdminStatLabel {
-
-            font-size: 12px;
-
-            color: #777987;
-
-            margin-bottom: 8px;
-        }
-
-        .acaAdminStatValue {
-
-            font-size: 24px;
-
-            font-weight: 700;
-
-            color: #191a28;
-        }
-
-        .acaAdminTableWrap {
-
-            overflow-x: auto;
-
-            border:
-                1px solid #e5e6ef;
-
+        #acaCustomerAnnouncement {
+            display: none;
+            background: #eef2ff;
+            border: 1px solid #c7d2fe;
             border-radius: 12px;
-
-            background: white;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            color: #3730a3;
         }
 
-        .acaAdminTable {
-
-            width: 100%;
-
-            border-collapse: collapse;
-
-            min-width: 600px;
+        #acaCustomerAnnouncement strong {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 4px;
         }
 
-        .acaAdminTable th {
-
-            background: #f7f8ff;
-
-            color: #555766;
-
-            font-size: 12px;
-
-            text-align: left;
-
-            padding: 11px;
+        #acaCustomerAnnouncement p {
+            margin: 0;
+            font-size: 13px;
+            color: #4338ca;
+            line-height: 1.5;
         }
 
-        .acaAdminTable td {
-
-            color: #343545;
-
-            font-size: 12px;
-
-            padding: 11px;
-
-            border-top:
-                1px solid #eeeeF3;
-        }
-
-        .acaAdminStatus {
-
-            display: inline-block;
-
-            padding: 5px 8px;
-
-            border-radius: 999px;
-
-            font-size: 11px;
-
-            font-weight: 700;
-        }
-
-        .acaAdminStatus.on {
-
-            background: #e7f6ec;
-            color: #188038;
-        }
-
-        .acaAdminStatus.off {
-
-            background: #fce8e6;
-            color: #c5221f;
-        }
-
-        .acaAdminSmallButton {
-
-            border: none;
-
-            border-radius: 8px;
-
-            padding: 7px 10px;
-
-            background: #5964ed;
-
-            color: white;
-
-            cursor: pointer;
-
-            font-size: 11px;
-
+        #acaMaintenanceBanner {
+            display: none;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            color: #92400e;
+            font-size: 13px;
             font-weight: 600;
-        }
-
-        .acaAdminCheckbox {
-
-            width: 18px;
-            height: 18px;
-
-            cursor: pointer;
-        }
-
-        .acaAdminTwoColumn {
-
-            display: grid;
-
-            grid-template-columns:
-                repeat(2, minmax(0, 1fr));
-
-            gap: 15px;
-        }
-
-        .acaAdminSectionTitle {
-
-            font-size: 15px;
-
-            color: #202130;
-
-            font-weight: 700;
-
-            margin-bottom: 12px;
-        }
-
-        .acaAdminInfo {
-
-            font-size: 12px;
-
-            color: #737582;
-
-            line-height: 1.6;
-        }
-
-        .acaAdminMessage {
-
-            padding: 10px 12px;
-
-            border-radius: 10px;
-
-            background: #f0f1ff;
-
-            color: #4546a0;
-
-            font-size: 12px;
-
-            margin-bottom: 12px;
-        }
-
-        @media (max-width: 800px) {
-
-            .acaAdminGrid {
-                grid-template-columns:
-                    repeat(2, minmax(0, 1fr));
-            }
-
-            .acaAdminTwoColumn {
-                grid-template-columns: 1fr;
-            }
-
         }
 
         @media (max-width: 700px) {
@@ -767,20 +586,12 @@ function addStyles() {
                 margin: 0;
             }
 
-            .acaAdminNav {
-                margin-top: 0;
-            }
-
             #acaDashboardContent {
                 padding: 20px;
             }
 
             .acaDashboardSection {
                 padding-right: 5px;
-            }
-
-            .acaAdminGrid {
-                grid-template-columns: 1fr 1fr;
             }
 
         }
@@ -881,16 +692,6 @@ function createDashboard() {
                     🗑️ Delete Account
                 </button>
 
-                <button
-                    type="button"
-                    id="acaAdminNav"
-                    class="acaDashboardNav acaAdminNav"
-                    data-section="admin"
-                    style="display:none;"
-                >
-                    👑 Admin Panel
-                </button>
-
             </aside>
 
 
@@ -903,6 +704,15 @@ function createDashboard() {
                 >
                     ✕
                 </button>
+
+                <div id="acaMaintenanceBanner">
+                    ⚠️ Application is currently in scheduled maintenance mode. Some features may be restricted.
+                </div>
+
+                <div id="acaCustomerAnnouncement">
+                    <strong id="acaCustomerAnnouncementTitle"></strong>
+                    <p id="acaCustomerAnnouncementMessage"></p>
+                </div>
 
 
                 <!-- ==================================================
@@ -952,6 +762,18 @@ function createDashboard() {
                             id="acaProfileUid"
                             class="acaDashboardInput"
                             type="text"
+                            readonly
+                        >
+
+                        <label class="acaDashboardLabel">
+                            Account Plan
+                        </label>
+
+                        <input
+                            id="acaProfilePlan"
+                            class="acaDashboardInput"
+                            type="text"
+                            value="Free Plan"
                             readonly
                         >
 
@@ -1210,7 +1032,7 @@ function createDashboard() {
 
                         <p>
                             Version:
-                            <strong>
+                            <strong id="acaAboutAppVersion">
                                 ${APP_VERSION}
                             </strong>
                         </p>
@@ -1301,695 +1123,6 @@ function createDashboard() {
                         >
                             Delete My Account
                         </button>
-
-                    </div>
-
-                </section>
-
-
-                <!-- ==================================================
-                     ADMIN PANEL
-                     ================================================== -->
-
-                <section
-                    id="acaSectionAdmin"
-                    class="acaDashboardSection"
-                >
-
-                    <div class="acaAdminHeader">
-
-                        <div>
-
-                            <h2 style="margin-bottom:6px;">
-                                Admin Panel
-                            </h2>
-
-                            <span class="acaAdminBadge">
-                                ADMIN ACCESS
-                            </span>
-
-                        </div>
-
-                        <button
-                            type="button"
-                            id="acaAdminRefresh"
-                            class="acaAdminSmallButton"
-                        >
-                            Refresh
-                        </button>
-
-                    </div>
-
-
-                    <!-- ADMIN OVERVIEW -->
-
-                    <div class="acaDashboardCard">
-
-                        <div class="acaAdminSectionTitle">
-                            📊 Overview
-                        </div>
-
-                        <div
-                            id="acaAdminOverviewMessage"
-                            class="acaAdminMessage"
-                        >
-                            Loading dashboard statistics...
-                        </div>
-
-                        <div class="acaAdminGrid">
-
-                            <div class="acaAdminStat">
-
-                                <div class="acaAdminStatLabel">
-                                    Total Users
-                                </div>
-
-                                <div
-                                    id="acaAdminTotalUsers"
-                                    class="acaAdminStatValue"
-                                >
-                                    -
-                                </div>
-
-                            </div>
-
-
-                            <div class="acaAdminStat">
-
-                                <div class="acaAdminStatLabel">
-                                    Content History
-                                </div>
-
-                                <div
-                                    id="acaAdminTotalContent"
-                                    class="acaAdminStatValue"
-                                >
-                                    -
-                                </div>
-
-                            </div>
-
-
-                            <div class="acaAdminStat">
-
-                                <div class="acaAdminStatLabel">
-                                    AI Chats
-                                </div>
-
-                                <div
-                                    id="acaAdminTotalChats"
-                                    class="acaAdminStatValue"
-                                >
-                                    -
-                                </div>
-
-                            </div>
-
-
-                            <div class="acaAdminStat">
-
-                                <div class="acaAdminStatLabel">
-                                    Image Usage
-                                </div>
-
-                                <div
-                                    id="acaAdminTotalImages"
-                                    class="acaAdminStatValue"
-                                >
-                                    -
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- USERS -->
-
-                    <div class="acaDashboardCard">
-
-                        <div class="acaAdminSectionTitle">
-                            👥 Users Management
-                        </div>
-
-                        <div
-                            id="acaAdminUsersMessage"
-                            class="acaAdminInfo"
-                            style="margin-bottom:12px;"
-                        >
-                            Loading users...
-                        </div>
-
-                        <div class="acaAdminTableWrap">
-
-                            <table class="acaAdminTable">
-
-                                <thead>
-
-                                    <tr>
-
-                                        <th>
-                                            Name
-                                        </th>
-
-                                        <th>
-                                            Email
-                                        </th>
-
-                                        <th>
-                                            UID
-                                        </th>
-
-                                        <th>
-                                            Role
-                                        </th>
-
-                                    </tr>
-
-                                </thead>
-
-                                <tbody
-                                    id="acaAdminUsersTable"
-                                >
-
-                                </tbody>
-
-                            </table>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- CONTENT ACTIVITY -->
-
-                    <div class="acaDashboardCard">
-
-                        <div class="acaAdminSectionTitle">
-                            📝 Content Activity
-                        </div>
-
-                        <div class="acaAdminTwoColumn">
-
-                            <div>
-
-                                <div class="acaAdminInfo">
-                                    Total generated content records
-                                </div>
-
-                                <strong
-                                    id="acaAdminContentCount"
-                                >
-                                    -
-                                </strong>
-
-                            </div>
-
-                            <div>
-
-                                <div class="acaAdminInfo">
-                                    Users with content history
-                                </div>
-
-                                <strong
-                                    id="acaAdminContentUsers"
-                                >
-                                    -
-                                </strong>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- CHAT ACTIVITY -->
-
-                    <div class="acaDashboardCard">
-
-                        <div class="acaAdminSectionTitle">
-                            💬 AI Chat Activity
-                        </div>
-
-                        <div class="acaAdminTwoColumn">
-
-                            <div>
-
-                                <div class="acaAdminInfo">
-                                    Total chat records
-                                </div>
-
-                                <strong
-                                    id="acaAdminChatCount"
-                                >
-                                    -
-                                </strong>
-
-                            </div>
-
-                            <div>
-
-                                <div class="acaAdminInfo">
-                                    Users using AI Chat
-                                </div>
-
-                                <strong
-                                    id="acaAdminChatUsers"
-                                >
-                                    -
-                                </strong>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- IMAGE USAGE -->
-
-                    <div class="acaDashboardCard">
-
-                        <div class="acaAdminSectionTitle">
-                            🖼️ Image Usage
-                        </div>
-
-                        <div class="acaAdminTwoColumn">
-
-                            <div>
-
-                                <div class="acaAdminInfo">
-                                    Image generation activity
-                                </div>
-
-                                <strong
-                                    id="acaAdminImageUsage"
-                                >
-                                    -
-                                </strong>
-
-                            </div>
-
-                            <div>
-
-                                <div class="acaAdminInfo">
-                                    Current image feature status
-                                </div>
-
-                                <strong>
-                                    Available
-                                </strong>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- ADS -->
-
-                    <div class="acaDashboardCard">
-
-                        <div class="acaAdminSectionTitle">
-                            📢 Ads Management
-                        </div>
-
-                        <div class="acaAdminInfo">
-                            Ads are managed here. Ads are NOT displayed
-                            inside the admin panel.
-                        </div>
-
-
-                        <div class="acaSettingRow">
-
-                            <div>
-
-                                <div class="acaSettingTitle">
-                                    Ads Enabled
-                                </div>
-
-                                <div class="acaSettingDescription">
-                                    Show ads to eligible free users
-                                </div>
-
-                            </div>
-
-                            <input
-                                type="checkbox"
-                                id="acaAdsEnabled"
-                                class="acaAdminCheckbox"
-                            >
-
-                        </div>
-
-
-                        <label class="acaDashboardLabel">
-                            Ad Frequency
-                        </label>
-
-                        <select
-                            id="acaAdFrequency"
-                            class="acaDashboardInput"
-                        >
-
-                            <option value="low">
-                                Low
-                            </option>
-
-                            <option value="medium">
-                                Medium
-                            </option>
-
-                            <option value="high">
-                                High
-                            </option>
-
-                        </select>
-
-
-                        <label class="acaDashboardLabel">
-                            Ad Duration
-                        </label>
-
-                        <select
-                            id="acaAdDuration"
-                            class="acaDashboardInput"
-                        >
-
-                            <option value="10">
-                                10 seconds
-                            </option>
-
-                        </select>
-
-
-                        <label class="acaDashboardLabel">
-                            Placement
-                        </label>
-
-                        <select
-                            id="acaAdPlacement"
-                            class="acaDashboardInput"
-                        >
-
-                            <option value="between-actions">
-                                Between Actions
-                            </option>
-
-                            <option value="before-result">
-                                Before Result
-                            </option>
-
-                            <option value="after-result">
-                                After Result
-                            </option>
-
-                        </select>
-
-
-                        <label class="acaDashboardLabel">
-                            Ad Network
-                        </label>
-
-                        <select
-                            id="acaAdNetwork"
-                            class="acaDashboardInput"
-                        >
-
-                            <option value="none">
-                                Not Connected
-                            </option>
-
-                            <option value="future">
-                                Future Ad Network
-                            </option>
-
-                        </select>
-
-
-                        <button
-                            type="button"
-                            id="acaSaveAds"
-                            class="acaDashboardButton"
-                        >
-                            Save Ad Settings
-                        </button>
-
-                    </div>
-
-
-                    <!-- ANNOUNCEMENTS -->
-
-                    <div class="acaDashboardCard">
-
-                        <div class="acaAdminSectionTitle">
-                            📣 Announcements
-                        </div>
-
-                        <div class="acaSettingRow">
-
-                            <div>
-
-                                <div class="acaSettingTitle">
-                                    Announcement Enabled
-                                </div>
-
-                                <div class="acaSettingDescription">
-                                    Show announcement to users
-                                </div>
-
-                            </div>
-
-                            <input
-                                type="checkbox"
-                                id="acaAnnouncementEnabled"
-                                class="acaAdminCheckbox"
-                            >
-
-                        </div>
-
-
-                        <label class="acaDashboardLabel">
-                            Title
-                        </label>
-
-                        <input
-                            id="acaAnnouncementTitle"
-                            class="acaDashboardInput"
-                            type="text"
-                            placeholder="Announcement title"
-                        >
-
-
-                        <label class="acaDashboardLabel">
-                            Message
-                        </label>
-
-                        <textarea
-                            id="acaAnnouncementMessage"
-                            class="acaDashboardInput"
-                            style="min-height:110px;resize:vertical;"
-                            placeholder="Announcement message..."
-                        ></textarea>
-
-
-                        <button
-                            type="button"
-                            id="acaSaveAnnouncement"
-                            class="acaDashboardButton"
-                        >
-                            Save Announcement
-                        </button>
-
-                    </div>
-
-
-                    <!-- PLANS -->
-
-                    <div class="acaDashboardCard">
-
-                        <div class="acaAdminSectionTitle">
-                            💰 Plans & Limits
-                        </div>
-
-                        <div class="acaAdminInfo">
-                            Free plan controls for the current V1.
-                            Paid plan structure is prepared for future use.
-                        </div>
-
-
-                        <label class="acaDashboardLabel">
-                            Free Content Limit
-                        </label>
-
-                        <input
-                            id="acaFreeContentLimit"
-                            class="acaDashboardInput"
-                            type="number"
-                            min="0"
-                        >
-
-
-                        <label class="acaDashboardLabel">
-                            Free AI Chat Limit
-                        </label>
-
-                        <input
-                            id="acaFreeChatLimit"
-                            class="acaDashboardInput"
-                            type="number"
-                            min="0"
-                        >
-
-
-                        <label class="acaDashboardLabel">
-                            Free Image Limit
-                        </label>
-
-                        <input
-                            id="acaFreeImageLimit"
-                            class="acaDashboardInput"
-                            type="number"
-                            min="0"
-                        >
-
-
-                        <div class="acaSettingRow">
-
-                            <div>
-
-                                <div class="acaSettingTitle">
-                                    Paid Plan No-Ads
-                                </div>
-
-                                <div class="acaSettingDescription">
-                                    Future paid users can receive an ad-free experience
-                                </div>
-
-                            </div>
-
-                            <input
-                                type="checkbox"
-                                id="acaPaidNoAds"
-                                class="acaAdminCheckbox"
-                            >
-
-                        </div>
-
-
-                        <button
-                            type="button"
-                            id="acaSavePlans"
-                            class="acaDashboardButton"
-                        >
-                            Save Plan Settings
-                        </button>
-
-                    </div>
-
-
-                    <!-- APP SETTINGS -->
-
-                    <div class="acaDashboardCard">
-
-                        <div class="acaAdminSectionTitle">
-                            ⚙️ App Settings
-                        </div>
-
-
-                        <label class="acaDashboardLabel">
-                            App Version
-                        </label>
-
-                        <input
-                            class="acaDashboardInput"
-                            type="text"
-                            value="${APP_VERSION}"
-                            readonly
-                        >
-
-
-                        <div class="acaSettingRow">
-
-                            <div>
-
-                                <div class="acaSettingTitle">
-                                    Maintenance Mode
-                                </div>
-
-                                <div class="acaSettingDescription">
-                                    Future option to temporarily restrict the app
-                                </div>
-
-                            </div>
-
-                            <input
-                                type="checkbox"
-                                id="acaMaintenanceMode"
-                                class="acaAdminCheckbox"
-                            >
-
-                        </div>
-
-
-                        <button
-                            type="button"
-                            id="acaSaveAppSettings"
-                            class="acaDashboardButton"
-                        >
-                            Save App Settings
-                        </button>
-
-                    </div>
-
-
-                    <!-- SECURITY -->
-
-                    <div class="acaDashboardCard">
-
-                        <div class="acaAdminSectionTitle">
-                            🔐 Admin Security
-                        </div>
-
-                        <div class="acaAdminInfo">
-
-                            Admin access is controlled through the
-                            <strong>admins</strong> collection.
-
-                            <br><br>
-
-                            Only an account whose UID exists in
-                            <strong>admins/{uid}</strong> with
-                            <strong>role = admin</strong> can access
-                            this panel.
-
-                        </div>
-
-                        <div
-                            style="
-                                margin-top:12px;
-                                font-size:12px;
-                                color:#555766;
-                            "
-                        >
-                            Current admin UID:
-                        </div>
-
-                        <div
-                            style="
-                                margin-top:5px;
-                                word-break:break-all;
-                                font-size:12px;
-                                font-weight:600;
-                            "
-                            id="acaAdminCurrentUid"
-                        >
-                            -
-                        </div>
 
                     </div>
 
@@ -2102,24 +1235,7 @@ function createDashboard() {
                     const section =
                         button.dataset.section;
 
-                    if (
-                        section === "admin" &&
-                        !isAdmin
-                    ) {
-
-                        return;
-
-                    }
-
                     showSection(section);
-
-                    if (
-                        section === "admin"
-                    ) {
-
-                        loadAdminPanel();
-
-                    }
 
                 }
             );
@@ -2240,59 +1356,150 @@ function createDashboard() {
 
     loadSettings();
 
-
-    // ========================================================
-    // ADMIN BUTTONS
-    // ========================================================
-
-    document
-        .getElementById(
-            "acaAdminRefresh"
-        )
-        .addEventListener(
-            "click",
-            loadAdminPanel
-        );
+}
 
 
-    document
-        .getElementById(
-            "acaSaveAds"
-        )
-        .addEventListener(
-            "click",
-            saveAdsSettings
-        );
+// ============================================================
+// READ ADMIN-CONTROLLED PUBLIC SETTINGS (READ-ONLY)
+// ============================================================
+
+async function fetchPublicSettings() {
+
+    if (!db) {
+        return;
+    }
+
+    try {
+
+        // 1. Ads Settings
+        const adsSnap = await getDoc(doc(db, "adminSettings", "ads"));
+        if (adsSnap.exists()) {
+            const data = adsSnap.data();
+            activeAppSettings.ads = {
+                enabled: data.enabled !== false,
+                frequency: data.frequency || "medium",
+                duration: data.duration || "10",
+                placement: data.placement || "between-actions",
+                network: data.network || "none"
+            };
+        }
+
+        // 2. Announcements
+        const announcementSnap = await getDoc(doc(db, "adminSettings", "announcement"));
+        if (announcementSnap.exists()) {
+            const data = announcementSnap.data();
+            activeAppSettings.announcement = {
+                enabled: data.enabled === true,
+                title: data.title || "",
+                message: data.message || ""
+            };
+        }
+
+        // 3. Plans & Limits
+        const plansSnap = await getDoc(doc(db, "adminSettings", "plans"));
+        if (plansSnap.exists()) {
+            const data = plansSnap.data();
+            activeAppSettings.plans = {
+                freeContentLimit: data.freeContentLimit ?? 10,
+                freeChatLimit: data.freeChatLimit ?? 10,
+                freeImageLimit: data.freeImageLimit ?? 3,
+                paidNoAds: data.paidNoAds === true
+            };
+        }
+
+        // 4. App Settings
+        const appSnap = await getDoc(doc(db, "adminSettings", "app"));
+        if (appSnap.exists()) {
+            const data = appSnap.data();
+            activeAppSettings.app = {
+                appVersion: data.appVersion || APP_VERSION,
+                maintenanceMode: data.maintenanceMode === true
+            };
+        }
+
+        applyPublicSettingsToUI();
+
+    } catch (error) {
+
+        console.warn("Public settings read error:", error);
+
+    }
+
+}
+
+function applyPublicSettingsToUI() {
+
+    // Announcement UI
+    const banner = document.getElementById("acaCustomerAnnouncement");
+    const titleEl = document.getElementById("acaCustomerAnnouncementTitle");
+    const msgEl = document.getElementById("acaCustomerAnnouncementMessage");
+
+    if (banner && titleEl && msgEl) {
+        if (activeAppSettings.announcement.enabled && activeAppSettings.announcement.message) {
+            titleEl.textContent = activeAppSettings.announcement.title || "Announcement";
+            msgEl.textContent = activeAppSettings.announcement.message;
+            banner.style.display = "block";
+        } else {
+            banner.style.display = "none";
+        }
+    }
+
+    // Maintenance Mode Banner
+    const maintBanner = document.getElementById("acaMaintenanceBanner");
+    if (maintBanner) {
+        maintBanner.style.display = activeAppSettings.app.maintenanceMode ? "block" : "none";
+    }
+
+    // Version sync
+    const aboutVer = document.getElementById("acaAboutAppVersion");
+    if (aboutVer && activeAppSettings.app.appVersion) {
+        aboutVer.textContent = activeAppSettings.app.appVersion;
+    }
+
+}
 
 
-    document
-        .getElementById(
-            "acaSaveAnnouncement"
-        )
-        .addEventListener(
-            "click",
-            saveAnnouncement
-        );
+// ============================================================
+// CUSTOMER-FACING ADS & LIMIT HELPERS (INTERNAL ONLY)
+// ============================================================
 
+function shouldShowAd() {
 
-    document
-        .getElementById(
-            "acaSavePlans"
-        )
-        .addEventListener(
-            "click",
-            savePlanSettings
-        );
+    // 1. Check if ads are globally enabled by Admin
+    if (!activeAppSettings.ads.enabled) {
+        return false;
+    }
 
+    // 2. Paid users do not see ads if paidNoAds is active
+    if (userPlan.isPaid && activeAppSettings.plans.paidNoAds) {
+        return false;
+    }
 
-    document
-        .getElementById(
-            "acaSaveAppSettings"
-        )
-        .addEventListener(
-            "click",
-            saveAppSettings
-        );
+    // 3. Eligible free user: true
+    return true;
+
+}
+
+function getAdConfig() {
+
+    return {
+        enabled: shouldShowAd(),
+        duration: Number(activeAppSettings.ads.duration) || 10, // ~10 seconds
+        placement: activeAppSettings.ads.placement,
+        frequency: activeAppSettings.ads.frequency,
+        network: activeAppSettings.ads.network
+    };
+
+}
+
+function getActiveLimits() {
+
+    return {
+        isPaid: userPlan.isPaid,
+        contentLimit: activeAppSettings.plans.freeContentLimit,
+        chatLimit: activeAppSettings.plans.freeChatLimit,
+        imageLimit: activeAppSettings.plans.freeImageLimit
+    };
 
 }
 
@@ -2329,38 +1536,7 @@ async function openDashboard() {
 
     loadProfile();
 
-    await checkAdminAccess();
-
-    if (isAdmin) {
-
-        const adminNav =
-            document.getElementById(
-                "acaAdminNav"
-            );
-
-        if (adminNav) {
-
-            adminNav.style.setProperty(
-                "display",
-                "block",
-                "important"
-            );
-
-            adminNav.style.setProperty(
-                "visibility",
-                "visible",
-                "important"
-            );
-
-            adminNav.style.setProperty(
-                "opacity",
-                "1",
-                "important"
-            );
-
-        }
-
-    }
+    await fetchPublicSettings();
 
 }
 
@@ -2439,10 +1615,7 @@ function showSection(section) {
             "acaSectionSupport",
 
         delete:
-            "acaSectionDelete",
-
-        admin:
-            "acaSectionAdmin"
+            "acaSectionDelete"
 
     };
 
@@ -2508,6 +1681,11 @@ async function loadProfile() {
             "acaProfileUid"
         );
 
+    const planInput =
+        document.getElementById(
+            "acaProfilePlan"
+        );
+
     const avatar =
         document.getElementById(
             "acaProfileAvatar"
@@ -2560,6 +1738,14 @@ async function loadProfile() {
                 name =
                     data.name;
 
+            }
+
+            // Sync User Plan info
+            userPlan.isPaid = Boolean(data?.isPaid || data?.plan === "paid");
+            userPlan.planType = userPlan.isPaid ? "Paid Plan" : "Free Plan";
+
+            if (planInput) {
+                planInput.value = userPlan.planType;
             }
 
         }
@@ -3047,1146 +2233,6 @@ async function deleteAccount() {
 
 
 // ============================================================
-// ADMIN SECURITY CHECK
-// ============================================================
-
-async function checkAdminAccess() {
-
-    isAdmin = false;
-
-    const adminNav =
-        document.getElementById(
-            "acaAdminNav"
-        );
-
-    if (adminNav) {
-
-        adminNav.style.setProperty(
-            "display",
-            "none",
-            "important"
-        );
-
-        adminNav.style.setProperty(
-            "visibility",
-            "hidden",
-            "important"
-        );
-
-        adminNav.style.setProperty(
-            "opacity",
-            "0",
-            "important"
-        );
-
-    }
-
-    if (
-        !currentUser ||
-        !db
-    ) {
-        return false;
-    }
-
-    try {
-
-        await currentUser.getIdToken(true);
-
-        const adminRef =
-            doc(
-                db,
-                "admins",
-                currentUser.uid
-            );
-
-        const snapshot =
-            await getDoc(
-                adminRef
-            );
-
-        if (
-            snapshot.exists()
-        ) {
-
-            const data =
-                snapshot.data();
-
-            if (
-                data &&
-                data.role === "admin"
-            ) {
-
-                isAdmin = true;
-
-                if (adminNav) {
-
-                    adminNav.style.setProperty(
-                        "display",
-                        "block",
-                        "important"
-                    );
-
-                    adminNav.style.setProperty(
-                        "visibility",
-                        "visible",
-                        "important"
-                    );
-
-                    adminNav.style.setProperty(
-                        "opacity",
-                        "1",
-                        "important"
-                    );
-
-                }
-
-                const uidElement =
-                    document.getElementById(
-                        "acaAdminCurrentUid"
-                    );
-
-                if (uidElement) {
-
-                    uidElement.textContent =
-                        currentUser.uid;
-
-                }
-
-                return true;
-
-            }
-
-        }
-
-    } catch (error) {
-
-        console.warn(
-            "Admin access check failed:",
-            error
-        );
-
-    }
-
-    return false;
-
-}
-
-
-// ============================================================
-// ADMIN PANEL
-// ============================================================
-
-async function loadAdminPanel() {
-
-    if (!currentUser || !db) {
-        return;
-    }
-
-
-    const allowed =
-        await checkAdminAccess();
-
-
-    if (!allowed) {
-
-        alert(
-            "Admin access denied."
-        );
-
-        showSection("profile");
-
-        return;
-
-    }
-
-
-    const message =
-        document.getElementById(
-            "acaAdminOverviewMessage"
-        );
-
-
-    if (message) {
-
-        message.textContent =
-            "Loading admin data...";
-
-    }
-
-
-    try {
-
-        const usersSnapshot =
-            await getDocs(
-                collection(
-                    db,
-                    "users"
-                )
-            );
-
-
-        let totalUsers =
-            usersSnapshot.size;
-
-        let totalContent =
-            0;
-
-        let totalChats =
-            0;
-
-        let contentUsers =
-            0;
-
-        let chatUsers =
-            0;
-
-        const users = [];
-
-
-        for (
-            const userDoc of usersSnapshot.docs
-        ) {
-
-            const userData =
-                userDoc.data() || {};
-
-
-            const contentSnapshot =
-                await getDocs(
-                    collection(
-                        db,
-                        "users",
-                        userDoc.id,
-                        "contentHistory"
-                    )
-                );
-
-
-            const chatSnapshot =
-                await getDocs(
-                    collection(
-                        db,
-                        "users",
-                        userDoc.id,
-                        "chatHistory"
-                    )
-                );
-
-
-            if (
-                contentSnapshot.size > 0
-            ) {
-
-                contentUsers++;
-
-            }
-
-
-            if (
-                chatSnapshot.size > 0
-            ) {
-
-                chatUsers++;
-
-            }
-
-
-            totalContent +=
-                contentSnapshot.size;
-
-            totalChats +=
-                chatSnapshot.size;
-
-
-            let role =
-                "user";
-
-
-            try {
-
-                const adminSnapshot =
-                    await getDoc(
-                        doc(
-                            db,
-                            "admins",
-                            userDoc.id
-                        )
-                    );
-
-
-                if (
-                    adminSnapshot.exists() &&
-                    adminSnapshot.data().role === "admin"
-                ) {
-
-                    role = "admin";
-
-                }
-
-            } catch (error) {
-
-                // Ignore role read error.
-            }
-
-
-            users.push({
-
-                uid:
-                    userDoc.id,
-
-                name:
-                    userData.name ||
-                    "—",
-
-                email:
-                    userData.email ||
-                    "—",
-
-                role:
-                    role
-
-            });
-
-        }
-
-
-        setText(
-            "acaAdminTotalUsers",
-            totalUsers
-        );
-
-        setText(
-            "acaAdminTotalContent",
-            totalContent
-        );
-
-        setText(
-            "acaAdminTotalChats",
-            totalChats
-        );
-
-        setText(
-            "acaAdminTotalImages",
-            "N/A"
-        );
-
-
-        setText(
-            "acaAdminContentCount",
-            totalContent
-        );
-
-        setText(
-            "acaAdminContentUsers",
-            contentUsers
-        );
-
-        setText(
-            "acaAdminChatCount",
-            totalChats
-        );
-
-        setText(
-            "acaAdminChatUsers",
-            chatUsers
-        );
-
-        setText(
-            "acaAdminImageUsage",
-            "Tracked after image analytics is enabled"
-        );
-
-
-        renderUsersTable(users);
-
-
-        if (message) {
-
-            message.textContent =
-                "Admin dashboard loaded successfully.";
-
-        }
-
-
-        await loadAdminSettings();
-
-    } catch (error) {
-
-        console.error(
-            "Admin panel error:",
-            error
-        );
-
-
-        if (message) {
-
-            message.textContent =
-                "Unable to load admin data: " +
-                error.message;
-
-        }
-
-    }
-
-}
-
-
-// ============================================================
-// ADMIN USERS TABLE
-// ============================================================
-
-function renderUsersTable(users) {
-
-    const table =
-        document.getElementById(
-            "acaAdminUsersTable"
-        );
-
-
-    if (!table) {
-        return;
-    }
-
-
-    table.innerHTML = "";
-
-
-    if (!users.length) {
-
-        table.innerHTML =
-            `
-                <tr>
-                    <td colspan="4">
-                        No users found.
-                    </td>
-                </tr>
-            `;
-
-        return;
-
-    }
-
-
-    users.forEach(user => {
-
-        const row =
-            document.createElement("tr");
-
-
-        row.innerHTML = `
-
-            <td>
-                ${escapeHtml(user.name)}
-            </td>
-
-            <td>
-                ${escapeHtml(user.email)}
-            </td>
-
-            <td
-                style="
-                    max-width:180px;
-                    word-break:break-all;
-                "
-            >
-                ${escapeHtml(user.uid)}
-            </td>
-
-            <td>
-
-                <span
-                    class="acaAdminStatus ${
-                        user.role === "admin"
-                            ? "on"
-                            : "off"
-                    }"
-                >
-                    ${escapeHtml(user.role)}
-                </span>
-
-            </td>
-
-        `;
-
-
-        table.appendChild(row);
-
-    });
-
-}
-
-
-// ============================================================
-// LOAD ADMIN SETTINGS
-// ============================================================
-
-async function loadAdminSettings() {
-
-    if (
-        !isAdmin ||
-        !db
-    ) {
-        return;
-    }
-
-
-    try {
-
-        const adsSnapshot =
-            await getDoc(
-                doc(
-                    db,
-                    "adminSettings",
-                    "ads"
-                )
-            );
-
-
-        if (
-            adsSnapshot.exists()
-        ) {
-
-            const data =
-                adsSnapshot.data();
-
-
-            setChecked(
-                "acaAdsEnabled",
-                data.enabled !== false
-            );
-
-            setValue(
-                "acaAdFrequency",
-                data.frequency || "medium"
-            );
-
-            setValue(
-                "acaAdDuration",
-                data.duration || "10"
-            );
-
-            setValue(
-                "acaAdPlacement",
-                data.placement || "between-actions"
-            );
-
-            setValue(
-                "acaAdNetwork",
-                data.network || "none"
-            );
-
-        } else {
-
-            setChecked(
-                "acaAdsEnabled",
-                true
-            );
-
-            setValue(
-                "acaAdFrequency",
-                "medium"
-            );
-
-            setValue(
-                "acaAdDuration",
-                "10"
-            );
-
-            setValue(
-                "acaAdPlacement",
-                "between-actions"
-            );
-
-            setValue(
-                "acaAdNetwork",
-                "none"
-            );
-
-        }
-
-
-        const announcementSnapshot =
-            await getDoc(
-                doc(
-                    db,
-                    "adminSettings",
-                    "announcement"
-                )
-            );
-
-
-        if (
-            announcementSnapshot.exists()
-        ) {
-
-            const data =
-                announcementSnapshot.data();
-
-
-            setChecked(
-                "acaAnnouncementEnabled",
-                data.enabled === true
-            );
-
-            setValue(
-                "acaAnnouncementTitle",
-                data.title || ""
-            );
-
-            setValue(
-                "acaAnnouncementMessage",
-                data.message || ""
-            );
-
-        }
-
-
-        const plansSnapshot =
-            await getDoc(
-                doc(
-                    db,
-                    "adminSettings",
-                    "plans"
-                )
-            );
-
-
-        if (
-            plansSnapshot.exists()
-        ) {
-
-            const data =
-                plansSnapshot.data();
-
-
-            setValue(
-                "acaFreeContentLimit",
-                data.freeContentLimit ?? 10
-            );
-
-            setValue(
-                "acaFreeChatLimit",
-                data.freeChatLimit ?? 10
-            );
-
-            setValue(
-                "acaFreeImageLimit",
-                data.freeImageLimit ?? 3
-            );
-
-            setChecked(
-                "acaPaidNoAds",
-                data.paidNoAds === true
-            );
-
-        } else {
-
-            setValue(
-                "acaFreeContentLimit",
-                10
-            );
-
-            setValue(
-                "acaFreeChatLimit",
-                10
-            );
-
-            setValue(
-                "acaFreeImageLimit",
-                3
-            );
-
-            setChecked(
-                "acaPaidNoAds",
-                true
-            );
-
-        }
-
-
-        const appSnapshot =
-            await getDoc(
-                doc(
-                    db,
-                    "adminSettings",
-                    "app"
-                )
-            );
-
-
-        if (
-            appSnapshot.exists()
-        ) {
-
-            const data =
-                appSnapshot.data();
-
-
-            setChecked(
-                "acaMaintenanceMode",
-                data.maintenanceMode === true
-            );
-
-        } else {
-
-            setChecked(
-                "acaMaintenanceMode",
-                false
-            );
-
-        }
-
-    } catch (error) {
-
-        console.error(
-            "Admin settings load error:",
-            error
-        );
-
-    }
-
-}
-
-
-// ============================================================
-// SAVE ADS
-// ============================================================
-
-async function saveAdsSettings() {
-
-    if (!await verifyAdmin()) {
-        return;
-    }
-
-
-    try {
-
-        await setDoc(
-            doc(
-                db,
-                "adminSettings",
-                "ads"
-            ),
-            {
-                enabled:
-                    getChecked("acaAdsEnabled"),
-
-                frequency:
-                    getValue("acaAdFrequency"),
-
-                duration:
-                    getValue("acaAdDuration"),
-
-                placement:
-                    getValue("acaAdPlacement"),
-
-                network:
-                    getValue("acaAdNetwork"),
-
-                updatedAt:
-                    new Date(),
-
-                updatedBy:
-                    currentUser.uid
-            },
-            {
-                merge: true
-            }
-        );
-
-
-        alert(
-            "Ad settings saved successfully."
-        );
-
-    } catch (error) {
-
-        console.error(
-            "Ads save error:",
-            error
-        );
-
-
-        alert(
-            "Unable to save ad settings:\n" +
-            error.message
-        );
-
-    }
-
-}
-
-
-// ============================================================
-// SAVE ANNOUNCEMENT
-// ============================================================
-
-async function saveAnnouncement() {
-
-    if (!await verifyAdmin()) {
-        return;
-    }
-
-
-    try {
-
-        await setDoc(
-            doc(
-                db,
-                "adminSettings",
-                "announcement"
-            ),
-            {
-                enabled:
-                    getChecked(
-                        "acaAnnouncementEnabled"
-                    ),
-
-                title:
-                    getValue(
-                        "acaAnnouncementTitle"
-                    ).trim(),
-
-                message:
-                    getValue(
-                        "acaAnnouncementMessage"
-                    ).trim(),
-
-                updatedAt:
-                    new Date(),
-
-                updatedBy:
-                    currentUser.uid
-            },
-            {
-                merge: true
-            }
-        );
-
-
-        alert(
-            "Announcement saved successfully."
-        );
-
-    } catch (error) {
-
-        console.error(
-            "Announcement save error:",
-            error
-        );
-
-
-        alert(
-            "Unable to save announcement:\n" +
-            error.message
-        );
-
-    }
-
-}
-
-
-// ============================================================
-// SAVE PLANS
-// ============================================================
-
-async function savePlanSettings() {
-
-    if (!await verifyAdmin()) {
-        return;
-    }
-
-
-    const contentLimit =
-        Number(
-            getValue(
-                "acaFreeContentLimit"
-            )
-        );
-
-
-    const chatLimit =
-        Number(
-            getValue(
-                "acaFreeChatLimit"
-            )
-        );
-
-
-    const imageLimit =
-        Number(
-            getValue(
-                "acaFreeImageLimit"
-            )
-        );
-
-
-    if (
-        Number.isNaN(contentLimit) ||
-        Number.isNaN(chatLimit) ||
-        Number.isNaN(imageLimit)
-    ) {
-
-        alert(
-            "Please enter valid plan limits."
-        );
-
-        return;
-
-    }
-
-
-    try {
-
-        await setDoc(
-            doc(
-                db,
-                "adminSettings",
-                "plans"
-            ),
-            {
-                freeContentLimit:
-                    contentLimit,
-
-                freeChatLimit:
-                    chatLimit,
-
-                freeImageLimit:
-                    imageLimit,
-
-                paidNoAds:
-                    getChecked(
-                        "acaPaidNoAds"
-                    ),
-
-                updatedAt:
-                    new Date(),
-
-                updatedBy:
-                    currentUser.uid
-            },
-            {
-                merge: true
-            }
-        );
-
-
-        alert(
-            "Plan settings saved successfully."
-        );
-
-    } catch (error) {
-
-        console.error(
-            "Plans save error:",
-            error
-        );
-
-
-        alert(
-            "Unable to save plan settings:\n" +
-            error.message
-        );
-
-    }
-
-}
-
-
-// ============================================================
-// SAVE APP SETTINGS
-// ============================================================
-
-async function saveAppSettings() {
-
-    if (!await verifyAdmin()) {
-        return;
-    }
-
-
-    try {
-
-        await setDoc(
-            doc(
-                db,
-                "adminSettings",
-                "app"
-            ),
-            {
-                appVersion:
-                    APP_VERSION,
-
-                maintenanceMode:
-                    getChecked(
-                        "acaMaintenanceMode"
-                    ),
-
-                updatedAt:
-                    new Date(),
-
-                updatedBy:
-                    currentUser.uid
-            },
-            {
-                merge: true
-            }
-        );
-
-
-        alert(
-            "App settings saved successfully."
-        );
-
-    } catch (error) {
-
-        console.error(
-            "App settings save error:",
-            error
-        );
-
-
-        alert(
-            "Unable to save app settings:\n" +
-            error.message
-        );
-
-    }
-
-}
-
-
-// ============================================================
-// VERIFY ADMIN
-// ============================================================
-
-async function verifyAdmin() {
-
-    const allowed =
-        await checkAdminAccess();
-
-
-    if (!allowed) {
-
-        alert(
-            "Admin access denied."
-        );
-
-        return false;
-
-    }
-
-
-    return true;
-
-}
-
-
-// ============================================================
-// HELPERS
-// ============================================================
-
-function setText(
-    id,
-    value
-) {
-
-    const element =
-        document.getElementById(id);
-
-
-    if (element) {
-
-        element.textContent =
-            String(value);
-
-    }
-
-}
-
-
-function setValue(
-    id,
-    value
-) {
-
-    const element =
-        document.getElementById(id);
-
-
-    if (element) {
-
-        element.value =
-            value;
-
-    }
-
-}
-
-
-function setChecked(
-    id,
-    value
-) {
-
-    const element =
-        document.getElementById(id);
-
-
-    if (element) {
-
-        element.checked =
-            Boolean(value);
-
-    }
-
-}
-
-
-function getValue(id) {
-
-    const element =
-        document.getElementById(id);
-
-
-    if (!element) {
-        return "";
-    }
-
-
-    return element.value;
-
-}
-
-
-function getChecked(id) {
-
-    const element =
-        document.getElementById(id);
-
-
-    if (!element) {
-        return false;
-    }
-
-
-    return element.checked;
-
-}
-
-
-function escapeHtml(value) {
-
-    return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-
-}
-
-
-// ============================================================
 // START
 // ============================================================
 
@@ -4243,13 +2289,11 @@ async function startDashboard() {
 
                         loadSettings();
 
-                        await checkAdminAccess();
-
                     }
 
-                } else {
+                    await fetchPublicSettings();
 
-                    isAdmin = false;
+                } else {
 
                     closeDashboard();
 
