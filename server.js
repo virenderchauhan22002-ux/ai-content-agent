@@ -17,160 +17,138 @@ const ai = new GoogleGenAI({
 
 const hf = new InferenceClient(process.env.HF_TOKEN);
 
+
+// ===============================
+// GEMINI TEXT GENERATOR
+// ===============================
+
+async function generateGeminiText(
+    prompt,
+    model = "gemini-3.8-flash"
+) {
+    const response = await ai.models.generateContent({
+        model: model,
+        contents: prompt
+    });
+
+    return response.text || "";
+}
+
+
+// ===============================
+// HOME
+// ===============================
+
 app.get("/", (req, res) => {
     res.sendFile(__dirname + "/index.html");
 });
 
 
-// ==========================================
-// AI CONTENT GENERATOR
-// ==========================================
+// ===============================
+// GENERATE CONTENT
+// ===============================
 
 app.post("/generate", async (req, res) => {
     try {
-        const topic = req.body.topic;
-        const contentType = req.body.contentType;
-        const language = req.body.language;
+        const {
+            topic,
+            contentType,
+            language
+        } = req.body;
 
-        if (!topic || !topic.trim()) {
-            return res.status(400).json({
-                error: "Topic is required."
-            });
-        }
+        const prompt = `
+You are an expert content creator.
 
-        console.log("Generating content for:", topic);
-        console.log("Content Type:", contentType);
-        console.log("Language:", language);
+Create high-quality ${contentType} content about:
 
-        const prompt =
-            "You are an expert social media content creator.\n\n" +
-            "Create content based on the following:\n\n" +
-            "Topic:\n" + topic +
-            "\n\nContent Type:\n" + (contentType || "Instagram Reel") +
-            "\n\nLanguage:\n" + (language || "Hindi") +
-            "\n\nIMPORTANT:\n" +
-            "Write the complete response in the selected language.\n\n" +
-            "Create content specifically suitable for the selected content type.\n\n" +
-            "Give me:\n\n" +
-            "1. Hook\n" +
-            "2. Main Content / Script\n" +
-            "3. CTA\n" +
-            "4. Caption\n" +
-            "5. Hashtags\n\n" +
-            "Keep the content practical, engaging, natural and easy to understand.\n\n" +
-            "Do not mention that you are an AI.\n" +
-            "Do not add unnecessary explanations.";
+Topic: ${topic}
 
-        const interaction = await ai.interactions.create({
-            model: "gemini-3.8-flash",
-            input: prompt
-        });
+Language: ${language}
 
-        console.log("AI response received.");
+Requirements:
+- Make the content useful and engaging.
+- Keep it natural and easy to understand.
+- Avoid unnecessary English words when the requested language is Hindi.
+- Give only the requested content.
+`;
+
+        const result = await generateGeminiText(
+            prompt,
+            "gemini-3.8-flash"
+        );
 
         res.json({
             success: true,
-            result: interaction.output_text || ""
+            result: result
         });
 
     } catch (error) {
-        console.error("Gemini Error:", error);
+        console.error("Generate Error:", error);
 
         res.status(500).json({
             success: false,
-            error: error.message || "AI generation failed."
+            error: error.message || "Failed to generate content."
         });
     }
 });
 
 
-// ==========================================
-// CONTENT IDEAS
-// ==========================================
+// ===============================
+// GENERATE CONTENT IDEAS
+// ===============================
 
 app.post("/generate-ideas", async (req, res) => {
     try {
-        const topic = req.body.topic;
-        const language = req.body.language;
-        const count = req.body.count;
+        const {
+            topic,
+            language,
+            count
+        } = req.body;
 
-        if (!topic || !topic.trim()) {
-            return res.status(400).json({
-                error: "Topic is required."
-            });
-        }
+        const ideaCount = count || 10;
 
-        console.log("Generating content ideas for:", topic);
-        console.log("Language:", language);
-        console.log("Ideas Count:", count);
+        const prompt = `
+Generate ${ideaCount} fresh and practical content ideas.
 
-        const prompt =
-            "You are an expert social media content strategist.\n\n" +
-            "Generate " + (count || 10) + " fresh and useful content ideas.\n\n" +
-            "Topic:\n" + topic +
-            "\n\nLanguage:\n" + (language || "Hindi") +
-            "\n\nIMPORTANT:\n" +
-            "- Write every idea in the selected language.\n" +
-            "- Make every idea different.\n" +
-            "- Keep ideas practical and engaging.\n" +
-            "- Ideas should be suitable for social media content.\n" +
-            "- Avoid repetitive ideas.\n" +
-            "- Do not add unnecessary explanations.\n" +
-            "- Do not mention that you are an AI.\n\n" +
-            "For financial, insurance, tax, legal or government-related topics:\n" +
-            "- Do not invent facts, guarantees or legal claims.\n" +
-            "- Do not automatically claim that returns are guaranteed.\n" +
-            "- Do not automatically claim that maturity or returns are tax-free.\n" +
-            "- Do not automatically claim government or sovereign guarantees.\n" +
-            "- If a claim depends on a specific plan, policy, law or eligibility condition, keep the idea general or mention that conditions apply.\n" +
-            "- Avoid misleading statements such as 100% safe, guaranteed profit or guaranteed returns unless the user has provided the exact basis for that claim.\n\n" +
-            "Return ONLY the ideas.\n\n" +
-            "Format:\n" +
-            "1. Idea\n" +
-            "2. Idea\n" +
-            "3. Idea\n" +
-            "4. Idea\n" +
-            "5. Idea";
+Topic:
+${topic}
 
-        let interaction;
+Language:
+${language}
+
+Rules:
+- Every idea must be unique.
+- Ideas should be useful for social media content.
+- Keep them interesting and practical.
+- Number each idea from 1 to ${ideaCount}.
+- Do not add unnecessary explanations.
+`;
+
+        let text = "";
 
         try {
-            console.log("Trying model: gemini-3.8-flash");
-
-            interaction = await ai.interactions.create({
-                model: "gemini-3.8-flash",
-                input: prompt
-            });
-
-        } catch (firstError) {
-
-            console.error(
-                "Primary model failed:",
-                firstError.message
+            text = await generateGeminiText(
+                prompt,
+                "gemini-3.8-flash"
             );
-
+        } catch (primaryError) {
             console.log(
-                "Trying fallback model: gemini-3.7-flash"
+                "Primary model failed, trying fallback model..."
             );
 
-            interaction = await ai.interactions.create({
-                model: "gemini-3.7-flash",
-                input: prompt
-            });
+            text = await generateGeminiText(
+                prompt,
+                "gemini-3.7-flash"
+            );
         }
 
-        console.log("Content ideas response received.");
-
-        const output = interaction.output_text || "";
-
-        const ideas = output
+        const ideas = text
             .split("\n")
-            .map(line => line.trim())
-            .filter(line => line.length > 0)
             .map(line =>
-                line.replace(/^\d+[.**\)\-**]\s\*/, "")
+                line.replace(/^\s*\d+[\.\)\-:]\s*/, "").trim()
             )
-            .filter(line => line.length > 0);
+            .filter(line => line.length > 0)
+            .slice(0, ideaCount);
 
         res.json({
             success: true,
@@ -178,142 +156,74 @@ app.post("/generate-ideas", async (req, res) => {
         });
 
     } catch (error) {
-
-        console.error(
-            "Gemini Ideas Error:",
-            error
-        );
+        console.error("Ideas Error:", error);
 
         res.status(500).json({
             success: false,
-            error: error.message ||
-                "AI idea generation failed."
+            error: error.message || "Failed to generate ideas."
         });
     }
 });
 
 
-// ==========================================
+// ===============================
 // AI CHAT
-// ==========================================
+// ===============================
 
 app.post("/chat", async (req, res) => {
     try {
+        const {
+            messages,
+            language
+        } = req.body;
 
-        const messages = Array.isArray(req.body.messages)
-            ? req.body.messages
+        const recentMessages = Array.isArray(messages)
+            ? messages.slice(-20)
             : [];
 
-        const language =
-            req.body.language || "Hindi";
+        const conversation = recentMessages
+            .map(message => {
+                const role = message.role || "user";
+                const content = message.content || "";
 
-        if (messages.length === 0) {
-            return res.status(400).json({
-                success: false,
-                error: "Message is required."
-            });
-        }
+                return `${role.toUpperCase()}: ${content}`;
+            })
+            .join("\n");
 
-        // Keep only recent conversation messages
-        // so the request does not become unnecessarily large.
-        const recentMessages = messages.slice(-20);
+        const prompt = `
+You are AI Content Agent, a helpful AI assistant.
 
-        let conversation = "";
+Language:
+${language || "Hindi"}
 
-        recentMessages.forEach((message) => {
+Conversation:
+${conversation}
 
-            const role =
-                message.role === "assistant"
-                    ? "Assistant"
-                    : "User";
+Instructions:
+- Reply naturally and helpfully.
+- Understand the previous conversation.
+- Give practical answers.
+- If the user asks about content creation, provide useful suggestions.
+- Keep the answer clear and easy to understand.
+`;
 
-            const content =
-                typeof message.content === "string"
-                    ? message.content.trim()
-                    : "";
-
-            if (content) {
-                conversation +=
-                    role + ": " + content + "\n\n";
-            }
-        });
-
-        if (!conversation.trim()) {
-            return res.status(400).json({
-                success: false,
-                error: "Please enter a message."
-            });
-        }
-
-        const prompt =
-            "You are the AI assistant inside an application called AI Content Agent.\n\n" +
-
-            "Your job is to have a natural, helpful conversation with the user.\n" +
-            "You can answer normal questions, explain things, help with ideas, " +
-            "content creation, social media, business, learning, technology and everyday tasks.\n\n" +
-
-            "IMPORTANT BEHAVIOR:\n" +
-            "- Be natural and conversational.\n" +
-            "- Understand the previous conversation and maintain context.\n" +
-            "- Answer the user's actual question directly.\n" +
-            "- Do not unnecessarily repeat the user's question.\n" +
-            "- Do not mention that you are reading a conversation transcript.\n" +
-            "- Do not say that you are an AI unless the user specifically asks.\n" +
-            "- If the user asks for content, create useful ready-to-use content.\n" +
-            "- If the user asks for coding help, explain clearly and provide correct code when needed.\n" +
-            "- If the user asks something you are unsure about, be honest rather than inventing facts.\n" +
-            "- For financial, legal, medical or other high-stakes topics, avoid pretending to be a professional and avoid unsupported guarantees.\n" +
-            "- Keep answers reasonably concise unless the user asks for detail.\n\n" +
-
-            "Preferred response language:\n" +
-            language +
-            "\n\n" +
-
-            "Conversation:\n\n" +
-            conversation +
-
-            "\nRespond to the user's latest message naturally.";
-
-        let interaction;
+        let reply = "";
 
         try {
-
+            reply = await generateGeminiText(
+                prompt,
+                "gemini-3.8-flash"
+            );
+        } catch (primaryError) {
             console.log(
-                "Trying chat model: gemini-3.8-flash"
+                "Primary chat model failed, trying fallback model..."
             );
 
-            interaction = await ai.interactions.create({
-                model: "gemini-3.8-flash",
-                input: prompt
-            });
-
-        } catch (firstError) {
-
-            console.error(
-                "Chat primary model failed:",
-                firstError.message
-            );
-
-            console.log(
-                "Trying chat fallback model: gemini-3.7-flash"
-            );
-
-            interaction = await ai.interactions.create({
-                model: "gemini-3.7-flash",
-                input: prompt
-            });
-        }
-
-        const reply =
-            interaction.output_text || "";
-
-        if (!reply.trim()) {
-            throw new Error(
-                "AI returned an empty response."
+            reply = await generateGeminiText(
+                prompt,
+                "gemini-3.7-flash"
             );
         }
-
-        console.log("AI Chat response received.");
 
         res.json({
             success: true,
@@ -321,136 +231,82 @@ app.post("/chat", async (req, res) => {
         });
 
     } catch (error) {
-
-        console.error(
-            "AI Chat Error:",
-            error
-        );
+        console.error("Chat Error:", error);
 
         res.status(500).json({
             success: false,
-            error:
-                error.message ||
-                "AI chat failed."
+            error: error.message || "Failed to generate chat response."
         });
     }
 });
 
 
-// ==========================================
+// ===============================
 // AI IMAGE GENERATOR
-// ==========================================
+// ===============================
 
 app.post("/generate-image", async (req, res) => {
     try {
-
-        const prompt = req.body.prompt;
-
-        const imageType =
-            req.body.imageType ||
-            "Instagram Post";
-
-        const style =
-            req.body.style ||
-            "Modern Premium";
-
-        const imageSize =
-            req.body.imageSize ||
-            "1K";
-
-        if (!prompt || !prompt.trim()) {
-            return res.status(400).json({
-                success: false,
-                error: "Image prompt is required."
-            });
-        }
+        const {
+            prompt,
+            imageType,
+            style,
+            imageSize
+        } = req.body;
 
         if (!process.env.HF_TOKEN) {
             return res.status(500).json({
                 success: false,
-                error:
-                    "Hugging Face token is missing. Check your .env file."
+                error: "HF_TOKEN is not configured on the server."
             });
         }
-
-        console.log("=================================");
-        console.log(
-            "Generating image with Hugging Face..."
-        );
-
-        console.log("Image Type:", imageType);
-        console.log("Style:", style);
-        console.log("Image Size:", imageSize);
 
         let width = 1024;
         let height = 1024;
 
-        if (
-            imageType === "Instagram Story" ||
-            imageType === "Poster"
-        ) {
+        if (imageType === "portrait") {
             width = 768;
-            height = 1344;
-
-        } else if (
-            imageType === "YouTube Thumbnail"
-        ) {
-            width = 1344;
-            height = 768;
-
-        } else if (
-            imageType === "Square Post"
-        ) {
-            width = 1024;
             height = 1024;
+        }
 
-        } else if (
-            imageType === "Instagram Post"
-        ) {
+        if (imageType === "landscape") {
+            width = 1024;
+            height = 768;
+        }
+
+        if (imageType === "square") {
             width = 1024;
             height = 1024;
         }
 
-        const imagePrompt =
-            "Create a high-quality social media image.\n\n" +
+        if (imageSize === "small") {
+            width = 512;
+            height = 512;
+        }
 
-            "User's Image Request:\n" +
-            prompt +
+        if (imageSize === "medium") {
+            width = 768;
+            height = 768;
+        }
 
-            "\n\nImage Type:\n" +
-            imageType +
+        if (imageSize === "large") {
+            width = 1024;
+            height = 1024;
+        }
 
-            "\n\nVisual Style:\n" +
-            style +
+        const finalPrompt = `
+${prompt}
 
-            "\n\nAspect Ratio:\n" +
-            width +
-            " x " +
-            height +
+Image type: ${imageType || "square"}
+Style: ${style || "realistic"}
 
-            "\n\nImportant Instructions:\n" +
-            "- Make the composition visually attractive.\n" +
-            "- Make the subject clear and easy to understand.\n" +
-            "- Use professional lighting and composition.\n" +
-            "- Keep the design suitable for social media.\n" +
-            "- Avoid unnecessary objects.\n" +
-            "- Avoid distorted faces, hands or objects.\n" +
-            "- Do not add random text.\n" +
-            "- If the user explicitly requests text, render it clearly and accurately.\n" +
-            "- Do not include watermarks or logos unless specifically requested.\n";
+Create a high-quality image suitable for social media content.
+`;
 
-        console.log(
-            "Calling Hugging Face provider: fal-ai"
-        );
-
-        const imageBlob = await hf.textToImage({
-            model:
-                "black-forest-labs/FLUX.1-schnell",
-
+        const image = await hf.textToImage({
+            model: "black-forest-labs/FLUX.1-schnell",
             provider: "fal-ai",
-
-            inputs: imagePrompt,
-
+            inputs: finalPrompt,
             parameters: {
                 width: width,
                 height: height,
@@ -458,82 +314,44 @@ app.post("/generate-image", async (req, res) => {
             }
         });
 
-        console.log(
-            "Hugging Face image response received."
-        );
+        const arrayBuffer = await image.arrayBuffer();
 
-        const imageBuffer =
-            Buffer.from(
-                await imageBlob.arrayBuffer()
-            );
+        const buffer = Buffer.from(arrayBuffer);
 
-        const imageBase64 =
-            imageBuffer.toString("base64");
-
-        console.log(
-            "Hugging Face image generated successfully."
-        );
-
-        console.log("=================================");
+        const imageBase64 = buffer.toString("base64");
 
         res.json({
             success: true,
-            image:
-                "data:image/png;base64," +
-                imageBase64
+            image: "data:image/png;base64," + imageBase64
         });
 
     } catch (error) {
-
-        console.error(
-            "Hugging Face Image Generation Error:"
-        );
-
-        console.error(error);
+        console.error("Image Error:", error);
 
         res.status(500).json({
             success: false,
-            error:
-                error.message ||
-                "Image generation failed."
+            error: error.message || "Failed to generate image."
         });
     }
 });
 
 
-// ==========================================
+// ===============================
 // SERVER
-// ==========================================
+// ===============================
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 const server = app.listen(
     PORT,
+    "0.0.0.0",
     () => {
         console.log(
-            "Server running at http://localhost:" +
-            PORT
+            "Server running on port " + PORT
         );
     }
 );
 
 server.on("error", (error) => {
-    console.error(
-        "SERVER ERROR:",
-        error
-    );
-});
-
-process.on("uncaughtException", (error) => {
-    console.error(
-        "UNCAUGHT ERROR:",
-        error
-    );
-});
-
-process.on("unhandledRejection", (error) => {
-    console.error(
-        "UNHANDLED REJECTION:",
-        error
-    );
+    console.error("Server Error:", error);
 });
