@@ -24,7 +24,7 @@ const hf = new InferenceClient(process.env.HF_TOKEN);
 
 async function generateGeminiText(
     prompt,
-    model = "gemini-2.5-flash"
+    model = "gemini-3.8-flash"
 ) {
     const response = await ai.models.generateContent({
         model: model,
@@ -77,16 +77,16 @@ Requirements:
         try {
             result = await generateGeminiText(
                 prompt,
-                "gemini-2.5-flash"
+                "gemini-3.8-flash"
             );
         } catch (primaryError) {
             console.log(
-                "Primary generate model failed, trying fallback model..."
+                "Gemini 3.8 failed. Trying Gemini 3.7 fallback..."
             );
 
             result = await generateGeminiText(
                 prompt,
-                "gemini-2.0-flash"
+                "gemini-3.7-flash"
             );
         }
 
@@ -142,16 +142,16 @@ Rules:
         try {
             text = await generateGeminiText(
                 prompt,
-                "gemini-2.5-flash"
+                "gemini-3.8-flash"
             );
         } catch (primaryError) {
             console.log(
-                "Primary ideas model failed, trying fallback model..."
+                "Gemini 3.8 ideas failed. Trying Gemini 3.7 fallback..."
             );
 
             text = await generateGeminiText(
                 prompt,
-                "gemini-2.0-flash"
+                "gemini-3.7-flash"
             );
         }
 
@@ -225,16 +225,16 @@ Instructions:
         try {
             reply = await generateGeminiText(
                 prompt,
-                "gemini-2.5-flash"
+                "gemini-3.8-flash"
             );
         } catch (primaryError) {
             console.log(
-                "Primary chat model failed, trying fallback model..."
+                "Gemini 3.8 chat failed. Trying Gemini 3.7 fallback..."
             );
 
             reply = await generateGeminiText(
                 prompt,
-                "gemini-2.0-flash"
+                "gemini-3.7-flash"
             );
         }
 
