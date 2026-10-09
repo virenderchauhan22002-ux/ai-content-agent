@@ -3,6 +3,14 @@
 // AI CONTENT AGENT
 // ==========================================
 
+// ==========================================
+// RENDER BACKEND URL
+// ==========================================
+
+const API_BASE_URL =
+    "https://ai-content-agent-3hb3.onrender.com";
+
+
 document.addEventListener("DOMContentLoaded", () => {
 
     const appContent =
@@ -798,7 +806,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const response =
                 await fetch(
-                    "/chat",
+                    `${API_BASE_URL}/chat`,
                     {
                         method: "POST",
 
