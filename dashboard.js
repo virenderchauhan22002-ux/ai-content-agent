@@ -181,6 +181,8 @@ function addStyles() {
             padding: 18px;
 
             box-sizing: border-box;
+
+            overflow-y: auto;
         }
 
         #acaDashboardSidebar h3 {
@@ -3028,6 +3030,8 @@ async function checkAdminAccess() {
 
     if (adminNav) {
         adminNav.style.display = "none";
+        adminNav.style.visibility = "hidden";
+        adminNav.style.opacity = "0";
     }
 
     if (!currentUser || !db) {
@@ -3061,6 +3065,8 @@ async function checkAdminAccess() {
 
                 if (adminNav) {
                     adminNav.style.display = "block";
+                    adminNav.style.visibility = "visible";
+                    adminNav.style.opacity = "1";
                 }
 
                 const uidElement =
