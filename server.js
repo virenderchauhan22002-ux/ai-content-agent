@@ -24,7 +24,7 @@ const hf = new InferenceClient(process.env.HF_TOKEN);
 
 async function generateGeminiText(
     prompt,
-    model = "gemini-3.8-flash"
+    model = "gemini-2.5-flash"
 ) {
     const response = await ai.models.generateContent({
         model: model,
@@ -77,7 +77,7 @@ Requirements:
         try {
             result = await generateGeminiText(
                 prompt,
-                "gemini-3.8-flash"
+                "gemini-2.5-flash"
             );
         } catch (primaryError) {
             console.log(
@@ -86,7 +86,7 @@ Requirements:
 
             result = await generateGeminiText(
                 prompt,
-                "gemini-3.7-flash"
+                "gemini-2.0-flash"
             );
         }
 
@@ -142,16 +142,16 @@ Rules:
         try {
             text = await generateGeminiText(
                 prompt,
-                "gemini-3.8-flash"
+                "gemini-2.5-flash"
             );
         } catch (primaryError) {
             console.log(
-                "Primary model failed, trying fallback model..."
+                "Primary ideas model failed, trying fallback model..."
             );
 
             text = await generateGeminiText(
                 prompt,
-                "gemini-3.7-flash"
+                "gemini-2.0-flash"
             );
         }
 
@@ -225,7 +225,7 @@ Instructions:
         try {
             reply = await generateGeminiText(
                 prompt,
-                "gemini-3.8-flash"
+                "gemini-2.5-flash"
             );
         } catch (primaryError) {
             console.log(
@@ -234,7 +234,7 @@ Instructions:
 
             reply = await generateGeminiText(
                 prompt,
-                "gemini-3.7-flash"
+                "gemini-2.0-flash"
             );
         }
 
