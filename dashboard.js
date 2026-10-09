@@ -29,7 +29,7 @@ import {
 
 
 // ============================================================
-// APP VERSION
+// APP VERSION & DEFAULT STATE
 // ============================================================
 
 const APP_VERSION = "1.0.0";
@@ -41,7 +41,7 @@ let db = null;
 let currentUser = null;
 let dashboardCreated = false;
 
-// Public Admin-Controlled Settings State (Read-Only)
+// Customer-Side Read-Only Settings Store
 let activeAppSettings = {
     ads: {
         enabled: true,
@@ -162,151 +162,94 @@ function addStyles() {
         }
 
         #acaDashboardOverlay {
-
             position: fixed;
             inset: 0;
             z-index: 99999;
-
             display: none;
-
             align-items: center;
             justify-content: center;
-
             padding: 15px;
             box-sizing: border-box;
-
-            background:
-                rgba(0, 0, 0, 0.55);
+            background: rgba(0, 0, 0, 0.55);
         }
 
         #acaDashboardPanel {
-
             width: min(1000px, 100%);
-
             max-height: 90vh;
-
             background: #ffffff;
-
             border-radius: 18px;
-
             overflow: hidden;
-
             display: flex;
-
-            box-shadow:
-                0 25px 70px rgba(0,0,0,.30);
+            box-shadow: 0 25px 70px rgba(0,0,0,.30);
         }
 
         #acaDashboardSidebar {
-
             width: 210px;
-
             flex-shrink: 0;
-
             background: #f7f8ff;
-
-            border-right:
-                1px solid #e5e6ef;
-
+            border-right: 1px solid #e5e6ef;
             padding: 18px;
-
             box-sizing: border-box;
-
             overflow-y: auto;
         }
 
         #acaDashboardSidebar h3 {
-
-            margin:
-                0 0 16px;
-
+            margin: 0 0 16px;
             font-size: 18px;
-
             color: #181927;
         }
 
         .acaDashboardNav {
-
             width: 100%;
-
             display: block;
-
             border: none;
-
             background: transparent;
-
             color: #5f6170;
-
             text-align: left;
-
             padding: 10px 11px;
-
             border-radius: 9px;
-
             margin-bottom: 5px;
-
             cursor: pointer;
-
             font-size: 13px;
         }
 
         .acaDashboardNav:hover {
-
             background: #e9eaff;
             color: #5556df;
         }
 
         .acaDashboardNav.active {
-
             background: #e2e3ff;
             color: #5556df;
             font-weight: 600;
         }
 
         #acaDashboardContent {
-
             position: relative;
-
             flex: 1;
-
             min-width: 0;
-
             overflow-y: auto;
-
             padding: 25px;
-
             box-sizing: border-box;
         }
 
         #acaDashboardClose {
-
             position: absolute;
-
             top: 14px;
             right: 14px;
-
             width: 34px;
             height: 34px;
-
             border: none;
-
             border-radius: 50%;
-
             background: #f0f1f6;
-
             color: #555766;
-
             cursor: pointer;
-
             font-size: 17px;
-
             z-index: 2;
         }
 
         .acaDashboardSection {
-
             display: none;
-
             padding-top: 5px;
             padding-right: 35px;
         }
@@ -316,99 +259,57 @@ function addStyles() {
         }
 
         .acaDashboardSection h2 {
-
-            margin:
-                0 0 18px;
-
+            margin: 0 0 18px;
             color: #181927;
-
             font-size: 22px;
         }
 
         .acaDashboardSection p {
-
             color: #666875;
-
             font-size: 14px;
-
             line-height: 1.6;
         }
 
         .acaDashboardCard {
-
             background: #fafaff;
-
-            border:
-                1px solid #e5e6ef;
-
+            border: 1px solid #e5e6ef;
             border-radius: 14px;
-
             padding: 18px;
-
             margin-bottom: 15px;
         }
 
         #acaProfileAvatar {
-
             width: 64px;
             height: 64px;
-
             border-radius: 50%;
-
             display: flex;
-
             align-items: center;
             justify-content: center;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #4f6cff,
-                    #716cff
-                );
-
+            background: linear-gradient(135deg, #4f6cff, #716cff);
             color: white;
-
             font-size: 25px;
             font-weight: 700;
-
             margin-bottom: 16px;
         }
 
         .acaDashboardLabel {
-
             display: block;
-
-            margin:
-                13px 0 6px;
-
+            margin: 13px 0 6px;
             color: #343545;
-
             font-size: 13px;
             font-weight: 600;
         }
 
         .acaDashboardInput {
-
             width: 100%;
-
             box-sizing: border-box;
-
             padding: 11px 12px;
-
-            border:
-                1px solid #dfe0e8;
-
+            border: 1px solid #dfe0e8;
             border-radius: 10px;
-
             background: white;
-
             color: #181927;
-
             font-family: inherit;
-
             font-size: 13px;
-
             outline: none;
         }
 
@@ -417,23 +318,14 @@ function addStyles() {
         }
 
         .acaDashboardButton {
-
             border: none;
-
             border-radius: 10px;
-
             padding: 11px 16px;
-
             margin-top: 15px;
-
             background: #5964ed;
-
             color: white;
-
             font-size: 13px;
-
             font-weight: 600;
-
             cursor: pointer;
         }
 
@@ -454,18 +346,12 @@ function addStyles() {
         }
 
         .acaSettingRow {
-
             display: flex;
-
             align-items: center;
             justify-content: space-between;
-
             gap: 15px;
-
             padding: 15px 0;
-
-            border-bottom:
-                1px solid #e6e7ee;
+            border-bottom: 1px solid #e6e7ee;
         }
 
         .acaSettingRow:last-child {
@@ -473,102 +359,110 @@ function addStyles() {
         }
 
         .acaSettingTitle {
-
             color: #292a39;
-
             font-size: 14px;
             font-weight: 600;
         }
 
         .acaSettingDescription {
-
             margin-top: 4px;
-
             color: #777987;
-
             font-size: 12px;
         }
 
         .acaDangerBox {
-
             background: #fff5f5;
-
-            border:
-                1px solid #ffd4d1;
-
+            border: 1px solid #ffd4d1;
             border-radius: 12px;
-
             padding: 16px;
         }
 
+        /* Announcement Banner */
         #acaCustomerAnnouncement {
             display: none;
             background: #eef2ff;
             border: 1px solid #c7d2fe;
             border-radius: 12px;
-            padding: 12px 16px;
-            margin-bottom: 16px;
+            padding: 14px 18px;
+            margin-bottom: 18px;
             color: #3730a3;
+            animation: acaFadeIn 0.3s ease-in-out;
         }
 
         #acaCustomerAnnouncement strong {
             display: block;
-            font-size: 14px;
+            font-size: 15px;
             margin-bottom: 4px;
+            color: #1e1b4b;
         }
 
         #acaCustomerAnnouncement p {
             margin: 0;
             font-size: 13px;
-            color: #4338ca;
+            color: #3730a3;
             line-height: 1.5;
         }
 
+        /* Maintenance Banner */
         #acaMaintenanceBanner {
             display: none;
             background: #fffbeb;
             border: 1px solid #fde68a;
             border-radius: 12px;
-            padding: 12px 16px;
-            margin-bottom: 16px;
+            padding: 14px 18px;
+            margin-bottom: 18px;
             color: #92400e;
             font-size: 13px;
             font-weight: 600;
+            line-height: 1.5;
+            animation: acaFadeIn 0.3s ease-in-out;
+        }
+
+        /* Customer Plan Badge */
+        .acaPlanBadge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .acaPlanBadge.free {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .acaPlanBadge.paid {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        @keyframes acaFadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         @media (max-width: 700px) {
-
             #acaDashboardOverlay {
                 padding: 10px;
             }
 
             #acaDashboardPanel {
-
                 width: 100%;
-
                 max-height: 94vh;
-
                 flex-direction: column;
-
                 border-radius: 15px;
             }
 
             #acaDashboardSidebar {
-
                 width: 100%;
-
                 display: flex;
-
                 gap: 5px;
-
                 overflow-x: auto;
-
                 padding: 9px;
-
                 border-right: none;
-
-                border-bottom:
-                    1px solid #e5e6ef;
+                border-bottom: 1px solid #e5e6ef;
             }
 
             #acaDashboardSidebar h3 {
@@ -576,13 +470,9 @@ function addStyles() {
             }
 
             .acaDashboardNav {
-
                 width: auto;
-
                 min-width: max-content;
-
                 white-space: nowrap;
-
                 margin: 0;
             }
 
@@ -593,9 +483,7 @@ function addStyles() {
             .acaDashboardSection {
                 padding-right: 5px;
             }
-
         }
-
     `;
 
     document.head.appendChild(style);
@@ -705,8 +593,9 @@ function createDashboard() {
                     ✕
                 </button>
 
+                <!-- System Notice Banners -->
                 <div id="acaMaintenanceBanner">
-                    ⚠️ Application is currently in scheduled maintenance mode. Some features may be restricted.
+                    ⚠️ Scheduled Maintenance: Some features of the application may be temporarily limited.
                 </div>
 
                 <div id="acaCustomerAnnouncement">
@@ -728,8 +617,13 @@ function createDashboard() {
 
                     <div class="acaDashboardCard">
 
-                        <div id="acaProfileAvatar">
-                            AI
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div id="acaProfileAvatar">
+                                AI
+                            </div>
+                            <span id="acaPlanBadgeContainer" class="acaPlanBadge free">
+                                Free Plan
+                            </span>
                         </div>
 
                         <label class="acaDashboardLabel">
@@ -766,7 +660,7 @@ function createDashboard() {
                         >
 
                         <label class="acaDashboardLabel">
-                            Account Plan
+                            Current Tier / Plan
                         </label>
 
                         <input
@@ -914,6 +808,23 @@ function createDashboard() {
                             <div>
 
                                 <div class="acaSettingTitle">
+                                    Account Usage Limits
+                                </div>
+
+                                <div class="acaSettingDescription" id="acaAccountLimitsDisplay">
+                                    Content: - | Chat: - | Images: -
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="acaSettingRow">
+
+                            <div>
+
+                                <div class="acaSettingTitle">
                                     App Version
                                 </div>
 
@@ -923,7 +834,7 @@ function createDashboard() {
 
                             </div>
 
-                            <strong>
+                            <strong id="acaSettingsAppVersion">
                                 ${APP_VERSION}
                             </strong>
 
@@ -1360,7 +1271,7 @@ function createDashboard() {
 
 
 // ============================================================
-// READ ADMIN-CONTROLLED PUBLIC SETTINGS (READ-ONLY)
+// READ ADMIN-CONTROLLED SETTINGS (READ-ONLY)
 // ============================================================
 
 async function fetchPublicSettings() {
@@ -1371,7 +1282,7 @@ async function fetchPublicSettings() {
 
     try {
 
-        // 1. Ads Settings
+        // 1. Ads Configuration (adminSettings/ads)
         const adsSnap = await getDoc(doc(db, "adminSettings", "ads"));
         if (adsSnap.exists()) {
             const data = adsSnap.data();
@@ -1384,7 +1295,7 @@ async function fetchPublicSettings() {
             };
         }
 
-        // 2. Announcements
+        // 2. Announcements (adminSettings/announcement)
         const announcementSnap = await getDoc(doc(db, "adminSettings", "announcement"));
         if (announcementSnap.exists()) {
             const data = announcementSnap.data();
@@ -1395,7 +1306,7 @@ async function fetchPublicSettings() {
             };
         }
 
-        // 3. Plans & Limits
+        // 3. Plans & Usage Limits (adminSettings/plans)
         const plansSnap = await getDoc(doc(db, "adminSettings", "plans"));
         if (plansSnap.exists()) {
             const data = plansSnap.data();
@@ -1407,7 +1318,7 @@ async function fetchPublicSettings() {
             };
         }
 
-        // 4. App Settings
+        // 4. App Settings & Version (adminSettings/app)
         const appSnap = await getDoc(doc(db, "adminSettings", "app"));
         if (appSnap.exists()) {
             const data = appSnap.data();
@@ -1421,7 +1332,7 @@ async function fetchPublicSettings() {
 
     } catch (error) {
 
-        console.warn("Public settings read error:", error);
+        console.warn("Public settings sync error:", error);
 
     }
 
@@ -1429,7 +1340,7 @@ async function fetchPublicSettings() {
 
 function applyPublicSettingsToUI() {
 
-    // Announcement UI
+    // 1. Announcement Banner Update
     const banner = document.getElementById("acaCustomerAnnouncement");
     const titleEl = document.getElementById("acaCustomerAnnouncementTitle");
     const msgEl = document.getElementById("acaCustomerAnnouncementMessage");
@@ -1444,38 +1355,60 @@ function applyPublicSettingsToUI() {
         }
     }
 
-    // Maintenance Mode Banner
+    // 2. Maintenance Mode Banner Update
     const maintBanner = document.getElementById("acaMaintenanceBanner");
     if (maintBanner) {
         maintBanner.style.display = activeAppSettings.app.maintenanceMode ? "block" : "none";
     }
 
-    // Version sync
+    // 3. Version Numbers Sync
+    const currentVersion = activeAppSettings.app.appVersion || APP_VERSION;
     const aboutVer = document.getElementById("acaAboutAppVersion");
-    if (aboutVer && activeAppSettings.app.appVersion) {
-        aboutVer.textContent = activeAppSettings.app.appVersion;
+    const settingsVer = document.getElementById("acaSettingsAppVersion");
+
+    if (aboutVer) aboutVer.textContent = currentVersion;
+    if (settingsVer) settingsVer.textContent = currentVersion;
+
+    // 4. Usage Limits Display
+    const limitsDisplay = document.getElementById("acaAccountLimitsDisplay");
+    if (limitsDisplay) {
+        if (userPlan.isPaid) {
+            limitsDisplay.textContent = "Unlimited Content & Chat (Paid Plan)";
+        } else {
+            limitsDisplay.textContent = `Content: ${activeAppSettings.plans.freeContentLimit} | Chat: ${activeAppSettings.plans.freeChatLimit} | Images: ${activeAppSettings.plans.freeImageLimit}`;
+        }
+    }
+
+    // 5. Plan Badges Display
+    const badge = document.getElementById("acaPlanBadgeContainer");
+    const planInput = document.getElementById("acaProfilePlan");
+    if (badge) {
+        badge.className = `acaPlanBadge ${userPlan.isPaid ? "paid" : "free"}`;
+        badge.textContent = userPlan.isPaid ? "Paid Plan" : "Free Plan";
+    }
+    if (planInput) {
+        planInput.value = userPlan.isPaid ? "Paid Plan" : "Free Plan";
     }
 
 }
 
 
 // ============================================================
-// CUSTOMER-FACING ADS & LIMIT HELPERS (INTERNAL ONLY)
+// CUSTOMER-FACING AD & LIMIT RESOLUTION
 // ============================================================
 
 function shouldShowAd() {
 
-    // 1. Check if ads are globally enabled by Admin
+    // Global toggle from adminSettings/ads
     if (!activeAppSettings.ads.enabled) {
         return false;
     }
 
-    // 2. Paid users do not see ads if paidNoAds is active
+    // Paid users ad-free privilege from adminSettings/plans
     if (userPlan.isPaid && activeAppSettings.plans.paidNoAds) {
         return false;
     }
 
-    // 3. Eligible free user: true
     return true;
 
 }
@@ -1496,9 +1429,9 @@ function getActiveLimits() {
 
     return {
         isPaid: userPlan.isPaid,
-        contentLimit: activeAppSettings.plans.freeContentLimit,
-        chatLimit: activeAppSettings.plans.freeChatLimit,
-        imageLimit: activeAppSettings.plans.freeImageLimit
+        contentLimit: userPlan.isPaid ? Infinity : activeAppSettings.plans.freeContentLimit,
+        chatLimit: userPlan.isPaid ? Infinity : activeAppSettings.plans.freeChatLimit,
+        imageLimit: userPlan.isPaid ? Infinity : activeAppSettings.plans.freeImageLimit
     };
 
 }
@@ -1653,7 +1586,7 @@ function showSection(section) {
 
 
 // ============================================================
-// LOAD PROFILE
+// LOAD PROFILE & CUSTOMER PLAN
 // ============================================================
 
 async function loadProfile() {
@@ -1681,11 +1614,6 @@ async function loadProfile() {
             "acaProfileUid"
         );
 
-    const planInput =
-        document.getElementById(
-            "acaProfilePlan"
-        );
-
     const avatar =
         document.getElementById(
             "acaProfileAvatar"
@@ -1708,6 +1636,7 @@ async function loadProfile() {
 
     try {
 
+        // Read user data and plan status from users/{uid}
         const userRef =
             doc(
                 db,
@@ -1740,13 +1669,9 @@ async function loadProfile() {
 
             }
 
-            // Sync User Plan info
-            userPlan.isPaid = Boolean(data?.isPaid || data?.plan === "paid");
-            userPlan.planType = userPlan.isPaid ? "Paid Plan" : "Free Plan";
-
-            if (planInput) {
-                planInput.value = userPlan.planType;
-            }
+            // Sync user tier
+            userPlan.isPaid = Boolean(data?.isPaid === true || data?.plan === "paid");
+            userPlan.planType = userPlan.isPaid ? "paid" : "free";
 
         }
 
@@ -1778,6 +1703,8 @@ async function loadProfile() {
         )
         .charAt(0)
         .toUpperCase();
+
+    applyPublicSettingsToUI();
 
 }
 
@@ -2285,7 +2212,7 @@ async function startDashboard() {
                         dashboardCreated
                     ) {
 
-                        loadProfile();
+                        await loadProfile();
 
                         loadSettings();
 
