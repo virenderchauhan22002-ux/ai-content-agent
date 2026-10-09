@@ -72,10 +72,23 @@ Requirements:
 - Give only the requested content.
 `;
 
-        const result = await generateGeminiText(
-            prompt,
-            "gemini-3.8-flash"
-        );
+        let result = "";
+
+        try {
+            result = await generateGeminiText(
+                prompt,
+                "gemini-3.8-flash"
+            );
+        } catch (primaryError) {
+            console.log(
+                "Primary generate model failed, trying fallback model..."
+            );
+
+            result = await generateGeminiText(
+                prompt,
+                "gemini-3.7-flash"
+            );
+        }
 
         res.json({
             success: true,
