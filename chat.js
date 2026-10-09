@@ -11,15 +11,96 @@ const API_BASE_URL =
     "https://ai-content-agent-3hb3.onrender.com";
 
 
-document.addEventListener("DOMContentLoaded", () => {
+// ==========================================
+// FIREBASE CONFIG
+// ==========================================
 
-    const appContent =
-        document.getElementById("appContent");
+const firebaseConfig = {
+    apiKey: "AIzaSyAF9-LEijO0bI7OcaT5I74f2UtfGDdc78JGqQ",
+    authDomain: "ai-content-agent-a9820.firebaseapp.com",
+    projectId: "ai-content-agent-a9820",
+    storageBucket: "ai-content-agent-a9820.firebasestorage.app",
+    messagingSenderId: "833284009437",
+    appId: "1:833284009437:web:91859542fb1f87ccdb9a34"
+};
 
-    if (!appContent) {
-        console.error(
-            "AI Chat: appContent not found."
+
+// ==========================================
+// WAIT FOR FIREBASE
+// ==========================================
+
+async function getFirebaseAuth() {
+
+    const {
+        initializeApp,
+        getApps,
+        getApp
+    } = await import(
+        "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js"
+    );
+
+    const {
+        getAuth,
+        onAuthStateChanged
+    } = await import(
+        "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"
+    );
+
+
+    let firebaseApp;
+
+    if (getApps().length > 0) {
+
+        firebaseApp = getApp();
+
+    } else {
+
+        firebaseApp =
+            initializeApp(firebaseConfig);
+    }
+
+
+    const auth =
+        getAuth(firebaseApp);
+
+
+    return {
+        auth,
+        onAuthStateChanged
+    };
+}
+
+
+// ==========================================
+// DOM READY
+// ==========================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        initializeAIChat();
+
+    }
+);
+
+
+// ==========================================
+// INITIALIZE AI CHAT
+// ==========================================
+
+async function initializeAIChat() {
+
+    // Prevent duplicate chat
+    if (
+        document.getElementById("aiChatLauncher") ||
+        document.getElementById("aiChatPanel")
+    ) {
+
+        console.log(
+            "AI Chat already initialized."
         );
+
         return;
     }
 
@@ -31,320 +112,603 @@ document.addEventListener("DOMContentLoaded", () => {
     const style =
         document.createElement("style");
 
+    style.id =
+        "aiChatStyles";
+
     style.textContent = `
 
         #aiChatLauncher {
+
             position: fixed;
+
             right: 22px;
             bottom: 22px;
-            z-index: 9999;
+
+            z-index: 10000;
+
             border: none;
+
             border-radius: 50px;
+
             padding: 14px 20px;
-            background: linear-gradient(
-                135deg,
-                #5b5cf0,
-                #4546d8
-            );
-            color: white;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow:
-                0 10px 30px rgba(69,70,216,0.30);
-            transition: 0.2s ease;
-        }
 
-        #aiChatLauncher:hover {
-            transform: translateY(-2px);
-        }
-
-        #aiChatPanel {
-            position: fixed;
-            right: 22px;
-            bottom: 82px;
-            width: min(420px, calc(100vw - 28px));
-            height: min(650px, calc(100vh - 120px));
-            background: #ffffff;
-            border: 1px solid #e9eaf3;
-            border-radius: 20px;
-            box-shadow:
-                0 20px 60px rgba(23,24,43,0.20);
-            z-index: 9998;
-            display: none;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        #aiChatPanel.open {
-            display: flex;
-        }
-
-        .ai-chat-header {
-            padding: 16px 18px;
             background:
                 linear-gradient(
                     135deg,
                     #5b5cf0,
                     #4546d8
                 );
+
             color: white;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+
+            font-size: 15px;
+
+            font-weight: 700;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 10px 30px
+                rgba(69,70,216,0.30);
+
+            transition:
+                0.2s ease;
         }
 
-        .ai-chat-header-left {
+
+        #aiChatLauncher:hover {
+
+            transform:
+                translateY(-2px);
+
+            box-shadow:
+                0 14px 35px
+                rgba(69,70,216,0.38);
+        }
+
+
+        #aiChatPanel {
+
+            position: fixed;
+
+            right: 22px;
+
+            bottom: 82px;
+
+            width:
+                min(
+                    420px,
+                    calc(100vw - 28px)
+                );
+
+            height:
+                min(
+                    650px,
+                    calc(100vh - 120px)
+                );
+
+            background:
+                #ffffff;
+
+            border:
+                1px solid #e9eaf3;
+
+            border-radius:
+                20px;
+
+            box-shadow:
+                0 20px 60px
+                rgba(23,24,43,0.20);
+
+            z-index: 9999;
+
+            display: none;
+
+            flex-direction: column;
+
+            overflow: hidden;
+        }
+
+
+        #aiChatPanel.open {
+
             display: flex;
+        }
+
+
+        .ai-chat-header {
+
+            padding:
+                16px 18px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #5b5cf0,
+                    #4546d8
+                );
+
+            color: white;
+
+            display: flex;
+
             align-items: center;
+
+            justify-content:
+                space-between;
+        }
+
+
+        .ai-chat-header-left {
+
+            display: flex;
+
+            align-items: center;
+
             gap: 10px;
         }
 
+
         .ai-chat-avatar {
+
             width: 38px;
+
             height: 38px;
+
             border-radius: 50%;
-            background: rgba(255,255,255,0.18);
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.18
+                );
+
             display: flex;
+
             align-items: center;
+
             justify-content: center;
+
             font-size: 19px;
         }
 
+
         .ai-chat-title {
+
             font-size: 16px;
+
             font-weight: 700;
         }
 
+
         .ai-chat-status {
+
             font-size: 11px;
+
             opacity: 0.85;
+
             margin-top: 2px;
         }
 
+
         .ai-chat-header-actions {
+
             display: flex;
+
             gap: 6px;
         }
 
+
         .ai-chat-header-btn {
+
             border: none;
-            background: rgba(255,255,255,0.14);
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.14
+                );
+
             color: white;
+
             border-radius: 9px;
-            padding: 8px 9px;
+
+            padding:
+                8px 9px;
+
             cursor: pointer;
+
             font-size: 13px;
         }
 
+
         .ai-chat-header-btn:hover {
-            background: rgba(255,255,255,0.24);
+
+            background:
+                rgba(
+                    255,
+                    255,
+                    255,
+                    0.24
+                );
         }
+
 
         #aiChatMessages {
+
             flex: 1;
+
             overflow-y: auto;
+
             padding: 16px;
-            background: #f7f8fc;
+
+            background:
+                #f7f8fc;
         }
 
+
         .ai-chat-message {
+
             display: flex;
+
             margin-bottom: 13px;
         }
 
+
         .ai-chat-message.user {
-            justify-content: flex-end;
+
+            justify-content:
+                flex-end;
         }
+
 
         .ai-chat-message.assistant {
-            justify-content: flex-start;
+
+            justify-content:
+                flex-start;
         }
 
+
         .ai-chat-bubble {
+
             max-width: 84%;
-            padding: 11px 13px;
+
+            padding:
+                11px 13px;
+
             border-radius: 15px;
+
             font-size: 14px;
+
             line-height: 1.55;
-            word-break: break-word;
+
+            word-break:
+                break-word;
         }
+
 
         .ai-chat-message.user
         .ai-chat-bubble {
-            background: #5b5cf0;
+
+            background:
+                #5b5cf0;
+
             color: white;
-            border-bottom-right-radius: 5px;
+
+            border-bottom-right-radius:
+                5px;
         }
+
 
         .ai-chat-message.assistant
         .ai-chat-bubble {
-            background: white;
-            color: #17182b;
-            border: 1px solid #e9eaf3;
-            border-bottom-left-radius: 5px;
+
+            background:
+                white;
+
+            color:
+                #17182b;
+
+            border:
+                1px solid #e9eaf3;
+
+            border-bottom-left-radius:
+                5px;
         }
+
 
         .ai-chat-welcome {
+
             text-align: center;
-            padding: 35px 18px;
-            color: #73758a;
+
+            padding:
+                35px 18px;
+
+            color:
+                #73758a;
         }
 
+
         .ai-chat-welcome-icon {
+
             font-size: 38px;
+
             margin-bottom: 10px;
         }
 
+
         .ai-chat-welcome-title {
-            color: #17182b;
+
+            color:
+                #17182b;
+
             font-size: 18px;
+
             font-weight: 700;
+
             margin-bottom: 6px;
         }
 
+
         .ai-chat-welcome-text {
+
             font-size: 13px;
+
             line-height: 1.5;
         }
 
+
         .ai-chat-input-area {
+
             padding: 12px;
-            background: white;
-            border-top: 1px solid #e9eaf3;
+
+            background:
+                white;
+
+            border-top:
+                1px solid #e9eaf3;
         }
+
 
         .ai-chat-input-row {
+
             display: flex;
+
             gap: 8px;
-            align-items: flex-end;
+
+            align-items:
+                flex-end;
         }
+
 
         #aiChatInput {
+
             flex: 1;
+
             min-height: 45px;
+
             max-height: 130px;
+
             resize: none;
-            border: 1px solid #dfe1ec;
+
+            border:
+                1px solid #dfe1ec;
+
             border-radius: 13px;
-            padding: 11px 12px;
-            font-family: inherit;
+
+            padding:
+                11px 12px;
+
+            font-family:
+                inherit;
+
             font-size: 14px;
+
             outline: none;
-            color: #17182b;
-            background: #fafbfe;
+
+            color:
+                #17182b;
+
+            background:
+                #fafbfe;
         }
+
 
         #aiChatInput:focus {
-            border-color: #5b5cf0;
-            background: white;
+
+            border-color:
+                #5b5cf0;
+
+            background:
+                white;
         }
 
+
         #aiChatSend {
+
             width: 45px;
+
             height: 45px;
+
             flex-shrink: 0;
+
             border: none;
+
             border-radius: 13px;
-            background: #5b5cf0;
+
+            background:
+                #5b5cf0;
+
             color: white;
+
             font-size: 18px;
+
             cursor: pointer;
         }
 
+
         #aiChatSend:disabled {
+
             opacity: 0.55;
-            cursor: not-allowed;
+
+            cursor:
+                not-allowed;
         }
 
+
         .ai-chat-hint {
+
             font-size: 10px;
-            color: #9294a4;
+
+            color:
+                #9294a4;
+
             margin-top: 6px;
+
             padding-left: 2px;
         }
 
+
         .ai-chat-typing {
+
             display: inline-flex;
+
             gap: 4px;
+
             align-items: center;
         }
 
+
         .ai-chat-typing span {
+
             width: 5px;
+
             height: 5px;
+
             border-radius: 50%;
-            background: #8b8da0;
-            animation: aiChatTyping 1s infinite;
+
+            background:
+                #8b8da0;
+
+            animation:
+                aiChatTyping 1s infinite;
         }
+
 
         .ai-chat-typing span:nth-child(2) {
-            animation-delay: 0.15s;
+
+            animation-delay:
+                0.15s;
         }
+
 
         .ai-chat-typing span:nth-child(3) {
-            animation-delay: 0.30s;
+
+            animation-delay:
+                0.30s;
         }
+
 
         @keyframes aiChatTyping {
-            0%, 60%, 100% {
+
+            0%,
+            60%,
+            100% {
+
                 opacity: 0.3;
-                transform: translateY(0);
+
+                transform:
+                    translateY(0);
             }
 
+
             30% {
+
                 opacity: 1;
-                transform: translateY(-3px);
+
+                transform:
+                    translateY(-3px);
             }
         }
+
 
         @media (max-width: 600px) {
 
             #aiChatLauncher {
+
                 right: 15px;
+
                 bottom: 15px;
-                padding: 13px 17px;
+
+                padding:
+                    13px 17px;
             }
 
+
             #aiChatPanel {
+
                 right: 8px;
+
                 bottom: 72px;
-                width: calc(100vw - 16px);
-                height: calc(100vh - 95px);
+
+                width:
+                    calc(100vw - 16px);
+
+                height:
+                    calc(100vh - 95px);
+
                 border-radius: 18px;
             }
 
+
             .ai-chat-bubble {
+
                 max-width: 90%;
             }
         }
     `;
 
+
     document.head.appendChild(style);
 
 
     // ==========================================
-    // CREATE CHAT LAUNCHER
+    // CREATE LAUNCHER
     // ==========================================
 
     const launcher =
         document.createElement("button");
 
-    launcher.id = "aiChatLauncher";
-    launcher.type = "button";
-    launcher.innerHTML = "💬 AI Chat";
+    launcher.id =
+        "aiChatLauncher";
 
-    document.body.appendChild(launcher);
+    launcher.type =
+        "button";
+
+    launcher.innerHTML =
+        "💬 AI Chat";
+
+    launcher.style.display =
+        "none";
+
+    document.body.appendChild(
+        launcher
+    );
 
 
     // ==========================================
-    // CREATE CHAT PANEL
+    // CREATE PANEL
     // ==========================================
 
     const panel =
         document.createElement("div");
 
-    panel.id = "aiChatPanel";
+    panel.id =
+        "aiChatPanel";
 
     panel.innerHTML = `
 
@@ -357,6 +721,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
 
                 <div>
+
                     <div class="ai-chat-title">
                         AI Assistant
                     </div>
@@ -364,9 +729,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     <div class="ai-chat-status">
                         Ready to help
                     </div>
+
                 </div>
 
             </div>
+
 
             <div class="ai-chat-header-actions">
 
@@ -375,15 +742,20 @@ document.addEventListener("DOMContentLoaded", () => {
                     class="ai-chat-header-btn"
                     id="aiChatNewBtn"
                     title="New Chat">
+
                     ↻
+
                 </button>
+
 
                 <button
                     type="button"
                     class="ai-chat-header-btn"
                     id="aiChatCloseBtn"
                     title="Close">
+
                     ✕
+
                 </button>
 
             </div>
@@ -404,8 +776,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
 
                 <div class="ai-chat-welcome-text">
-                    Normal baat karo, questions pucho,
-                    ideas lo ya content banwao.
+
+                    Normal baat karo,
+                    questions pucho,
+                    ideas lo ya content
+                    banwao.
+
                 </div>
 
             </div>
@@ -422,23 +798,32 @@ document.addEventListener("DOMContentLoaded", () => {
                     placeholder="Message AI Assistant..."
                     rows="1"></textarea>
 
+
                 <button
                     type="button"
                     id="aiChatSend"
                     title="Send">
+
                     ➤
+
                 </button>
 
             </div>
 
+
             <div class="ai-chat-hint">
+
                 Enter = Send • Shift + Enter = New line
+
             </div>
 
         </div>
     `;
 
-    document.body.appendChild(panel);
+
+    document.body.appendChild(
+        panel
+    );
 
 
     // ==========================================
@@ -472,95 +857,69 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     // ==========================================
-    // LOGIN VISIBILITY
-    // AI CHAT ONLY
+    // AUTH VISIBILITY
     // ==========================================
 
-    async function setupChatAuthVisibility() {
+    try {
 
-        try {
-
-            const {
-                initializeApp,
-                getApps,
-                getApp
-            } = await import(
-                "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js"
-            );
-
-            const {
-                getAuth,
-                onAuthStateChanged
-            } = await import(
-                "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js"
-            );
+        const {
+            auth,
+            onAuthStateChanged
+        } = await getFirebaseAuth();
 
 
-            const firebaseConfig = {
-                apiKey: "AIzaSyAF9-LEijO0bI7OcaT5I74f2UtfGDdc78JGqQ",
-                authDomain: "ai-content-agent-a9820.firebaseapp.com",
-                projectId: "ai-content-agent-a9820",
-                storageBucket: "ai-content-agent-a9820.firebasestorage.app",
-                messagingSenderId: "833284009437",
-                appId: "1:833284009437:web:91859542fb1f87ccdb9a34"
-            };
+        onAuthStateChanged(
+            auth,
+            (user) => {
 
+                if (user) {
 
-            const firebaseApp =
-                getApps().length
-                    ? getApp()
-                    : initializeApp(firebaseConfig);
+                    // =========================
+                    // LOGGED IN
+                    // =========================
 
+                    launcher.style.display =
+                        "block";
 
-            const auth =
-                getAuth(firebaseApp);
+                    console.log(
+                        "AI Chat visible - user logged in."
+                    );
 
+                } else {
 
-            onAuthStateChanged(
-                auth,
-                (user) => {
+                    // =========================
+                    // LOGGED OUT
+                    // =========================
 
-                    if (user) {
+                    launcher.style.display =
+                        "none";
 
-                        // Logged in → show AI Chat
-                        launcher.style.display = "block";
+                    panel.classList.remove(
+                        "open"
+                    );
 
-                    } else {
-
-                        // Logged out → hide AI Chat
-                        launcher.style.display = "none";
-
-                        // Also close the chat if it was open
-                        panel.classList.remove("open");
-                    }
+                    console.log(
+                        "AI Chat hidden - user logged out."
+                    );
                 }
-            );
+            }
+        );
 
-        } catch (error) {
 
-            console.error(
-                "AI Chat Auth Visibility Error:",
-                error
-            );
+    } catch (error) {
 
-            // Safe default:
-            // hidden until authentication is confirmed
-            launcher.style.display = "none";
-            panel.classList.remove("open");
-        }
+        console.error(
+            "AI Chat Firebase Error:",
+            error
+        );
+
+        launcher.style.display =
+            "none";
+
+        panel.classList.remove(
+            "open"
+        );
     }
-
-
-    setupChatAuthVisibility();
-
-
-    // ==========================================
-    // CHAT MEMORY
-    // ==========================================
-
-    let messages = [];
-
-    let isSending = false;
 
 
     // ==========================================
@@ -571,12 +930,25 @@ document.addEventListener("DOMContentLoaded", () => {
         "click",
         () => {
 
-            panel.classList.toggle("open");
+            panel.classList.toggle(
+                "open"
+            );
 
-            if (panel.classList.contains("open")) {
-                setTimeout(() => {
-                    input.focus();
-                }, 100);
+
+            if (
+                panel.classList.contains(
+                    "open"
+                )
+            ) {
+
+                setTimeout(
+                    () => {
+
+                        input.focus();
+
+                    },
+                    100
+                );
             }
         }
     );
@@ -585,7 +957,11 @@ document.addEventListener("DOMContentLoaded", () => {
     closeButton.addEventListener(
         "click",
         () => {
-            panel.classList.remove("open");
+
+            panel.classList.remove(
+                "open"
+            );
+
         }
     );
 
@@ -594,11 +970,17 @@ document.addEventListener("DOMContentLoaded", () => {
     // NEW CHAT
     // ==========================================
 
+    let messages = [];
+
+    let isSending = false;
+
+
     newChatButton.addEventListener(
         "click",
         () => {
 
             messages = [];
+
 
             messagesBox.innerHTML = `
 
@@ -620,8 +1002,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
             `;
 
+
             input.value = "";
+
+            input.style.height =
+                "45px";
+
             input.focus();
+
         }
     );
 
@@ -633,10 +1021,14 @@ document.addEventListener("DOMContentLoaded", () => {
     function escapeHTML(value) {
 
         const div =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
+
 
         div.textContent =
             String(value || "");
+
 
         return div.innerHTML;
     }
@@ -649,14 +1041,26 @@ document.addEventListener("DOMContentLoaded", () => {
     function formatMessage(text) {
 
         return escapeHTML(text)
-            .replace(/\r\n/g, "\n")
-            .replace(/\r/g, "\n")
-            .replace(/\n/g, "<br>");
+
+            .replace(
+                /\r\n/g,
+                "\n"
+            )
+
+            .replace(
+                /\r/g,
+                "\n"
+            )
+
+            .replace(
+                /\n/g,
+                "<br>"
+            );
     }
 
 
     // ==========================================
-    // ADD MESSAGE TO UI
+    // ADD MESSAGE
     // ==========================================
 
     function addMessage(
@@ -665,27 +1069,45 @@ document.addEventListener("DOMContentLoaded", () => {
     ) {
 
         const message =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
+
 
         message.className =
             "ai-chat-message " +
             role;
 
+
         const bubble =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
+
 
         bubble.className =
             "ai-chat-bubble";
 
+
         bubble.innerHTML =
-            formatMessage(content);
+            formatMessage(
+                content
+            );
 
-        message.appendChild(bubble);
 
-        messagesBox.appendChild(message);
+        message.appendChild(
+            bubble
+        );
+
+
+        messagesBox.appendChild(
+            message
+        );
+
 
         messagesBox.scrollTop =
             messagesBox.scrollHeight;
+
 
         return message;
     }
@@ -698,13 +1120,18 @@ document.addEventListener("DOMContentLoaded", () => {
     function addTypingIndicator() {
 
         const message =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
+
 
         message.className =
             "ai-chat-message assistant";
 
+
         message.id =
             "aiChatTypingMessage";
+
 
         message.innerHTML = `
 
@@ -721,7 +1148,11 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
         `;
 
-        messagesBox.appendChild(message);
+
+        messagesBox.appendChild(
+            message
+        );
+
 
         messagesBox.scrollTop =
             messagesBox.scrollHeight;
@@ -735,8 +1166,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 "aiChatTypingMessage"
             );
 
+
         if (typing) {
+
             typing.remove();
+
         }
     }
 
@@ -751,8 +1185,10 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+
         const text =
             input.value.trim();
+
 
         if (!text) {
 
@@ -764,23 +1200,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
         isSending = true;
 
-        sendButton.disabled = true;
+        sendButton.disabled =
+            true;
 
-        input.disabled = true;
+        input.disabled =
+            true;
 
 
         // Remove welcome message
+
         const welcome =
             messagesBox.querySelector(
                 ".ai-chat-welcome"
             );
 
+
         if (welcome) {
+
             welcome.remove();
+
         }
 
 
-        // Add user message
+        // User message
+
         addMessage(
             "user",
             text
@@ -788,8 +1231,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         messages.push({
+
             role: "user",
+
             content: text
+
         });
 
 
@@ -811,19 +1257,26 @@ document.addEventListener("DOMContentLoaded", () => {
                         method: "POST",
 
                         headers: {
+
                             "Content-Type":
                                 "application/json"
                         },
 
-                        body: JSON.stringify({
-                            messages: messages,
-                            language: "Hindi"
-                        })
+                        body:
+                            JSON.stringify({
+
+                                messages:
+                                    messages,
+
+                                language:
+                                    "Hindi"
+                            })
                     }
                 );
 
 
             let data;
+
 
             try {
 
@@ -872,8 +1325,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             messages.push({
-                role: "assistant",
-                content: reply
+
+                role:
+                    "assistant",
+
+                content:
+                    reply
             });
 
 
@@ -884,6 +1341,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 error
             );
 
+
             removeTypingIndicator();
 
 
@@ -892,13 +1350,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 "Sorry, kuch problem aa gayi. Please try again."
             );
 
+
         } finally {
 
-            isSending = false;
+            isSending =
+                false;
 
-            sendButton.disabled = false;
+            sendButton.disabled =
+                false;
 
-            input.disabled = false;
+            input.disabled =
+                false;
 
             input.focus();
         }
@@ -937,7 +1399,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     // ==========================================
-    // AUTO RESIZE INPUT
+    // AUTO RESIZE
     // ==========================================
 
     input.addEventListener(
@@ -946,6 +1408,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             input.style.height =
                 "45px";
+
 
             input.style.height =
                 Math.min(
@@ -959,4 +1422,4 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log(
         "AI Chat loaded successfully."
     );
-});
+}
