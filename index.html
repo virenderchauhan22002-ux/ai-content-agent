@@ -7,30 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>AI Content Agent</title>
-    <div id="backendStatus"
-     style="
-        display:flex;
-        align-items:center;
-        gap:7px;
-        font-size:13px;
-        font-weight:600;
-        color:#73758a;
-        margin-left:12px;
-     ">
-    <span id="backendStatusDot"
-          style="
-             width:9px;
-             height:9px;
-             border-radius:50%;
-             background:#f4b400;
-             display:inline-block;
-          ">
-    </span>
-
-    <span id="backendStatusText">
-        Connecting...
-    </span>
-</div>
 
     <link rel="stylesheet" href="style.css">
 
@@ -333,6 +309,31 @@
         }
 
 
+        /* BACKEND STATUS BADGE */
+        #backendStatus {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.16);
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(4px);
+        }
+
+        #backendStatusDot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #f4b400;
+            display: inline-block;
+            transition: background 0.3s ease;
+        }
+
+
         @media (max-width: 500px) {
 
             #authScreen {
@@ -368,6 +369,14 @@
             #logoutBtn {
 
                 padding: 8px 9px;
+
+                font-size: 11px;
+
+            }
+
+            #backendStatus {
+
+                padding: 5px 8px;
 
                 font-size: 11px;
 
@@ -508,6 +517,11 @@
 
         <div class="topbar-right">
 
+            <!-- BACKEND STATUS PILL -->
+            <div id="backendStatus" title="Render Backend Status">
+                <span id="backendStatusDot"></span>
+                <span id="backendStatusText">Connecting...</span>
+            </div>
 
             <button
                 id="logoutBtn"
@@ -1203,127 +1217,89 @@
     type="module"
     src="auth.js"
 ></script>
+
+<!-- ==========================================
+     BACKEND CONNECTIVITY STATUS CHECKER
+========================================== -->
 <script>
 /* =========================================================
    BACKEND CONNECTIVITY STATUS
    AI CONTENT AGENT
    ========================================================= */
 
-const AI_BACKEND_URL =
-    "https://ai-content-agent-3hb3.onrender.com/";
+const AI_BACKEND_URL = "https://ai-content-agent-3hb3.onrender.com/";
 
 function updateBackendStatus(status, message) {
-
-    const dot =
-        document.getElementById("backendStatusDot");
-
-    const text =
-        document.getElementById("backendStatusText");
+    const dot = document.getElementById("backendStatusDot");
+    const text = document.getElementById("backendStatusText");
 
     if (!dot || !text) return;
 
     if (status === "connected") {
-
-        dot.style.background = "#16a34a";
-        text.style.color = "#16a34a";
+        dot.style.background = "#22c55e";
         text.textContent = "Connected";
-
     } else if (status === "disconnected") {
-
-        dot.style.background = "#dc2626";
-        text.style.color = "#dc2626";
+        dot.style.background = "#ef4444";
         text.textContent = "Disconnected";
-
     } else {
-
-        dot.style.background = "#f4b400";
-        text.style.color = "#73758a";
-        text.textContent =
-            message || "Connecting...";
-
+        dot.style.background = "#f59e0b";
+        text.textContent = message || "Connecting...";
     }
 }
-
 
 async function checkBackendConnection() {
-
-    updateBackendStatus(
-        "checking",
-        "Connecting..."
-    );
-
-    const controller =
-        new AbortController();
-
-    const timeout =
-        setTimeout(() => {
-            controller.abort();
-        }, 10000);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+        controller.abort();
+    }, 12000);
 
     try {
-
-        const response =
-            await fetch(
-                AI_BACKEND_URL,
-                {
-                    method: "GET",
-                    cache: "no-store",
-                    signal: controller.signal
-                }
-            );
+        const response = await fetch(AI_BACKEND_URL, {
+            method: "GET",
+            mode: "cors",
+            cache: "no-store",
+            signal: controller.signal
+        });
 
         clearTimeout(timeout);
 
-        if (response.ok) {
-
-            updateBackendStatus(
-                "connected",
-                "Connected"
-            );
-
+        if (response.ok || response.status === 200 || response.status === 404 || response.type === 'opaque') {
+            updateBackendStatus("connected");
         } else {
-
-            updateBackendStatus(
-                "disconnected",
-                "Disconnected"
-            );
-
+            updateBackendStatus("disconnected");
         }
-
     } catch (error) {
+        // Fallback ping for Render cold start or CORS-restricted response
+        try {
+            const fallbackCtrl = new AbortController();
+            const fallbackTimeout = setTimeout(() => fallbackCtrl.abort(), 6000);
 
-        clearTimeout(timeout);
+            await fetch(AI_BACKEND_URL, {
+                method: "HEAD",
+                mode: "no-cors",
+                cache: "no-store",
+                signal: fallbackCtrl.signal
+            });
 
-        updateBackendStatus(
-            "disconnected",
-            "Disconnected"
-        );
-
-        console.log(
-            "Backend connection check failed:",
-            error
-        );
+            clearTimeout(fallbackTimeout);
+            updateBackendStatus("connected");
+        } catch (fallbackError) {
+            clearTimeout(timeout);
+            updateBackendStatus("disconnected");
+            console.log("Backend offline or unreachable:", error);
+        }
     }
 }
 
+// Initial connection check on load
+document.addEventListener("DOMContentLoaded", () => {
+    updateBackendStatus("checking", "Connecting...");
+    checkBackendConnection();
 
-/* First check */
-document.addEventListener(
-    "DOMContentLoaded",
-    () => {
-
-        checkBackendConnection();
-
-        /* Recheck every 30 seconds */
-        setInterval(
-            checkBackendConnection,
-            30000
-        );
-
-    }
-);
+    // Recheck automatically every 30 seconds
+    setInterval(checkBackendConnection, 30000);
+});
 </script>
-
 
 </body>
 
