@@ -11,204 +11,201 @@
     <link rel="stylesheet" href="style.css">
 
 
-    <!-- ==========================================
-         AUTH UI STYLES
-    ========================================== -->
+    <!-- =====================================================
+         AUTH + GLOBAL UI
+    ====================================================== -->
 
     <style>
 
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: inherit;
+        }
+
+
+        /* =================================================
+           AUTH SCREEN
+        ================================================= */
+
         #authScreen {
-
             min-height: 100vh;
-
             display: flex;
-
             align-items: center;
-
             justify-content: center;
-
             padding: 20px;
 
             background:
+                radial-gradient(
+                    circle at 20% 10%,
+                    rgba(255,255,255,.20),
+                    transparent 28%
+                ),
+                radial-gradient(
+                    circle at 90% 90%,
+                    rgba(255,255,255,.16),
+                    transparent 30%
+                ),
                 linear-gradient(
                     135deg,
-                    #5657ed,
-                    #7475ff
+                    #4f7cff,
+                    #6d5dfc
                 );
-
         }
 
 
         .auth-card {
-
             width: 100%;
-
             max-width: 430px;
+            padding: 34px;
 
-            background: #ffffff;
+            background: rgba(255,255,255,.97);
 
-            border-radius: 22px;
+            border: 1px solid rgba(255,255,255,.8);
 
-            padding: 32px;
+            border-radius: 26px;
 
             box-shadow:
-                0 20px 50px
-                rgba(20, 25, 80, 0.20);
-
+                0 30px 70px rgba(20,25,80,.22),
+                inset 0 1px 0 rgba(255,255,255,.95);
         }
 
 
         .auth-logo {
-
-            width: 58px;
-
-            height: 58px;
+            width: 62px;
+            height: 62px;
 
             margin: 0 auto 18px;
 
-            border-radius: 17px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 20px;
+
+            color: #fff;
+
+            font-size: 25px;
+            font-weight: 900;
 
             background:
                 linear-gradient(
-                    135deg,
-                    #5b5cf0,
-                    #7778ff
+                    145deg,
+                    #62b6ff,
+                    #4d67f5
                 );
 
-            color: white;
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            font-size: 25px;
-
-            font-weight: bold;
-
+            box-shadow:
+                0 14px 28px rgba(70,105,245,.28),
+                inset 5px 5px 10px rgba(255,255,255,.35);
         }
 
 
         .auth-card h2 {
+            margin: 0 0 8px;
 
             text-align: center;
 
-            font-size: 23px;
-
             color: #17182b;
 
-            margin-bottom: 8px;
-
+            font-size: 23px;
         }
 
 
         .auth-card > p {
+            margin: 0 0 24px;
 
             text-align: center;
 
             color: #73758a;
 
             font-size: 13px;
-
             line-height: 1.5;
-
-            margin-bottom: 24px;
-
         }
 
 
         .auth-field {
-
             margin-bottom: 15px;
-
         }
 
 
         .auth-field label {
-
             display: block;
 
             margin-bottom: 7px;
 
-            font-size: 13px;
-
-            font-weight: 600;
-
             color: #17182b;
 
+            font-size: 13px;
+            font-weight: 700;
         }
 
 
         .auth-field input {
-
             width: 100%;
 
             padding: 13px;
 
-            border: 1px solid #e9eaf3;
+            border: 1px solid #e3e7f0;
+            border-radius: 13px;
 
-            border-radius: 12px;
-
-            background: #fafaff;
+            background: #fafcff;
 
             font-family: inherit;
-
             font-size: 14px;
 
             outline: none;
 
+            transition: .2s ease;
         }
 
 
         .auth-field input:focus {
+            border-color: #5b7cff;
 
-            border-color: #5b5cf0;
-
+            box-shadow:
+                0 0 0 4px rgba(91,124,255,.10);
         }
 
 
         #authButton {
-
             width: 100%;
 
-            border: none;
+            border: 0;
+
+            padding: 14px;
+
+            border-radius: 14px;
+
+            color: white;
 
             background:
                 linear-gradient(
                     135deg,
-                    #5b5cf0,
-                    #7778ff
+                    #4d7cff,
+                    #6258ef
                 );
 
-            color: white;
-
-            padding: 13px;
-
-            border-radius: 12px;
-
-            font-weight: 600;
-
             font-size: 14px;
+            font-weight: 800;
 
             cursor: pointer;
 
-            margin-top: 4px;
-
+            box-shadow:
+                0 10px 22px rgba(79,100,240,.22);
         }
 
 
         #authButton:disabled {
-
             cursor: not-allowed;
-
-            opacity: 0.7;
-
+            opacity: .7;
         }
 
 
         #authMessage {
-
             display: none;
 
             margin-top: 13px;
@@ -220,16 +217,13 @@
             background: #fff5f5;
 
             font-size: 13px;
-
             line-height: 1.4;
 
             text-align: center;
-
         }
 
 
         #authToggle {
-
             margin-top: 20px;
 
             text-align: center;
@@ -237,149 +231,1200 @@
             color: #73758a;
 
             font-size: 13px;
-
         }
 
 
         #authToggle button {
-
-            border: none;
-
-            background: none;
+            border: 0;
+            padding: 0;
 
             color: #5b5cf0;
 
-            font-weight: 600;
-
-            cursor: pointer;
-
-            padding: 0;
+            background: none;
 
             font-size: 13px;
+            font-weight: 700;
 
+            cursor: pointer;
         }
 
+
+        /* =================================================
+           APP
+        ================================================= */
 
         #appContent {
-
             display: none;
 
+            min-height: 100vh;
+
+            background:
+                radial-gradient(
+                    circle at 85% 0%,
+                    rgba(71,158,255,.18),
+                    transparent 27%
+                ),
+                radial-gradient(
+                    circle at 5% 85%,
+                    rgba(112,104,255,.10),
+                    transparent 28%
+                ),
+                linear-gradient(
+                    135deg,
+                    #eef7ff 0%,
+                    #f9fcff 48%,
+                    #edf6ff 100%
+                );
         }
 
 
-        .topbar-right {
+        /* =================================================
+           TOPBAR
+        ================================================= */
+
+        #appContent .topbar {
+            position: sticky;
+
+            top: 0;
+
+            z-index: 100;
+
+            min-height: 76px;
+
+            padding: 13px 28px;
 
             display: flex;
 
             align-items: center;
 
-            gap: 10px;
+            justify-content: space-between;
 
-        }
-
-
-        #logoutBtn {
-
-            display: none;
-
-            border: 1px solid rgba(255,255,255,0.35);
-
-            background: rgba(255,255,255,0.15);
-
-            color: white;
-
-            padding: 9px 12px;
-
-            border-radius: 10px;
-
-            font-size: 12px;
-
-            font-weight: 600;
-
-            cursor: pointer;
-
-        }
-
-
-        #logoutBtn:hover {
+            gap: 20px;
 
             background:
-                rgba(255,255,255,0.25);
+                rgba(255,255,255,.88);
 
+            border-bottom:
+                1px solid rgba(70,125,190,.13);
+
+            box-shadow:
+                0 8px 30px rgba(35,85,145,.07);
+
+            backdrop-filter:
+                blur(18px);
         }
 
 
-        /* BACKEND STATUS BADGE */
+        #appContent .topbar h1 {
+            margin: 0;
+
+            color: #102a56;
+
+            font-size: 22px;
+            font-weight: 900;
+
+            letter-spacing: -.4px;
+        }
+
+
+        #appContent .topbar p {
+            margin: 3px 0 0;
+
+            color: #71809a;
+
+            font-size: 12px;
+        }
+
+
+        .topbar-right {
+            display: flex;
+
+            align-items: center;
+
+            gap: 9px;
+        }
+
+
         #backendStatus {
             display: inline-flex;
+
             align-items: center;
+
             gap: 7px;
+
+            padding: 7px 12px;
+
+            border-radius: 999px;
+
+            color: #155e9c;
+
+            background: #eef7ff;
+
+            border: 1px solid #d4eaff;
+
             font-size: 12px;
-            font-weight: 600;
-            color: #ffffff;
-            background: rgba(255, 255, 255, 0.16);
-            padding: 6px 12px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(4px);
+            font-weight: 700;
+
+            backdrop-filter: blur(8px);
         }
+
 
         #backendStatusDot {
             width: 8px;
             height: 8px;
-            border-radius: 50%;
-            background: #f4b400;
+
             display: inline-block;
-            transition: background 0.3s ease;
+
+            border-radius: 50%;
+
+            background: #f4b400;
+
+            transition:
+                background .3s ease;
+
+            box-shadow:
+                0 0 0 3px rgba(244,180,0,.10);
+        }
+
+
+        #logoutBtn {
+            display: none;
+
+            border: 1px solid #d7e8fa;
+
+            padding: 9px 12px;
+
+            border-radius: 11px;
+
+            color: #17406d;
+
+            background: #f4f9ff;
+
+            font-size: 12px;
+            font-weight: 700;
+
+            cursor: pointer;
+
+            transition: .2s ease;
+        }
+
+
+        #logoutBtn:hover {
+            background: #eaf5ff;
+
+            transform: translateY(-1px);
+        }
+
+
+        #appContent .profile {
+            width: 43px;
+            height: 43px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 50%;
+
+            color: #176fe7;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #ffffff,
+                    #d8edff
+                );
+
+            border: 2px solid #fff;
+
+            font-weight: 900;
+
+            box-shadow:
+                0 7px 18px rgba(25,105,190,.17),
+                inset 0 1px 2px rgba(255,255,255,.9);
+        }
+
+
+        /* =================================================
+           MAIN DASHBOARD
+        ================================================= */
+
+        #appContent .dashboard {
+            width: min(1180px, calc(100% - 32px));
+
+            margin: 0 auto;
+
+            padding: 28px 0 60px;
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 22px;
+        }
+
+
+        /* =================================================
+           HERO / MAIN GENERATOR
+        ================================================= */
+
+        #appContent .hero {
+            position: relative;
+
+            overflow: hidden;
+
+            min-height: 340px;
+
+            padding: 38px;
+
+            border-radius: 32px;
+
+            background:
+                radial-gradient(
+                    circle at 86% 15%,
+                    rgba(255,255,255,.95),
+                    transparent 22%
+                ),
+                radial-gradient(
+                    circle at 75% 85%,
+                    rgba(74,158,255,.15),
+                    transparent 27%
+                ),
+                linear-gradient(
+                    135deg,
+                    #dff2ff 0%,
+                    #cbe8ff 48%,
+                    #f1f9ff 100%
+                );
+
+            border:
+                1px solid rgba(80,160,230,.20);
+
+            box-shadow:
+                0 25px 60px rgba(38,112,180,.15),
+                inset 0 1px 0 rgba(255,255,255,.95);
+        }
+
+
+        #appContent .hero::before {
+            content: "";
+
+            position: absolute;
+
+            width: 220px;
+            height: 220px;
+
+            right: -45px;
+            top: -70px;
+
+            border-radius: 50%;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(255,255,255,.85),
+                    rgba(106,187,255,.22)
+                );
+
+            box-shadow:
+                inset 15px 15px 25px rgba(255,255,255,.55),
+                0 25px 50px rgba(42,122,200,.10);
+
+            pointer-events: none;
+        }
+
+
+        #appContent .hero::after {
+            content: "✨";
+
+            position: absolute;
+
+            right: 80px;
+            top: 55px;
+
+            width: 90px;
+            height: 90px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 28px;
+
+            color: #1677ff;
+
+            background:
+                rgba(255,255,255,.75);
+
+            font-size: 38px;
+
+            transform:
+                rotate(8deg);
+
+            box-shadow:
+                0 18px 35px rgba(30,100,180,.12),
+                inset 0 2px 5px rgba(255,255,255,.9);
+
+            pointer-events: none;
+        }
+
+
+        #appContent .hero h2 {
+            position: relative;
+
+            z-index: 2;
+
+            max-width: 700px;
+
+            margin: 0 0 8px;
+
+            color: #102957;
+
+            font-size:
+                clamp(30px, 4.5vw, 49px);
+
+            line-height: 1.05;
+
+            font-weight: 900;
+
+            letter-spacing: -1.8px;
+        }
+
+
+        #appContent .hero > p {
+            position: relative;
+
+            z-index: 2;
+
+            max-width: 650px;
+
+            margin: 0 0 23px;
+
+            color: #58708f;
+
+            font-size: 14px;
+
+            line-height: 1.6;
+        }
+
+
+        #appContent .hero textarea {
+            position: relative;
+
+            z-index: 5;
+
+            width: 100%;
+
+            min-height: 92px;
+
+            padding: 16px 17px;
+
+            resize: vertical;
+
+            border:
+                1px solid #d2e6f8;
+
+            border-radius: 17px;
+
+            color: #13213c;
+
+            background:
+                rgba(255,255,255,.86);
+
+            outline: none;
+
+            font-family: inherit;
+
+            box-shadow:
+                0 9px 22px rgba(42,108,170,.07),
+                inset 0 1px 2px rgba(255,255,255,.9);
+
+            transition: .2s ease;
+        }
+
+
+        #appContent .hero textarea:focus {
+            border-color: #5aa8ff;
+
+            box-shadow:
+                0 0 0 4px rgba(40,140,255,.10),
+                0 10px 25px rgba(42,108,170,.08);
+        }
+
+
+        #appContent .hero label {
+            position: relative;
+
+            z-index: 5;
+
+            display: inline-block;
+
+            margin:
+                13px 8px 7px 0;
+
+            color: #315275;
+
+            font-size: 12px;
+
+            font-weight: 800;
+        }
+
+
+        #appContent .hero select {
+            position: relative;
+
+            z-index: 5;
+
+            min-width: 180px;
+
+            padding: 11px 14px;
+
+            border:
+                1px solid #d5e8fa;
+
+            border-radius: 13px;
+
+            color: #183657;
+
+            background:
+                rgba(255,255,255,.92);
+
+            outline: none;
+
+            font-family: inherit;
+        }
+
+
+        #appContent .hero select:focus {
+            border-color: #5aa8ff;
+
+            box-shadow:
+                0 0 0 4px rgba(40,140,255,.09);
+        }
+
+
+        #appContent #generateBtn {
+            position: relative;
+
+            z-index: 5;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            gap: 7px;
+
+            margin-top: 19px;
+
+            padding: 14px 24px;
+
+            border: 0;
+
+            border-radius: 15px;
+
+            color: #fff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #1688ff,
+                    #245fe7
+                );
+
+            font-size: 14px;
+
+            font-weight: 900;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 13px 27px rgba(23,115,242,.26),
+                inset 0 1px 0 rgba(255,255,255,.35);
+
+            transition:
+                transform .2s ease,
+                box-shadow .2s ease;
+        }
+
+
+        #appContent #generateBtn:hover {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 17px 32px rgba(23,115,242,.33),
+                inset 0 1px 0 rgba(255,255,255,.4);
+        }
+
+
+        #appContent #generateBtn:active {
+            transform: translateY(0);
+        }
+
+
+        /* =================================================
+           QUICK TOOLS
+        ================================================= */
+
+        #appContent .tools {
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, minmax(0,1fr));
+
+            gap: 16px;
+        }
+
+
+        #appContent .tool-card {
+            position: relative;
+
+            min-height: 155px;
+
+            padding: 21px;
+
+            overflow: hidden;
+
+            cursor: pointer;
+
+            border-radius: 24px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(255,255,255,.98),
+                    rgba(244,250,255,.94)
+                );
+
+            border:
+                1px solid rgba(100,155,210,.16);
+
+            box-shadow:
+                0 16px 32px rgba(45,100,155,.09),
+                inset 0 1px 0 rgba(255,255,255,.98);
+
+            transition:
+                transform .22s ease,
+                box-shadow .22s ease,
+                border-color .22s ease;
+        }
+
+
+        #appContent .tool-card::before {
+            content: "";
+
+            position: absolute;
+
+            width: 120px;
+            height: 120px;
+
+            right: -45px;
+            bottom: -55px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(45,145,255,.08);
+        }
+
+
+        #appContent .tool-card:hover {
+            transform: translateY(-5px);
+
+            border-color:
+                rgba(30,125,240,.25);
+
+            box-shadow:
+                0 23px 42px rgba(40,105,170,.14),
+                inset 0 1px 0 rgba(255,255,255,.98);
+        }
+
+
+        #appContent .tool-card > span {
+            position: relative;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            width: 58px;
+            height: 58px;
+
+            margin-bottom: 15px;
+
+            border-radius: 18px;
+
+            font-size: 27px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #ffffff,
+                    #e1f1ff
+                );
+
+            box-shadow:
+                0 10px 19px rgba(40,110,180,.13),
+                inset 0 2px 5px rgba(255,255,255,.95);
+        }
+
+
+        #appContent .tool-card h3 {
+            position: relative;
+
+            margin: 0 0 5px;
+
+            color: #13213c;
+
+            font-size: 16px;
+
+            font-weight: 850;
+        }
+
+
+        #appContent .tool-card p {
+            position: relative;
+
+            margin: 0;
+
+            color: #71809a;
+
+            font-size: 12px;
+
+            line-height: 1.5;
+        }
+
+
+        /* =================================================
+           RESULT
+        ================================================= */
+
+        #appContent .result-box,
+        #appContent .ideas-box,
+        #appContent .image-box {
+            border-radius: 27px;
+
+            background:
+                rgba(255,255,255,.95);
+
+            border:
+                1px solid rgba(100,150,205,.16);
+
+            box-shadow:
+                0 19px 40px rgba(45,95,150,.08),
+                inset 0 1px 0 rgba(255,255,255,.98);
+        }
+
+
+        #appContent .result-box {
+            padding: 26px;
+        }
+
+
+        #appContent .result-box h2,
+        #appContent .ideas-box h2,
+        #appContent .image-box h2 {
+            color: #13213c;
+        }
+
+
+        #appContent #result {
+            color: #60718a;
+
+            line-height: 1.7;
+        }
+
+
+        /* =================================================
+           CONTENT IDEAS
+        ================================================= */
+
+        #appContent .ideas-box {
+            padding: 27px;
+        }
+
+
+        #appContent .ideas-header {
+            margin-bottom: 20px;
+        }
+
+
+        #appContent .ideas-header h2 {
+            display: inline;
+
+            margin-left: 8px;
+        }
+
+
+        #appContent .ideas-header p {
+            margin: 7px 0 0;
+
+            color: #71809a;
+
+            font-size: 13px;
+        }
+
+
+        #appContent .ideas-controls {
+            display: grid;
+
+            grid-template-columns:
+                minmax(0,1fr)
+                160px
+                125px
+                auto;
+
+            gap: 10px;
+        }
+
+
+        #appContent .ideas-controls input,
+        #appContent .ideas-controls select {
+            width: 100%;
+
+            min-height: 46px;
+
+            padding: 10px 13px;
+
+            border:
+                1px solid #dce9f5;
+
+            border-radius: 13px;
+
+            color: #233955;
+
+            background: #f9fcff;
+
+            outline: none;
+
+            font-family: inherit;
+        }
+
+
+        #appContent .ideas-controls input:focus,
+        #appContent .ideas-controls select:focus {
+            border-color: #5aa8ff;
+
+            box-shadow:
+                0 0 0 4px rgba(40,140,255,.08);
+        }
+
+
+        #appContent .ideas-controls button {
+            min-height: 46px;
+
+            padding: 10px 18px;
+
+            border: 0;
+
+            border-radius: 13px;
+
+            color: #fff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #1684ff,
+                    #2365e7
+                );
+
+            font-weight: 800;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 9px 18px rgba(23,115,242,.18);
+        }
+
+
+        #appContent #ideasResult {
+            margin-top: 20px;
+        }
+
+
+        /* =================================================
+           IMAGE GENERATOR
+        ================================================= */
+
+        #appContent .image-box {
+            padding: 27px;
+        }
+
+
+        #appContent .image-header {
+            display: flex;
+
+            align-items: flex-start;
+
+            gap: 12px;
+
+            margin-bottom: 20px;
+        }
+
+
+        #appContent .image-header h2 {
+            margin: 0;
+        }
+
+
+        #appContent .image-header p {
+            margin: 7px 0 0;
+
+            color: #71809a;
+
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+
+        #appContent .image-controls {
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, minmax(0,1fr));
+
+            gap: 14px;
+        }
+
+
+        #appContent .image-field.full {
+            grid-column: 1 / -1;
+        }
+
+
+        #appContent .image-field label {
+            display: block;
+
+            margin-bottom: 7px;
+
+            color: #355474;
+
+            font-size: 12px;
+
+            font-weight: 800;
+        }
+
+
+        #appContent .image-field textarea,
+        #appContent .image-field select {
+            width: 100%;
+
+            padding: 12px;
+
+            border:
+                1px solid #dce9f5;
+
+            border-radius: 13px;
+
+            color: #233955;
+
+            background: #f9fcff;
+
+            outline: none;
+
+            font-family: inherit;
+        }
+
+
+        #appContent .image-field textarea {
+            min-height: 90px;
+
+            resize: vertical;
+        }
+
+
+        #appContent .image-field textarea:focus,
+        #appContent .image-field select:focus {
+            border-color: #5aa8ff;
+
+            box-shadow:
+                0 0 0 4px rgba(40,140,255,.08);
+        }
+
+
+        #appContent .image-generate-btn {
+            grid-column: 1 / -1;
+
+            min-height: 48px;
+
+            padding: 13px;
+
+            border: 0;
+
+            border-radius: 14px;
+
+            color: #fff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #1684ff,
+                    #2365e7
+                );
+
+            font-weight: 850;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 10px 20px rgba(23,115,242,.18);
+        }
+
+
+        #appContent .image-result {
+            margin-top: 20px;
+        }
+
+
+        /* =================================================
+           MOBILE
+        ================================================= */
+
+        @media (max-width: 950px) {
+
+            #appContent .dashboard {
+                width: min(
+                    calc(100% - 24px),
+                    720px
+                );
+            }
+
+
+            #appContent .tools {
+                grid-template-columns:
+                    repeat(2,minmax(0,1fr));
+            }
+
+
+            #appContent .ideas-controls {
+                grid-template-columns:
+                    1fr 1fr;
+            }
+
+
+            #appContent .image-controls {
+                grid-template-columns:
+                    1fr 1fr;
+            }
+
+        }
+
+
+        @media (max-width: 650px) {
+
+            #appContent .topbar {
+                min-height: 68px;
+
+                padding:
+                    11px 13px;
+            }
+
+
+            #appContent .topbar h1 {
+                font-size: 17px;
+            }
+
+
+            #appContent .topbar p {
+                display: none;
+            }
+
+
+            #appContent #backendStatus {
+                display: none;
+            }
+
+
+            #appContent #logoutBtn {
+                padding: 8px 9px;
+
+                font-size: 11px;
+            }
+
+
+            #appContent .profile {
+                width: 39px;
+                height: 39px;
+            }
+
+
+            #appContent .dashboard {
+                width: calc(100% - 16px);
+
+                padding:
+                    12px 0 35px;
+
+                gap: 15px;
+            }
+
+
+            #appContent .hero {
+                min-height: auto;
+
+                padding: 24px 18px;
+
+                border-radius: 24px;
+            }
+
+
+            #appContent .hero::after {
+                right: 25px;
+                top: 30px;
+
+                width: 60px;
+                height: 60px;
+
+                font-size: 25px;
+            }
+
+
+            #appContent .hero h2 {
+                max-width: 80%;
+
+                font-size: 29px;
+
+                letter-spacing: -1px;
+            }
+
+
+            #appContent .hero > p {
+                font-size: 13px;
+            }
+
+
+            #appContent .hero textarea {
+                min-height: 105px;
+            }
+
+
+            #appContent .hero select {
+                width: 100%;
+
+                min-width: 0;
+
+                margin-bottom: 5px;
+            }
+
+
+            #appContent #generateBtn {
+                width: 100%;
+            }
+
+
+            #appContent .tools {
+                grid-template-columns:
+                    repeat(2,minmax(0,1fr));
+
+                gap: 10px;
+            }
+
+
+            #appContent .tool-card {
+                min-height: 142px;
+
+                padding: 16px;
+
+                border-radius: 19px;
+            }
+
+
+            #appContent .tool-card > span {
+                width: 48px;
+                height: 48px;
+
+                margin-bottom: 12px;
+
+                border-radius: 15px;
+
+                font-size: 23px;
+            }
+
+
+            #appContent .tool-card h3 {
+                font-size: 14px;
+            }
+
+
+            #appContent .tool-card p {
+                font-size: 10.5px;
+            }
+
+
+            #appContent .ideas-box,
+            #appContent .image-box,
+            #appContent .result-box {
+                padding: 18px;
+
+                border-radius: 21px;
+            }
+
+
+            #appContent .ideas-controls,
+            #appContent .image-controls {
+                grid-template-columns: 1fr;
+            }
+
+
+            #appContent .image-field.full,
+            #appContent .image-generate-btn {
+                grid-column: auto;
+            }
+
+        }
+
+
+        @media (max-width: 400px) {
+
+            #appContent .hero h2 {
+                font-size: 26px;
+            }
+
+
+            #appContent .tools {
+                grid-template-columns: 1fr;
+            }
+
+
+            #appContent .tool-card {
+                min-height: 105px;
+
+                display: flex;
+
+                align-items: center;
+
+                gap: 14px;
+            }
+
+
+            #appContent .tool-card > span {
+                flex: 0 0 48px;
+
+                margin-bottom: 0;
+            }
+
         }
 
 
         @media (max-width: 500px) {
 
             #authScreen {
-
                 padding: 16px;
-
             }
 
 
             .auth-card {
+                padding: 25px 20px;
 
-                padding: 24px 20px;
-
-                border-radius: 19px;
-
+                border-radius: 21px;
             }
 
 
             .auth-card h2 {
-
                 font-size: 21px;
-
-            }
-
-
-            .topbar-right {
-
-                gap: 6px;
-
-            }
-
-
-            #logoutBtn {
-
-                padding: 8px 9px;
-
-                font-size: 11px;
-
-            }
-
-            #backendStatus {
-
-                padding: 5px 8px;
-
-                font-size: 11px;
-
             }
 
         }
@@ -392,14 +1437,13 @@
 <body>
 
 
-<!-- ==========================================
-     LOGIN / REGISTER SCREEN
-========================================== -->
+<!-- =====================================================
+     LOGIN / REGISTER
+====================================================== -->
 
 <section id="authScreen">
 
     <div class="auth-card">
-
 
         <div class="auth-logo">
             AI
@@ -481,16 +1525,15 @@
 
         </form>
 
-
     </div>
 
 </section>
 
 
 
-<!-- ==========================================
-     MAIN APP
-========================================== -->
+<!-- =====================================================
+     MAIN APPLICATION
+====================================================== -->
 
 <div
     class="app"
@@ -498,7 +1541,7 @@
 >
 
 
-    <!-- TOP BAR -->
+    <!-- TOPBAR -->
 
     <header class="topbar">
 
@@ -517,11 +1560,20 @@
 
         <div class="topbar-right">
 
-            <!-- BACKEND STATUS PILL -->
-            <div id="backendStatus" title="Render Backend Status">
+
+            <div
+                id="backendStatus"
+                title="Render Backend Status"
+            >
+
                 <span id="backendStatusDot"></span>
-                <span id="backendStatusText">Connecting...</span>
+
+                <span id="backendStatusText">
+                    Connecting...
+                </span>
+
             </div>
+
 
             <button
                 id="logoutBtn"
@@ -545,12 +1597,14 @@
 
 
 
+    <!-- =================================================
+         DASHBOARD
+    ================================================== -->
+
     <main class="dashboard">
 
 
-        <!-- ==========================================
-             MAIN GENERATOR
-        ========================================== -->
+        <!-- MAIN GENERATOR -->
 
         <section class="hero">
 
@@ -558,8 +1612,10 @@
                 What do you want to create?
             </h2>
 
+
             <p>
-                Generate ideas, scripts, captions, hooks and more.
+                Generate ideas, scripts, captions, hooks
+                and more with your AI content assistant.
             </p>
 
 
@@ -625,7 +1681,10 @@
             </select>
 
 
-            <button id="generateBtn">
+            <button
+                id="generateBtn"
+                type="button"
+            >
                 ✨ Generate Content
             </button>
 
@@ -633,9 +1692,9 @@
 
 
 
-        <!-- ==========================================
-             TOOLS
-        ========================================== -->
+        <!-- =================================================
+             QUICK TOOLS
+        ================================================== -->
 
         <section class="tools">
 
@@ -648,7 +1707,9 @@
                 title="Open Content Ideas"
             >
 
-                <span>💡</span>
+                <span>
+                    💡
+                </span>
 
                 <h3>
                     Content Ideas
@@ -661,7 +1722,6 @@
             </div>
 
 
-
             <div
                 class="tool-card"
                 id="imageGeneratorCard"
@@ -670,23 +1730,27 @@
                 title="Open AI Image Generator"
             >
 
-                <span>🖼️</span>
+                <span>
+                    🖼️
+                </span>
 
                 <h3>
                     AI Image
                 </h3>
 
                 <p>
-                    Create images for posts, stories and thumbnails.
+                    Create images for posts, stories
+                    and thumbnails.
                 </p>
 
             </div>
 
 
-
             <div class="tool-card">
 
-                <span>🎬</span>
+                <span>
+                    🎬
+                </span>
 
                 <h3>
                     Scripts
@@ -699,10 +1763,11 @@
             </div>
 
 
-
             <div class="tool-card">
 
-                <span>🪝</span>
+                <span>
+                    🪝
+                </span>
 
                 <h3>
                     Hooks
@@ -715,10 +1780,11 @@
             </div>
 
 
-
             <div class="tool-card">
 
-                <span>📝</span>
+                <span>
+                    📝
+                </span>
 
                 <h3>
                     Captions
@@ -731,10 +1797,11 @@
             </div>
 
 
-
             <div class="tool-card">
 
-                <span>#️⃣</span>
+                <span>
+                    #️⃣
+                </span>
 
                 <h3>
                     Hashtags
@@ -747,10 +1814,11 @@
             </div>
 
 
-
             <div class="tool-card">
 
-                <span>📢</span>
+                <span>
+                    📢
+                </span>
 
                 <h3>
                     CTA
@@ -767,9 +1835,9 @@
 
 
 
-        <!-- ==========================================
+        <!-- =================================================
              AI RESULT
-        ========================================== -->
+        ================================================== -->
 
         <section class="result-box">
 
@@ -777,22 +1845,26 @@
                 AI Result
             </h2>
 
+
             <div id="result">
+
                 Your generated content will appear here.
+
             </div>
 
         </section>
 
 
 
-        <!-- ==========================================
+        <!-- =================================================
              CONTENT IDEAS
-        ========================================== -->
+        ================================================== -->
 
         <section
             class="ideas-box"
             id="contentIdeasSection"
         >
+
 
             <div class="ideas-header">
 
@@ -817,6 +1889,7 @@
 
 
             <div class="ideas-controls">
+
 
                 <input
                     type="text"
@@ -848,7 +1921,10 @@
                         5 Ideas
                     </option>
 
-                    <option value="10" selected>
+                    <option
+                        value="10"
+                        selected
+                    >
                         10 Ideas
                     </option>
 
@@ -859,35 +1935,44 @@
                 </select>
 
 
-                <button id="generateIdeasBtn">
+                <button
+                    id="generateIdeasBtn"
+                    type="button"
+                >
                     💡 Generate Ideas
                 </button>
+
 
             </div>
 
 
             <div id="ideasResult">
+
                 Your content ideas will appear here.
+
             </div>
+
 
         </section>
 
 
 
-        <!-- ==========================================
+        <!-- =================================================
              AI IMAGE GENERATOR
-        ========================================== -->
+        ================================================== -->
 
         <section
             class="image-box"
             id="imageGeneratorSection"
         >
 
+
             <div class="image-header">
 
                 <span class="image-icon">
                     🖼️
                 </span>
+
 
                 <div>
 
@@ -914,6 +1999,7 @@
                         What image do you want?
                     </label>
 
+
                     <textarea
                         id="imagePrompt"
                         placeholder="Example: A premium LIC savings awareness poster with a happy Indian family, professional blue theme, clean modern design..."
@@ -927,6 +2013,7 @@
                     <label for="imageType">
                         Image Type
                     </label>
+
 
                     <select id="imageType">
 
@@ -960,6 +2047,7 @@
                     <label for="imageStyle">
                         Visual Style
                     </label>
+
 
                     <select id="imageStyle">
 
@@ -998,6 +2086,7 @@
                         Quality
                     </label>
 
+
                     <select id="imageSize">
 
                         <option value="1K">
@@ -1016,9 +2105,11 @@
                 <button
                     id="generateImageBtn"
                     class="image-generate-btn"
+                    type="button"
                 >
                     🖼️ Generate Image
                 </button>
+
 
             </div>
 
@@ -1042,6 +2133,7 @@
 
             </div>
 
+
         </section>
 
 
@@ -1051,25 +2143,31 @@
 
 
 
-<!-- ==========================================
-     EXISTING AI JAVASCRIPT
-========================================== -->
+<!-- =====================================================
+     EXISTING JAVASCRIPT
+====================================================== -->
+
 
 <!-- HISTORY -->
+
 <script
     type="module"
     src="history.js"
 ></script>
 
 
+<!-- MAIN AI GENERATOR -->
+
 <script src="script.js"></script>
 
 
 <!-- AI CHAT -->
+
 <script src="chat.js"></script>
 
 
 <!-- DASHBOARD / PROFILE / SETTINGS -->
+
 <script
     type="module"
     src="dashboard.js"
@@ -1077,229 +2175,375 @@
 
 
 
-<!-- ==========================================
+<!-- =====================================================
      CARD SCROLL
-========================================== -->
+====================================================== -->
 
 <script>
 
-    const contentIdeasCard =
-        document.getElementById("contentIdeasCard");
-
-    const contentIdeasSection =
-        document.getElementById("contentIdeasSection");
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
 
 
-    if (
-        contentIdeasCard &&
-        contentIdeasSection
-    ) {
+            /* CONTENT IDEAS */
 
-        contentIdeasCard.style.cursor =
-            "pointer";
-
-
-        contentIdeasCard.addEventListener(
-            "click",
-            function () {
-
-                contentIdeasSection.scrollIntoView({
-
-                    behavior: "smooth",
-
-                    block: "start"
-
-                });
-
-            }
-        );
+            const contentIdeasCard =
+                document.getElementById(
+                    "contentIdeasCard"
+                );
 
 
-        contentIdeasCard.addEventListener(
-            "keydown",
-            function (event) {
-
-                if (
-                    event.key === "Enter" ||
-                    event.key === " "
-                ) {
-
-                    event.preventDefault();
+            const contentIdeasSection =
+                document.getElementById(
+                    "contentIdeasSection"
+                );
 
 
-                    contentIdeasSection.scrollIntoView({
+            if (
+                contentIdeasCard &&
+                contentIdeasSection
+            ) {
 
-                        behavior: "smooth",
-
-                        block: "start"
-
-                    });
-
-                }
-
-            }
-        );
-
-    }
+                contentIdeasCard.style.cursor =
+                    "pointer";
 
 
+                contentIdeasCard.addEventListener(
+                    "click",
+                    function () {
 
-    /* IMAGE CARD SCROLL */
+                        contentIdeasSection.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start"
+                        });
 
-    const imageGeneratorCard =
-        document.getElementById("imageGeneratorCard");
-
-    const imageGeneratorSection =
-        document.getElementById("imageGeneratorSection");
-
-
-    if (
-        imageGeneratorCard &&
-        imageGeneratorSection
-    ) {
-
-        imageGeneratorCard.style.cursor =
-            "pointer";
+                    }
+                );
 
 
-        imageGeneratorCard.addEventListener(
-            "click",
-            function () {
+                contentIdeasCard.addEventListener(
+                    "keydown",
+                    function (event) {
 
-                imageGeneratorSection.scrollIntoView({
+                        if (
+                            event.key === "Enter" ||
+                            event.key === " "
+                        ) {
 
-                    behavior: "smooth",
+                            event.preventDefault();
 
-                    block: "start"
 
-                });
+                            contentIdeasSection.scrollIntoView({
+                                behavior: "smooth",
+                                block: "start"
+                            });
+
+                        }
+
+                    }
+                );
 
             }
-        );
 
 
-        imageGeneratorCard.addEventListener(
-            "keydown",
-            function (event) {
 
-                if (
-                    event.key === "Enter" ||
-                    event.key === " "
-                ) {
+            /* IMAGE GENERATOR */
 
-                    event.preventDefault();
+            const imageGeneratorCard =
+                document.getElementById(
+                    "imageGeneratorCard"
+                );
 
 
-                    imageGeneratorSection.scrollIntoView({
+            const imageGeneratorSection =
+                document.getElementById(
+                    "imageGeneratorSection"
+                );
 
-                        behavior: "smooth",
 
-                        block: "start"
+            if (
+                imageGeneratorCard &&
+                imageGeneratorSection
+            ) {
 
-                    });
+                imageGeneratorCard.style.cursor =
+                    "pointer";
 
-                }
+
+                imageGeneratorCard.addEventListener(
+                    "click",
+                    function () {
+
+                        imageGeneratorSection.scrollIntoView({
+                            behavior: "smooth",
+                            block: "start"
+                        });
+
+                    }
+                );
+
+
+                imageGeneratorCard.addEventListener(
+                    "keydown",
+                    function (event) {
+
+                        if (
+                            event.key === "Enter" ||
+                            event.key === " "
+                        ) {
+
+                            event.preventDefault();
+
+
+                            imageGeneratorSection.scrollIntoView({
+                                behavior: "smooth",
+                                block: "start"
+                            });
+
+                        }
+
+                    }
+                );
 
             }
-        );
 
-    }
+        }
+    );
 
 </script>
 
 
 
-<!-- ==========================================
+<!-- =====================================================
      FIREBASE AUTH
-========================================== -->
+====================================================== -->
 
 <script
     type="module"
     src="auth.js"
 ></script>
 
-<!-- ==========================================
-     BACKEND CONNECTIVITY STATUS CHECKER
-========================================== -->
+
+
+<!-- =====================================================
+     BACKEND CONNECTIVITY
+====================================================== -->
+
 <script>
-/* =========================================================
-   BACKEND CONNECTIVITY STATUS
-   AI CONTENT AGENT
-   ========================================================= */
 
-const AI_BACKEND_URL = "https://ai-content-agent-3hb3.onrender.com/";
+    const AI_BACKEND_URL =
+        "https://ai-content-agent-3hb3.onrender.com/";
 
-function updateBackendStatus(status, message) {
-    const dot = document.getElementById("backendStatusDot");
-    const text = document.getElementById("backendStatusText");
 
-    if (!dot || !text) return;
+    function updateBackendStatus(
+        status,
+        message
+    ) {
 
-    if (status === "connected") {
-        dot.style.background = "#22c55e";
-        text.textContent = "Connected";
-    } else if (status === "disconnected") {
-        dot.style.background = "#ef4444";
-        text.textContent = "Disconnected";
-    } else {
-        dot.style.background = "#f59e0b";
-        text.textContent = message || "Connecting...";
-    }
-}
+        const dot =
+            document.getElementById(
+                "backendStatusDot"
+            );
 
-async function checkBackendConnection() {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => {
-        controller.abort();
-    }, 12000);
 
-    try {
-        const response = await fetch(AI_BACKEND_URL, {
-            method: "GET",
-            mode: "cors",
-            cache: "no-store",
-            signal: controller.signal
-        });
+        const text =
+            document.getElementById(
+                "backendStatusText"
+            );
 
-        clearTimeout(timeout);
 
-        if (response.ok || response.status === 200 || response.status === 404 || response.type === 'opaque') {
-            updateBackendStatus("connected");
-        } else {
-            updateBackendStatus("disconnected");
+        if (!dot || !text) {
+            return;
         }
-    } catch (error) {
-        // Fallback ping for Render cold start or CORS-restricted response
+
+
+        if (status === "connected") {
+
+            dot.style.background =
+                "#22c55e";
+
+            dot.style.boxShadow =
+                "0 0 0 3px rgba(34,197,94,.12)";
+
+            text.textContent =
+                "Connected";
+
+        }
+
+        else if (status === "disconnected") {
+
+            dot.style.background =
+                "#ef4444";
+
+            dot.style.boxShadow =
+                "0 0 0 3px rgba(239,68,68,.12)";
+
+            text.textContent =
+                "Disconnected";
+
+        }
+
+        else {
+
+            dot.style.background =
+                "#f59e0b";
+
+            dot.style.boxShadow =
+                "0 0 0 3px rgba(245,158,11,.12)";
+
+            text.textContent =
+                message ||
+                "Connecting...";
+
+        }
+
+    }
+
+
+
+    async function checkBackendConnection() {
+
+        const controller =
+            new AbortController();
+
+
+        const timeout =
+            setTimeout(
+                () => {
+                    controller.abort();
+                },
+                12000
+            );
+
+
         try {
-            const fallbackCtrl = new AbortController();
-            const fallbackTimeout = setTimeout(() => fallbackCtrl.abort(), 6000);
 
-            await fetch(AI_BACKEND_URL, {
-                method: "HEAD",
-                mode: "no-cors",
-                cache: "no-store",
-                signal: fallbackCtrl.signal
-            });
+            const response =
+                await fetch(
+                    AI_BACKEND_URL,
+                    {
+                        method: "GET",
+                        mode: "cors",
+                        cache: "no-store",
+                        signal: controller.signal
+                    }
+                );
 
-            clearTimeout(fallbackTimeout);
-            updateBackendStatus("connected");
-        } catch (fallbackError) {
+
             clearTimeout(timeout);
-            updateBackendStatus("disconnected");
-            console.log("Backend offline or unreachable:", error);
+
+
+            if (
+                response.ok ||
+                response.status === 200 ||
+                response.status === 404 ||
+                response.type === "opaque"
+            ) {
+
+                updateBackendStatus(
+                    "connected"
+                );
+
+            }
+
+            else {
+
+                updateBackendStatus(
+                    "disconnected"
+                );
+
+            }
+
         }
+
+        catch (error) {
+
+            try {
+
+                const fallbackCtrl =
+                    new AbortController();
+
+
+                const fallbackTimeout =
+                    setTimeout(
+                        () => {
+                            fallbackCtrl.abort();
+                        },
+                        6000
+                    );
+
+
+                await fetch(
+                    AI_BACKEND_URL,
+                    {
+                        method: "HEAD",
+                        mode: "no-cors",
+                        cache: "no-store",
+                        signal: fallbackCtrl.signal
+                    }
+                );
+
+
+                clearTimeout(
+                    fallbackTimeout
+                );
+
+
+                updateBackendStatus(
+                    "connected"
+                );
+
+            }
+
+            catch (fallbackError) {
+
+                clearTimeout(
+                    timeout
+                );
+
+
+                updateBackendStatus(
+                    "disconnected"
+                );
+
+
+                console.log(
+                    "Backend offline or unreachable:",
+                    error
+                );
+
+            }
+
+        }
+
     }
-}
 
-// Initial connection check on load
-document.addEventListener("DOMContentLoaded", () => {
-    updateBackendStatus("checking", "Connecting...");
-    checkBackendConnection();
 
-    // Recheck automatically every 30 seconds
-    setInterval(checkBackendConnection, 30000);
-});
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            updateBackendStatus(
+                "checking",
+                "Connecting..."
+            );
+
+
+            checkBackendConnection();
+
+
+            setInterval(
+                checkBackendConnection,
+                30000
+            );
+
+        }
+    );
+
 </script>
+
 
 </body>
 
