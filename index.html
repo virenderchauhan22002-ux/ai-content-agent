@@ -1,2550 +1,1819 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>AI Content Agent</title>
-
-    <link rel="stylesheet" href="style.css">
-
-
-    <!-- =====================================================
-         AUTH + GLOBAL UI
-    ====================================================== -->
-
-    <style>
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            font-family: inherit;
-        }
-
-
-        /* =================================================
-           AUTH SCREEN
-        ================================================= */
-
-        #authScreen {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-
-            background:
-                radial-gradient(
-                    circle at 20% 10%,
-                    rgba(255,255,255,.20),
-                    transparent 28%
-                ),
-                radial-gradient(
-                    circle at 90% 90%,
-                    rgba(255,255,255,.16),
-                    transparent 30%
-                ),
-                linear-gradient(
-                    135deg,
-                    #4f7cff,
-                    #6d5dfc
-                );
-        }
-
-
-        .auth-card {
-            width: 100%;
-            max-width: 430px;
-            padding: 34px;
-
-            background: rgba(255,255,255,.97);
-
-            border: 1px solid rgba(255,255,255,.8);
-
-            border-radius: 26px;
-
-            box-shadow:
-                0 30px 70px rgba(20,25,80,.22),
-                inset 0 1px 0 rgba(255,255,255,.95);
-        }
-
-
-        .auth-logo {
-            width: 62px;
-            height: 62px;
-
-            margin: 0 auto 18px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 20px;
-
-            color: #fff;
-
-            font-size: 25px;
-            font-weight: 900;
-
-            background:
-                linear-gradient(
-                    145deg,
-                    #62b6ff,
-                    #4d67f5
-                );
-
-            box-shadow:
-                0 14px 28px rgba(70,105,245,.28),
-                inset 5px 5px 10px rgba(255,255,255,.35);
-        }
-
-
-        .auth-card h2 {
-            margin: 0 0 8px;
-
-            text-align: center;
-
-            color: #17182b;
-
-            font-size: 23px;
-        }
-
-
-        .auth-card > p {
-            margin: 0 0 24px;
-
-            text-align: center;
-
-            color: #73758a;
-
-            font-size: 13px;
-            line-height: 1.5;
-        }
-
-
-        .auth-field {
-            margin-bottom: 15px;
-        }
-
-
-        .auth-field label {
-            display: block;
-
-            margin-bottom: 7px;
-
-            color: #17182b;
-
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-
-        .auth-field input {
-            width: 100%;
-
-            padding: 13px;
-
-            border: 1px solid #e3e7f0;
-            border-radius: 13px;
-
-            background: #fafcff;
-
-            font-family: inherit;
-            font-size: 14px;
-
-            outline: none;
-
-            transition: .2s ease;
-        }
-
-
-        .auth-field input:focus {
-            border-color: #5b7cff;
-
-            box-shadow:
-                0 0 0 4px rgba(91,124,255,.10);
-        }
-
-
-        #authButton {
-            width: 100%;
-
-            border: 0;
-
-            padding: 14px;
-
-            border-radius: 14px;
-
-            color: white;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #4d7cff,
-                    #6258ef
-                );
-
-            font-size: 14px;
-            font-weight: 800;
-
-            cursor: pointer;
-
-            box-shadow:
-                0 10px 22px rgba(79,100,240,.22);
-        }
-
-
-        #authButton:disabled {
-            cursor: not-allowed;
-            opacity: .7;
-        }
-
-
-        #authMessage {
-            display: none;
-
-            margin-top: 13px;
-
-            padding: 10px 12px;
-
-            border-radius: 10px;
-
-            background: #fff5f5;
-
-            font-size: 13px;
-            line-height: 1.4;
-
-            text-align: center;
-        }
-
-
-        #authToggle {
-            margin-top: 20px;
-
-            text-align: center;
-
-            color: #73758a;
-
-            font-size: 13px;
-        }
-
-
-        #authToggle button {
-            border: 0;
-            padding: 0;
-
-            color: #5b5cf0;
-
-            background: none;
-
-            font-size: 13px;
-            font-weight: 700;
-
-            cursor: pointer;
-        }
-
-
-        /* =================================================
-           APP
-        ================================================= */
-
-        #appContent {
-            display: none;
-
-            min-height: 100vh;
-
-            background:
-                radial-gradient(
-                    circle at 85% 0%,
-                    rgba(71,158,255,.18),
-                    transparent 27%
-                ),
-                radial-gradient(
-                    circle at 5% 85%,
-                    rgba(112,104,255,.10),
-                    transparent 28%
-                ),
-                linear-gradient(
-                    135deg,
-                    #eef7ff 0%,
-                    #f9fcff 48%,
-                    #edf6ff 100%
-                );
-        }
-
-
-        /* =================================================
-           TOPBAR
-        ================================================= */
-
-        #appContent .topbar {
-            position: sticky;
-
-            top: 0;
-
-            z-index: 100;
-
-            min-height: 76px;
-
-            padding: 13px 28px;
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: space-between;
-
-            gap: 20px;
-
-            background:
-                rgba(255,255,255,.88);
-
-            border-bottom:
-                1px solid rgba(70,125,190,.13);
-
-            box-shadow:
-                0 8px 30px rgba(35,85,145,.07);
-
-            backdrop-filter:
-                blur(18px);
-        }
-
-
-        #appContent .topbar h1 {
-            margin: 0;
-
-            color: #102a56;
-
-            font-size: 22px;
-            font-weight: 900;
-
-            letter-spacing: -.4px;
-        }
-
-
-        #appContent .topbar p {
-            margin: 3px 0 0;
-
-            color: #71809a;
-
-            font-size: 12px;
-        }
-
-
-        .topbar-right {
-            display: flex;
-
-            align-items: center;
-
-            gap: 9px;
-        }
-
-
-        #backendStatus {
-            display: inline-flex;
-
-            align-items: center;
-
-            gap: 7px;
-
-            padding: 7px 12px;
-
-            border-radius: 999px;
-
-            color: #155e9c;
-
-            background: #eef7ff;
-
-            border: 1px solid #d4eaff;
-
-            font-size: 12px;
-            font-weight: 700;
-
-            backdrop-filter: blur(8px);
-        }
-
-
-        #backendStatusDot {
-            width: 8px;
-            height: 8px;
-
-            display: inline-block;
-
-            border-radius: 50%;
-
-            background: #f4b400;
-
-            transition:
-                background .3s ease;
-
-            box-shadow:
-                0 0 0 3px rgba(244,180,0,.10);
-        }
-
-
-        #logoutBtn {
-            display: none;
-
-            border: 1px solid #d7e8fa;
-
-            padding: 9px 12px;
-
-            border-radius: 11px;
-
-            color: #17406d;
-
-            background: #f4f9ff;
-
-            font-size: 12px;
-            font-weight: 700;
-
-            cursor: pointer;
-
-            transition: .2s ease;
-        }
-
-
-        #logoutBtn:hover {
-            background: #eaf5ff;
-
-            transform: translateY(-1px);
-        }
-
-
-        #appContent .profile {
-            width: 43px;
-            height: 43px;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 50%;
-
-            color: #176fe7;
-
-            background:
-                linear-gradient(
-                    145deg,
-                    #ffffff,
-                    #d8edff
-                );
-
-            border: 2px solid #fff;
-
-            font-weight: 900;
-
-            box-shadow:
-                0 7px 18px rgba(25,105,190,.17),
-                inset 0 1px 2px rgba(255,255,255,.9);
-        }
-
-
-        /* =================================================
-           MAIN DASHBOARD
-        ================================================= */
-
-        #appContent .dashboard {
-            width: min(1180px, calc(100% - 32px));
-
-            margin: 0 auto;
-
-            padding: 28px 0 60px;
-
-            display: flex;
-
-            flex-direction: column;
-
-            gap: 22px;
-        }
-
-
-        /* =================================================
-           HERO / MAIN GENERATOR
-        ================================================= */
-
-        #appContent .hero {
-            position: relative;
-
-            overflow: hidden;
-
-            min-height: 340px;
-
-            padding: 38px;
-
-            border-radius: 32px;
-
-            background:
-                radial-gradient(
-                    circle at 86% 15%,
-                    rgba(255,255,255,.95),
-                    transparent 22%
-                ),
-                radial-gradient(
-                    circle at 75% 85%,
-                    rgba(74,158,255,.15),
-                    transparent 27%
-                ),
-                linear-gradient(
-                    135deg,
-                    #dff2ff 0%,
-                    #cbe8ff 48%,
-                    #f1f9ff 100%
-                );
-
-            border:
-                1px solid rgba(80,160,230,.20);
-
-            box-shadow:
-                0 25px 60px rgba(38,112,180,.15),
-                inset 0 1px 0 rgba(255,255,255,.95);
-        }
-
-
-        #appContent .hero::before {
-            content: "";
-
-            position: absolute;
-
-            width: 220px;
-            height: 220px;
-
-            right: -45px;
-            top: -70px;
-
-            border-radius: 50%;
-
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(255,255,255,.85),
-                    rgba(106,187,255,.22)
-                );
-
-            box-shadow:
-                inset 15px 15px 25px rgba(255,255,255,.55),
-                0 25px 50px rgba(42,122,200,.10);
-
-            pointer-events: none;
-        }
-
-
-        #appContent .hero::after {
-            content: "✨";
-
-            position: absolute;
-
-            right: 80px;
-            top: 55px;
-
-            width: 90px;
-            height: 90px;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 28px;
-
-            color: #1677ff;
-
-            background:
-                rgba(255,255,255,.75);
-
-            font-size: 38px;
-
-            transform:
-                rotate(8deg);
-
-            box-shadow:
-                0 18px 35px rgba(30,100,180,.12),
-                inset 0 2px 5px rgba(255,255,255,.9);
-
-            pointer-events: none;
-        }
-
-
-        #appContent .hero h2 {
-            position: relative;
-
-            z-index: 2;
-
-            max-width: 700px;
-
-            margin: 0 0 8px;
-
-            color: #102957;
-
-            font-size:
-                clamp(30px, 4.5vw, 49px);
-
-            line-height: 1.05;
-
-            font-weight: 900;
-
-            letter-spacing: -1.8px;
-        }
-
-
-        #appContent .hero > p {
-            position: relative;
-
-            z-index: 2;
-
-            max-width: 650px;
-
-            margin: 0 0 23px;
-
-            color: #58708f;
-
-            font-size: 14px;
-
-            line-height: 1.6;
-        }
-
-
-        #appContent .hero textarea {
-            position: relative;
-
-            z-index: 5;
-
-            width: 100%;
-
-            min-height: 92px;
-
-            padding: 16px 17px;
-
-            resize: vertical;
-
-            border:
-                1px solid #d2e6f8;
-
-            border-radius: 17px;
-
-            color: #13213c;
-
-            background:
-                rgba(255,255,255,.86);
-
-            outline: none;
-
-            font-family: inherit;
-
-            box-shadow:
-                0 9px 22px rgba(42,108,170,.07),
-                inset 0 1px 2px rgba(255,255,255,.9);
-
-            transition: .2s ease;
-        }
-
-
-        #appContent .hero textarea:focus {
-            border-color: #5aa8ff;
-
-            box-shadow:
-                0 0 0 4px rgba(40,140,255,.10),
-                0 10px 25px rgba(42,108,170,.08);
-        }
-
-
-        #appContent .hero label {
-            position: relative;
-
-            z-index: 5;
-
-            display: inline-block;
-
-            margin:
-                13px 8px 7px 0;
-
-            color: #315275;
-
-            font-size: 12px;
-
-            font-weight: 800;
-        }
-
-
-        #appContent .hero select {
-            position: relative;
-
-            z-index: 5;
-
-            min-width: 180px;
-
-            padding: 11px 14px;
-
-            border:
-                1px solid #d5e8fa;
-
-            border-radius: 13px;
-
-            color: #183657;
-
-            background:
-                rgba(255,255,255,.92);
-
-            outline: none;
-
-            font-family: inherit;
-        }
-
-
-        #appContent .hero select:focus {
-            border-color: #5aa8ff;
-
-            box-shadow:
-                0 0 0 4px rgba(40,140,255,.09);
-        }
-
-
-        #appContent #generateBtn {
-            position: relative;
-
-            z-index: 5;
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: center;
-
-            gap: 7px;
-
-            margin-top: 19px;
-
-            padding: 14px 24px;
-
-            border: 0;
-
-            border-radius: 15px;
-
-            color: #fff;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #1688ff,
-                    #245fe7
-                );
-
-            font-size: 14px;
-
-            font-weight: 900;
-
-            cursor: pointer;
-
-            box-shadow:
-                0 13px 27px rgba(23,115,242,.26),
-                inset 0 1px 0 rgba(255,255,255,.35);
-
-            transition:
-                transform .2s ease,
-                box-shadow .2s ease;
-        }
-
-
-        #appContent #generateBtn:hover {
-            transform: translateY(-2px);
-
-            box-shadow:
-                0 17px 32px rgba(23,115,242,.33),
-                inset 0 1px 0 rgba(255,255,255,.4);
-        }
-
-
-        #appContent #generateBtn:active {
-            transform: translateY(0);
-        }
-
-
-        /* =================================================
-           QUICK TOOLS
-        ================================================= */
-
-        #appContent .tools {
-            display: grid;
-
-            grid-template-columns:
-                repeat(3, minmax(0,1fr));
-
-            gap: 16px;
-        }
-
-
-        #appContent .tool-card {
-            position: relative;
-
-            min-height: 155px;
-
-            padding: 21px;
-
-            overflow: hidden;
-
-            cursor: pointer;
-
-            border-radius: 24px;
-
-            background:
-                linear-gradient(
-                    145deg,
-                    rgba(255,255,255,.98),
-                    rgba(244,250,255,.94)
-                );
-
-            border:
-                1px solid rgba(100,155,210,.16);
-
-            box-shadow:
-                0 16px 32px rgba(45,100,155,.09),
-                inset 0 1px 0 rgba(255,255,255,.98);
-
-            transition:
-                transform .22s ease,
-                box-shadow .22s ease,
-                border-color .22s ease;
-        }
-
-
-        #appContent .tool-card::before {
-            content: "";
-
-            position: absolute;
-
-            width: 120px;
-            height: 120px;
-
-            right: -45px;
-            bottom: -55px;
-
-            border-radius: 50%;
-
-            background:
-                rgba(45,145,255,.08);
-        }
-
-
-        #appContent .tool-card:hover {
-            transform: translateY(-5px);
-
-            border-color:
-                rgba(30,125,240,.25);
-
-            box-shadow:
-                0 23px 42px rgba(40,105,170,.14),
-                inset 0 1px 0 rgba(255,255,255,.98);
-        }
-
-
-        #appContent .tool-card > span {
-            position: relative;
-
-            display: flex;
-
-            align-items: center;
-            justify-content: center;
-
-            width: 58px;
-            height: 58px;
-
-            margin-bottom: 15px;
-
-            border-radius: 18px;
-
-            font-size: 27px;
-
-            background:
-                linear-gradient(
-                    145deg,
-                    #ffffff,
-                    #e1f1ff
-                );
-
-            box-shadow:
-                0 10px 19px rgba(40,110,180,.13),
-                inset 0 2px 5px rgba(255,255,255,.95);
-        }
-
-
-        #appContent .tool-card h3 {
-            position: relative;
-
-            margin: 0 0 5px;
-
-            color: #13213c;
-
-            font-size: 16px;
-
-            font-weight: 850;
-        }
-
-
-        #appContent .tool-card p {
-            position: relative;
-
-            margin: 0;
-
-            color: #71809a;
-
-            font-size: 12px;
-
-            line-height: 1.5;
-        }
-
-
-        /* =================================================
-           RESULT
-        ================================================= */
-
-        #appContent .result-box,
-        #appContent .ideas-box,
-        #appContent .image-box {
-            border-radius: 27px;
-
-            background:
-                rgba(255,255,255,.95);
-
-            border:
-                1px solid rgba(100,150,205,.16);
-
-            box-shadow:
-                0 19px 40px rgba(45,95,150,.08),
-                inset 0 1px 0 rgba(255,255,255,.98);
-        }
-
-
-        #appContent .result-box {
-            padding: 26px;
-        }
-
-
-        #appContent .result-box h2,
-        #appContent .ideas-box h2,
-        #appContent .image-box h2 {
-            color: #13213c;
-        }
-
-
-        #appContent #result {
-            color: #60718a;
-
-            line-height: 1.7;
-        }
-
-
-        /* =================================================
-           CONTENT IDEAS
-        ================================================= */
-
-        #appContent .ideas-box {
-            padding: 27px;
-        }
-
-
-        #appContent .ideas-header {
-            margin-bottom: 20px;
-        }
-
-
-        #appContent .ideas-header h2 {
-            display: inline;
-
-            margin-left: 8px;
-        }
-
-
-        #appContent .ideas-header p {
-            margin: 7px 0 0;
-
-            color: #71809a;
-
-            font-size: 13px;
-        }
-
-
-        #appContent .ideas-controls {
-            display: grid;
-
-            grid-template-columns:
-                minmax(0,1fr)
-                160px
-                125px
-                auto;
-
-            gap: 10px;
-        }
-
-
-        #appContent .ideas-controls input,
-        #appContent .ideas-controls select {
-            width: 100%;
-
-            min-height: 46px;
-
-            padding: 10px 13px;
-
-            border:
-                1px solid #dce9f5;
-
-            border-radius: 13px;
-
-            color: #233955;
-
-            background: #f9fcff;
-
-            outline: none;
-
-            font-family: inherit;
-        }
-
-
-        #appContent .ideas-controls input:focus,
-        #appContent .ideas-controls select:focus {
-            border-color: #5aa8ff;
-
-            box-shadow:
-                0 0 0 4px rgba(40,140,255,.08);
-        }
-
-
-        #appContent .ideas-controls button {
-            min-height: 46px;
-
-            padding: 10px 18px;
-
-            border: 0;
-
-            border-radius: 13px;
-
-            color: #fff;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #1684ff,
-                    #2365e7
-                );
-
-            font-weight: 800;
-
-            cursor: pointer;
-
-            box-shadow:
-                0 9px 18px rgba(23,115,242,.18);
-        }
-
-
-        #appContent #ideasResult {
-            margin-top: 20px;
-        }
-
-
-        /* =================================================
-           IMAGE GENERATOR
-        ================================================= */
-
-        #appContent .image-box {
-            padding: 27px;
-        }
-
-
-        #appContent .image-header {
-            display: flex;
-
-            align-items: flex-start;
-
-            gap: 12px;
-
-            margin-bottom: 20px;
-        }
-
-
-        #appContent .image-header h2 {
-            margin: 0;
-        }
-
-
-        #appContent .image-header p {
-            margin: 7px 0 0;
-
-            color: #71809a;
-
-            font-size: 13px;
-            line-height: 1.5;
-        }
-
-
-        #appContent .image-controls {
-            display: grid;
-
-            grid-template-columns:
-                repeat(3, minmax(0,1fr));
-
-            gap: 14px;
-        }
-
-
-        #appContent .image-field.full {
-            grid-column: 1 / -1;
-        }
-
-
-        #appContent .image-field label {
-            display: block;
-
-            margin-bottom: 7px;
-
-            color: #355474;
-
-            font-size: 12px;
-
-            font-weight: 800;
-        }
-
-
-        #appContent .image-field textarea,
-        #appContent .image-field select {
-            width: 100%;
-
-            padding: 12px;
-
-            border:
-                1px solid #dce9f5;
-
-            border-radius: 13px;
-
-            color: #233955;
-
-            background: #f9fcff;
-
-            outline: none;
-
-            font-family: inherit;
-        }
-
-
-        #appContent .image-field textarea {
-            min-height: 90px;
-
-            resize: vertical;
-        }
-
-
-        #appContent .image-field textarea:focus,
-        #appContent .image-field select:focus {
-            border-color: #5aa8ff;
-
-            box-shadow:
-                0 0 0 4px rgba(40,140,255,.08);
-        }
-
-
-        #appContent .image-generate-btn {
-            grid-column: 1 / -1;
-
-            min-height: 48px;
-
-            padding: 13px;
-
-            border: 0;
-
-            border-radius: 14px;
-
-            color: #fff;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #1684ff,
-                    #2365e7
-                );
-
-            font-weight: 850;
-
-            cursor: pointer;
-
-            box-shadow:
-                0 10px 20px rgba(23,115,242,.18);
-        }
-
-
-        #appContent .image-result {
-            margin-top: 20px;
-        }
-
-
-        /* =================================================
-           MOBILE
-        ================================================= */
-
-        @media (max-width: 950px) {
-
-            #appContent .dashboard {
-                width: min(
-                    calc(100% - 24px),
-                    720px
-                );
-            }
-
-
-            #appContent .tools {
-                grid-template-columns:
-                    repeat(2,minmax(0,1fr));
-            }
-
-
-            #appContent .ideas-controls {
-                grid-template-columns:
-                    1fr 1fr;
-            }
-
-
-            #appContent .image-controls {
-                grid-template-columns:
-                    1fr 1fr;
-            }
-
-        }
-
-
-        @media (max-width: 650px) {
-
-            #appContent .topbar {
-                min-height: 68px;
-
-                padding:
-                    11px 13px;
-            }
-
-
-            #appContent .topbar h1 {
-                font-size: 17px;
-            }
-
-
-            #appContent .topbar p {
-                display: none;
-            }
-
-
-            #appContent #backendStatus {
-                display: none;
-            }
-
-
-            #appContent #logoutBtn {
-                padding: 8px 9px;
-
-                font-size: 11px;
-            }
-
-
-            #appContent .profile {
-                width: 39px;
-                height: 39px;
-            }
-
-
-            #appContent .dashboard {
-                width: calc(100% - 16px);
-
-                padding:
-                    12px 0 35px;
-
-                gap: 15px;
-            }
-
-
-            #appContent .hero {
-                min-height: auto;
-
-                padding: 24px 18px;
-
-                border-radius: 24px;
-            }
-
-
-            #appContent .hero::after {
-                right: 25px;
-                top: 30px;
-
-                width: 60px;
-                height: 60px;
-
-                font-size: 25px;
-            }
-
-
-            #appContent .hero h2 {
-                max-width: 80%;
-
-                font-size: 29px;
-
-                letter-spacing: -1px;
-            }
-
-
-            #appContent .hero > p {
-                font-size: 13px;
-            }
-
-
-            #appContent .hero textarea {
-                min-height: 105px;
-            }
-
-
-            #appContent .hero select {
-                width: 100%;
-
-                min-width: 0;
-
-                margin-bottom: 5px;
-            }
-
-
-            #appContent #generateBtn {
-                width: 100%;
-            }
-
-
-            #appContent .tools {
-                grid-template-columns:
-                    repeat(2,minmax(0,1fr));
-
-                gap: 10px;
-            }
-
-
-            #appContent .tool-card {
-                min-height: 142px;
-
-                padding: 16px;
-
-                border-radius: 19px;
-            }
-
-
-            #appContent .tool-card > span {
-                width: 48px;
-                height: 48px;
-
-                margin-bottom: 12px;
-
-                border-radius: 15px;
-
-                font-size: 23px;
-            }
-
-
-            #appContent .tool-card h3 {
-                font-size: 14px;
-            }
-
-
-            #appContent .tool-card p {
-                font-size: 10.5px;
-            }
-
-
-            #appContent .ideas-box,
-            #appContent .image-box,
-            #appContent .result-box {
-                padding: 18px;
-
-                border-radius: 21px;
-            }
-
-
-            #appContent .ideas-controls,
-            #appContent .image-controls {
-                grid-template-columns: 1fr;
-            }
-
-
-            #appContent .image-field.full,
-            #appContent .image-generate-btn {
-                grid-column: auto;
-            }
-
-        }
-
-
-        @media (max-width: 400px) {
-
-            #appContent .hero h2 {
-                font-size: 26px;
-            }
-
-
-            #appContent .tools {
-                grid-template-columns: 1fr;
-            }
-
-
-            #appContent .tool-card {
-                min-height: 105px;
-
-                display: flex;
-
-                align-items: center;
-
-                gap: 14px;
-            }
-
-
-            #appContent .tool-card > span {
-                flex: 0 0 48px;
-
-                margin-bottom: 0;
-            }
-
-        }
-
-
-        @media (max-width: 500px) {
-
-            #authScreen {
-                padding: 16px;
-            }
-
-
-            .auth-card {
-                padding: 25px 20px;
-
-                border-radius: 21px;
-            }
-
-
-            .auth-card h2 {
-                font-size: 21px;
-            }
-
-        }
-
-    </style>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Content Agent</title>
+
+<link rel="stylesheet" href="style.css">
+
+<style>
+/* =========================
+   AUTH
+========================= */
+#authScreen{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:linear-gradient(135deg,#5657ed,#7475ff);
+}
+
+.auth-card{
+  width:100%;
+  max-width:430px;
+  background:#fff;
+  border-radius:22px;
+  padding:32px;
+  box-shadow:0 20px 50px rgba(20,25,80,.20);
+}
+
+.auth-logo{
+  width:58px;
+  height:58px;
+  margin:0 auto 18px;
+  border-radius:17px;
+  background:linear-gradient(135deg,#5b5cf0,#7778ff);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:25px;
+  font-weight:bold;
+}
+
+.auth-card h2{
+  text-align:center;
+  font-size:23px;
+  color:#17182b;
+  margin-bottom:8px;
+}
+
+.auth-card>p{
+  text-align:center;
+  color:#73758a;
+  font-size:13px;
+  line-height:1.5;
+  margin-bottom:24px;
+}
+
+.auth-field{
+  margin-bottom:15px;
+}
+
+.auth-field label{
+  display:block;
+  margin-bottom:7px;
+  font-size:13px;
+  font-weight:600;
+  color:#17182b;
+}
+
+.auth-field input{
+  width:100%;
+  padding:13px;
+  border:1px solid #e9eaf3;
+  border-radius:12px;
+  background:#fafaff;
+  font-family:inherit;
+  font-size:14px;
+  outline:none;
+  box-sizing:border-box;
+}
+
+.auth-field input:focus{
+  border-color:#5b5cf0;
+}
+
+#authButton{
+  width:100%;
+  border:none;
+  background:linear-gradient(135deg,#5b5cf0,#7778ff);
+  color:#fff;
+  padding:13px;
+  border-radius:12px;
+  font-weight:600;
+  font-size:14px;
+  cursor:pointer;
+  margin-top:4px;
+}
+
+#authButton:disabled{
+  cursor:not-allowed;
+  opacity:.7;
+}
+
+#authMessage{
+  display:none;
+  margin-top:13px;
+  padding:10px 12px;
+  border-radius:10px;
+  background:#fff5f5;
+  font-size:13px;
+  line-height:1.4;
+  text-align:center;
+}
+
+#authToggle{
+  margin-top:20px;
+  text-align:center;
+  color:#73758a;
+  font-size:13px;
+}
+
+#authToggle button{
+  border:none;
+  background:none;
+  color:#5b5cf0;
+  font-weight:600;
+  cursor:pointer;
+  padding:0;
+  font-size:13px;
+}
+
+#appContent{
+  display:none;
+}
+
+/* =========================
+   FINAL LIGHT 3D DESIGN
+========================= */
+
+:root{
+  --d-bg:#eef7ff;
+  --d-bg2:#f8fbff;
+  --d-blue:#1677ff;
+  --d-blue2:#5bb8ff;
+  --d-navy:#102c57;
+  --d-text:#17304f;
+  --d-muted:#74859d;
+  --d-line:rgba(102,151,207,.18);
+  --d-shadow:
+    0 24px 55px rgba(57,113,174,.14),
+    0 8px 20px rgba(48,103,166,.08);
+  --d-soft-shadow:
+    0 16px 34px rgba(67,126,190,.12),
+    inset 0 1px 0 rgba(255,255,255,.9);
+}
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  background:
+    linear-gradient(
+      145deg,
+      #eaf5ff 0%,
+      #f8fbff 46%,
+      #edf7ff 100%
+    ) !important;
+  color:var(--d-text);
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:-15%;
+  pointer-events:none;
+  z-index:-1;
+  background:
+    radial-gradient(
+      circle at 12% 12%,
+      rgba(91,184,255,.16),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 88% 22%,
+      rgba(22,119,255,.10),
+      transparent 25%
+    ),
+    radial-gradient(
+      circle at 50% 100%,
+      rgba(104,203,255,.12),
+      transparent 30%
+    );
+}
+
+.app{
+  min-height:100vh;
+  background:transparent !important;
+}
+
+/* =========================
+   TOP BAR
+========================= */
+
+.topbar{
+  position:sticky !important;
+  top:12px;
+  z-index:30;
+  width:min(1180px,calc(100% - 28px));
+  margin:12px auto 0 !important;
+  padding:18px 22px !important;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  border:1px solid rgba(255,255,255,.8) !important;
+  border-radius:24px !important;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,.93),
+      rgba(239,248,255,.88)
+    ) !important;
+  box-shadow:
+    0 20px 45px rgba(57,111,170,.14),
+    inset 0 1px 0 #fff !important;
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+
+.topbar::after{
+  content:"";
+  position:absolute;
+  right:16%;
+  top:-18px;
+  width:130px;
+  height:70px;
+  border-radius:50%;
+  background:rgba(91,184,255,.16);
+  filter:blur(24px);
+  pointer-events:none;
+}
+
+.topbar h1{
+  position:relative;
+  z-index:1;
+  color:var(--d-navy) !important;
+  font-weight:800 !important;
+  letter-spacing:-.5px !important;
+  margin:0;
+}
+
+.topbar p{
+  position:relative;
+  z-index:1;
+  color:#7890ab !important;
+  margin:4px 0 0;
+}
+
+.topbar-right{
+  position:relative;
+  z-index:2;
+  display:flex;
+  align-items:center;
+  gap:8px !important;
+}
+
+#backendStatus{
+  color:#31506f !important;
+  background:rgba(255,255,255,.72) !important;
+  border:1px solid rgba(111,157,205,.20) !important;
+  box-shadow:0 6px 16px rgba(60,113,170,.08) !important;
+}
+
+#backendStatusText{
+  color:#31506f !important;
+}
+
+#logoutBtn{
+  display:none;
+  border:1px solid rgba(80,133,190,.18) !important;
+  background:rgba(255,255,255,.78) !important;
+  color:#28517d !important;
+  box-shadow:0 7px 18px rgba(58,111,171,.08) !important;
+  padding:9px 12px;
+  border-radius:10px;
+  font-size:12px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+#logoutBtn:hover{
+  background:#fff !important;
+  transform:translateY(-1px);
+}
+
+.profile{
+  width:42px !important;
+  height:42px !important;
+  border-radius:14px !important;
+  background:
+    linear-gradient(
+      145deg,
+      #4eb5ff,
+      #1677ff
+    ) !important;
+  color:#fff !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  font-weight:800 !important;
+  box-shadow:
+    0 9px 18px rgba(22,119,255,.25),
+    inset 0 2px 2px rgba(255,255,255,.42) !important;
+  border:2px solid rgba(255,255,255,.82) !important;
+}
+
+/* =========================
+   DASHBOARD
+========================= */
+
+.dashboard{
+  width:min(1180px,calc(100% - 28px)) !important;
+  margin:24px auto 60px !important;
+  padding:0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+  gap:22px !important;
+}
+
+.hero,
+.tools,
+.result-box,
+.ideas-box,
+.image-box{
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.88) !important;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.96),
+      rgba(244,250,255,.91)
+    ) !important;
+  box-shadow:var(--d-shadow) !important;
+  border-radius:30px !important;
+}
+
+/* =========================
+   HERO
+========================= */
+
+.hero{
+  padding:34px !important;
+  min-height:350px;
+  background:
+    radial-gradient(
+      circle at 88% 18%,
+      rgba(91,184,255,.20),
+      transparent 24%
+    ),
+    radial-gradient(
+      circle at 9% 100%,
+      rgba(22,119,255,.08),
+      transparent 30%
+    ),
+    linear-gradient(
+      145deg,
+      #fff,
+      #edf7ff
+    ) !important;
+}
+
+.hero::before{
+  content:"";
+  position:absolute;
+  right:-55px;
+  top:-65px;
+  width:230px;
+  height:230px;
+  border-radius:50%;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(93,190,255,.34),
+      rgba(22,119,255,.06)
+    );
+  box-shadow:
+    inset -12px -14px 24px rgba(28,105,178,.10),
+    inset 12px 12px 20px rgba(255,255,255,.8);
+  pointer-events:none;
+}
+
+.hero::after{
+  content:"✦";
+  position:absolute;
+  right:75px;
+  top:52px;
+  font-size:52px;
+  color:rgba(22,119,255,.13);
+  transform:rotate(12deg);
+  pointer-events:none;
+}
+
+.hero>*{
+  position:relative;
+  z-index:1;
+}
+
+.hero h2{
+  font-size:clamp(28px,4vw,43px) !important;
+  line-height:1.05 !important;
+  letter-spacing:-1.5px !important;
+  color:var(--d-navy) !important;
+  margin:0 0 8px !important;
+  font-weight:850 !important;
+}
+
+.hero p{
+  color:var(--d-muted) !important;
+  max-width:610px !important;
+  margin:0 0 22px !important;
+  font-size:14px !important;
+}
+
+.hero textarea,
+.hero select,
+.ideas-controls input,
+.ideas-controls select,
+.image-controls textarea,
+.image-controls select{
+  border:1px solid var(--d-line) !important;
+  background:rgba(255,255,255,.84) !important;
+  color:#24415f !important;
+  box-shadow:
+    inset 0 2px 5px rgba(74,123,174,.04),
+    0 5px 14px rgba(66,120,179,.05) !important;
+  border-radius:15px !important;
+  outline:none !important;
+}
+
+.hero textarea{
+  width:100%;
+  min-height:112px !important;
+  resize:vertical !important;
+  padding:16px !important;
+  box-sizing:border-box;
+}
+
+.hero label,
+.image-field label{
+  color:#506a87 !important;
+  font-weight:700 !important;
+}
+
+.hero select{
+  min-height:48px !important;
+  padding:0 14px !important;
+}
+
+.hero textarea:focus,
+.hero select:focus,
+.ideas-controls input:focus,
+.ideas-controls select:focus,
+.image-controls textarea:focus,
+.image-controls select:focus{
+  border-color:rgba(22,119,255,.45) !important;
+  box-shadow:
+    0 0 0 4px rgba(22,119,255,.08),
+    0 8px 20px rgba(56,121,186,.08) !important;
+}
+
+#generateBtn,
+#generateIdeasBtn,
+.image-generate-btn{
+  border:0 !important;
+  border-radius:16px !important;
+  background:
+    linear-gradient(
+      145deg,
+      #58bcff,
+      #1677ff
+    ) !important;
+  color:#fff !important;
+  font-weight:800 !important;
+  box-shadow:
+    0 13px 25px rgba(22,119,255,.25),
+    inset 0 2px 2px rgba(255,255,255,.35) !important;
+  transition:.2s ease !important;
+  cursor:pointer;
+}
+
+#generateBtn:hover,
+#generateIdeasBtn:hover,
+.image-generate-btn:hover{
+  transform:translateY(-2px) !important;
+  box-shadow:
+    0 17px 28px rgba(22,119,255,.30),
+    inset 0 2px 2px rgba(255,255,255,.4) !important;
+}
+
+#generateBtn:active,
+#generateIdeasBtn:active,
+.image-generate-btn:active{
+  transform:translateY(0) !important;
+}
+
+/* =========================
+   TOOLS
+========================= */
+
+.tools{
+  padding:24px !important;
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:16px !important;
+  background:
+    linear-gradient(
+      145deg,
+      #f9fcff,
+      #edf7ff
+    ) !important;
+}
+
+.tool-card{
+  position:relative;
+  min-height:155px !important;
+  padding:20px !important;
+  border:1px solid rgba(255,255,255,.9) !important;
+  border-radius:23px !important;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.98),
+      rgba(239,247,255,.92)
+    ) !important;
+  box-shadow:var(--d-soft-shadow) !important;
+  transition:
+    transform .22s ease,
+    box-shadow .22s ease !important;
+  overflow:hidden !important;
+  box-sizing:border-box;
+}
+
+.tool-card::after{
+  content:"";
+  position:absolute;
+  pointer-events:none;
+  width:85px;
+  height:85px;
+  border-radius:50%;
+  background:rgba(91,184,255,.08);
+  right:-28px;
+  bottom:-28px;
+}
+
+.tool-card:hover{
+  transform:translateY(-5px) !important;
+  box-shadow:
+    0 20px 34px rgba(51,113,177,.16),
+    inset 0 1px 0 #fff !important;
+}
+
+.tool-card span{
+  position:relative;
+  z-index:1;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:54px !important;
+  height:54px !important;
+  border-radius:17px !important;
+  background:
+    linear-gradient(
+      145deg,
+      #fff,
+      #e5f4ff
+    ) !important;
+  box-shadow:
+    0 9px 18px rgba(58,118,181,.13),
+    inset 0 2px 2px rgba(255,255,255,.95) !important;
+  font-size:27px !important;
+  margin-bottom:13px !important;
+}
+
+.tool-card h3{
+  position:relative;
+  z-index:1;
+  color:#183657 !important;
+  font-weight:800 !important;
+  margin:0 0 5px !important;
+}
+
+.tool-card p{
+  position:relative;
+  z-index:1;
+  color:#7b8da3 !important;
+  font-size:12px !important;
+  line-height:1.45 !important;
+  margin:0 !important;
+}
+
+/* =========================
+   RESULT
+========================= */
+
+.result-box,
+.ideas-box,
+.image-box{
+  padding:27px !important;
+}
+
+.result-box{
+  min-height:180px !important;
+}
+
+.result-box h2,
+.ideas-box h2,
+.image-box h2{
+  color:var(--d-navy) !important;
+  font-weight:850 !important;
+  letter-spacing:-.4px !important;
+}
+
+#result,
+#ideasResult,
+.image-result{
+  border-radius:20px !important;
+  background:
+    linear-gradient(
+      145deg,
+      #f7fbff,
+      #edf7ff
+    ) !important;
+  border:1px dashed rgba(92,145,198,.22) !important;
+  color:#70849b !important;
+  box-shadow:
+    inset 0 2px 8px rgba(74,125,178,.04) !important;
+}
+
+.ideas-box,
+.image-box{
+  scroll-margin-top:100px;
+}
+
+/* =========================
+   IDEAS / IMAGE
+========================= */
+
+.ideas-header,
+.image-header{
+  position:relative;
+  z-index:1;
+}
+
+.ideas-icon,
+.image-icon{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:58px !important;
+  height:58px !important;
+  border-radius:18px !important;
+  background:
+    linear-gradient(
+      145deg,
+      #fff,
+      #e5f4ff
+    ) !important;
+  box-shadow:
+    0 10px 20px rgba(58,118,181,.12),
+    inset 0 2px 2px #fff !important;
+  font-size:27px !important;
+}
+
+.ideas-controls,
+.image-controls{
+  position:relative;
+  z-index:1;
+  gap:12px !important;
+}
+
+.ideas-controls input,
+.ideas-controls select,
+.image-controls select{
+  min-height:48px !important;
+  padding:0 14px !important;
+  box-sizing:border-box;
+}
+
+.ideas-controls button{
+  min-height:48px !important;
+  padding:0 18px !important;
+}
+
+.image-controls textarea{
+  padding:15px !important;
+  min-height:120px !important;
+  box-sizing:border-box;
+  width:100%;
+}
+
+.image-result{
+  min-height:220px !important;
+}
+
+.image-placeholder{
+  opacity:.85;
+}
+
+.hero,
+.tools,
+.result-box,
+.ideas-box,
+.image-box{
+  transform:translateZ(0);
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media(max-width:900px){
+
+  .tools{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+
+  .hero{
+    padding:28px !important;
+  }
+
+  .dashboard{
+    gap:18px !important;
+  }
+}
+
+@media(max-width:600px){
+
+  .topbar{
+    top:7px;
+    width:calc(100% - 16px);
+    margin-top:7px !important;
+    padding:14px !important;
+    border-radius:20px !important;
+  }
+
+  .topbar h1{
+    font-size:18px !important;
+  }
+
+  .topbar p{
+    font-size:10px !important;
+  }
+
+  .profile{
+    width:38px !important;
+    height:38px !important;
+    border-radius:12px !important;
+  }
+
+  .dashboard{
+    width:calc(100% - 16px) !important;
+    margin-top:17px !important;
+  }
+
+  .hero{
+    padding:22px !important;
+    border-radius:24px !important;
+    min-height:0;
+  }
+
+  .hero h2{
+    font-size:29px !important;
+  }
+
+  .hero::before{
+    width:170px;
+    height:170px;
+    right:-70px;
+    top:-50px;
+  }
+
+  .tools{
+    padding:15px !important;
+    gap:12px !important;
+    border-radius:24px !important;
+  }
+
+  .tool-card{
+    min-height:140px !important;
+    padding:16px !important;
+    border-radius:19px !important;
+  }
+
+  .tool-card span{
+    width:46px !important;
+    height:46px !important;
+    font-size:23px !important;
+  }
+
+  .result-box,
+  .ideas-box,
+  .image-box{
+    padding:20px !important;
+    border-radius:24px !important;
+  }
+
+  .ideas-controls,
+  .image-controls{
+    display:flex !important;
+    flex-direction:column !important;
+  }
+
+  .ideas-controls>*,
+  .image-controls>*{
+    width:100% !important;
+  }
+
+  .image-field.full{
+    width:100% !important;
+  }
+
+  .topbar-right{
+    gap:5px !important;
+  }
+
+  #backendStatus{
+    font-size:10px !important;
+    padding:6px 8px !important;
+  }
+
+  .topbar-right #logoutBtn{
+    padding:7px 8px !important;
+  }
+}
+
+@media(max-width:500px){
+
+  #authScreen{
+    padding:16px;
+  }
+
+  .auth-card{
+    padding:24px 20px;
+    border-radius:19px;
+  }
+
+  .auth-card h2{
+    font-size:21px;
+  }
+
+  .topbar-right{
+    gap:6px;
+  }
+
+  #logoutBtn{
+    padding:8px 9px;
+    font-size:11px;
+  }
+}
+
+@media(max-width:430px){
+
+  .topbar>div:first-child{
+    min-width:0;
+  }
+
+  .topbar-right{
+    flex-shrink:0;
+  }
+
+  .tools{
+    grid-template-columns:1fr !important;
+  }
+
+  .hero select{
+    width:100% !important;
+  }
+
+  .hero textarea{
+    min-height:100px !important;
+  }
+}
+</style>
 </head>
-
 
 <body>
 
-
-<!-- =====================================================
-     LOGIN / REGISTER
-====================================================== -->
+<!-- =========================
+LOGIN / REGISTER SCREEN
+========================= -->
 
 <section id="authScreen">
 
-    <div class="auth-card">
+  <div class="auth-card">
 
-        <div class="auth-logo">
-            AI
-        </div>
-
-
-        <h2 id="authTitle">
-            Welcome Back
-        </h2>
-
-
-        <p id="authSubtitle">
-            Login to continue creating smarter content with AI.
-        </p>
-
-
-        <form id="authForm">
-
-
-            <div class="auth-field">
-
-                <label for="authEmail">
-                    Email Address
-                </label>
-
-                <input
-                    type="email"
-                    id="authEmail"
-                    placeholder="Enter your email"
-                    autocomplete="email"
-                    required
-                >
-
-            </div>
-
-
-            <div class="auth-field">
-
-                <label for="authPassword">
-                    Password
-                </label>
-
-                <input
-                    type="password"
-                    id="authPassword"
-                    placeholder="Enter your password"
-                    autocomplete="current-password"
-                    minlength="6"
-                    required
-                >
-
-            </div>
-
-
-            <button
-                type="submit"
-                id="authButton"
-            >
-                🔐 Login
-            </button>
-
-
-            <div id="authMessage"></div>
-
-
-            <div id="authToggle">
-
-                Don't have an account?
-
-                <button
-                    type="button"
-                    id="switchAuthMode"
-                >
-                    Create Account
-                </button>
-
-            </div>
-
-
-        </form>
-
+    <div class="auth-logo">
+      AI
     </div>
+
+    <h2 id="authTitle">
+      Welcome Back
+    </h2>
+
+    <p id="authSubtitle">
+      Login to continue creating smarter content with AI.
+    </p>
+
+    <form id="authForm">
+
+      <div class="auth-field">
+
+        <label for="authEmail">
+          Email Address
+        </label>
+
+        <input
+          type="email"
+          id="authEmail"
+          placeholder="Enter your email"
+          autocomplete="email"
+          required
+        >
+
+      </div>
+
+      <div class="auth-field">
+
+        <label for="authPassword">
+          Password
+        </label>
+
+        <input
+          type="password"
+          id="authPassword"
+          placeholder="Enter your password"
+          autocomplete="current-password"
+          minlength="6"
+          required
+        >
+
+      </div>
+
+      <button
+        type="submit"
+        id="authButton"
+      >
+        🔐 Login
+      </button>
+
+      <div id="authMessage"></div>
+
+      <div id="authToggle">
+        Don't have an account?
+
+        <button
+          type="button"
+          id="switchAuthMode"
+        >
+          Create Account
+        </button>
+      </div>
+
+    </form>
+
+  </div>
 
 </section>
 
 
-
-<!-- =====================================================
-     MAIN APPLICATION
-====================================================== -->
+<!-- =========================
+MAIN APP
+========================= -->
 
 <div
-    class="app"
-    id="appContent"
+  class="app"
+  id="appContent"
 >
 
+  <!-- TOP BAR -->
 
-    <!-- TOPBAR -->
+  <header class="topbar">
 
-    <header class="topbar">
+    <div>
+
+      <h1>
+        AI Content Agent
+      </h1>
+
+      <p>
+        Create smarter content with AI
+      </p>
+
+    </div>
+
+    <div class="topbar-right">
+
+      <div
+        id="backendStatus"
+        title="Checking AI backend connection..."
+        style="
+          display:inline-flex;
+          align-items:center;
+          gap:6px;
+          padding:7px 10px;
+          border-radius:10px;
+          background:rgba(255,255,255,0.15);
+          border:1px solid rgba(255,255,255,0.25);
+          color:white;
+          font-size:11px;
+          font-weight:600;
+          white-space:nowrap;
+        "
+      >
+
+        <span
+          id="backendStatusDot"
+          style="
+            width:8px;
+            height:8px;
+            border-radius:50%;
+            background:#f1c40f;
+            display:inline-block;
+          "
+        ></span>
+
+        <span id="backendStatusText">
+          Connecting...
+        </span>
+
+      </div>
+
+      <button
+        id="logoutBtn"
+        type="button"
+      >
+        🚪 Logout
+      </button>
+
+      <div
+        class="profile"
+        title="Logged-in user"
+      >
+        AI
+      </div>
+
+    </div>
+
+  </header>
+
+
+  <main class="dashboard">
+
+    <!-- =========================
+    MAIN GENERATOR
+    ========================= -->
+
+    <section class="hero">
+
+      <h2>
+        What do you want to create?
+      </h2>
+
+      <p>
+        Generate ideas, scripts, captions, hooks and more.
+      </p>
+
+      <textarea
+        id="topicInput"
+        placeholder="Example: Instagram reel about LIC savings..."
+      ></textarea>
+
+      <label for="contentType">
+        Content Type
+      </label>
+
+      <select id="contentType">
+
+        <option value="Instagram Reel">
+          🎬 Instagram Reel
+        </option>
+
+        <option value="Instagram Post">
+          📱 Instagram Post
+        </option>
+
+        <option value="YouTube Video">
+          ▶️ YouTube Video
+        </option>
+
+        <option value="LinkedIn Post">
+          💼 LinkedIn Post
+        </option>
+
+        <option value="Caption">
+          📝 Caption
+        </option>
+
+        <option value="Ad Copy">
+          🎯 Ad Copy
+        </option>
+
+      </select>
+
+      <label for="language">
+        Language
+      </label>
+
+      <select id="language">
+
+        <option value="Hindi">
+          🇮🇳 Hindi
+        </option>
+
+        <option value="English">
+          🇬🇧 English
+        </option>
+
+        <option value="Hinglish">
+          🔄 Hinglish
+        </option>
+
+      </select>
+
+      <button id="generateBtn">
+        ✨ Generate Content
+      </button>
+
+    </section>
+
+
+    <!-- =========================
+    TOOLS
+    ========================= -->
+
+    <section class="tools">
+
+      <div
+        class="tool-card"
+        id="contentIdeasCard"
+        role="button"
+        tabindex="0"
+        title="Open Content Ideas"
+      >
+
+        <span>
+          💡
+        </span>
+
+        <h3>
+          Content Ideas
+        </h3>
+
+        <p>
+          Generate fresh content ideas.
+        </p>
+
+      </div>
+
+
+      <div
+        class="tool-card"
+        id="imageGeneratorCard"
+        role="button"
+        tabindex="0"
+        title="Open AI Image Generator"
+      >
+
+        <span>
+          🖼️
+        </span>
+
+        <h3>
+          AI Image
+        </h3>
+
+        <p>
+          Create images for posts, stories and thumbnails.
+        </p>
+
+      </div>
+
+
+      <div class="tool-card">
+
+        <span>
+          🎬
+        </span>
+
+        <h3>
+          Scripts
+        </h3>
+
+        <p>
+          Create short-form video scripts.
+        </p>
+
+      </div>
+
+
+      <div class="tool-card">
+
+        <span>
+          🪝
+        </span>
+
+        <h3>
+          Hooks
+        </h3>
+
+        <p>
+          Create attention-grabbing hooks.
+        </p>
+
+      </div>
+
+
+      <div class="tool-card">
+
+        <span>
+          📝
+        </span>
+
+        <h3>
+          Captions
+        </h3>
+
+        <p>
+          Generate social media captions.
+        </p>
+
+      </div>
+
+
+      <div class="tool-card">
+
+        <span>
+          #️⃣
+        </span>
+
+        <h3>
+          Hashtags
+        </h3>
+
+        <p>
+          Find relevant hashtags.
+        </p>
+
+      </div>
+
+
+      <div class="tool-card">
+
+        <span>
+          📢
+        </span>
+
+        <h3>
+          CTA
+        </h3>
+
+        <p>
+          Create strong calls to action.
+        </p>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+    AI RESULT
+    ========================= -->
+
+    <section class="result-box">
+
+      <h2>
+        AI Result
+      </h2>
+
+      <div id="result">
+        Your generated content will appear here.
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+    CONTENT IDEAS
+    ========================= -->
+
+    <section
+      class="ideas-box"
+      id="contentIdeasSection"
+    >
+
+      <div class="ideas-header">
 
         <div>
 
-            <h1>
-                AI Content Agent
-            </h1>
+          <span class="ideas-icon">
+            💡
+          </span>
 
-            <p>
-                Create smarter content with AI
-            </p>
+          <h2>
+            Content Ideas
+          </h2>
+
+          <p>
+            Generate fresh ideas for your next
+            post, reel or video.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="ideas-controls">
+
+        <input
+          type="text"
+          id="ideasTopic"
+          placeholder="Example: LIC savings, digital skills, YouTube growth..."
+        >
+
+        <select id="ideasLanguage">
+
+          <option value="Hindi">
+            🇮🇳 Hindi
+          </option>
+
+          <option value="English">
+            🇬🇧 English
+          </option>
+
+          <option value="Hinglish">
+            🔄 Hinglish
+          </option>
+
+        </select>
+
+
+        <select id="ideasCount">
+
+          <option value="5">
+            5 Ideas
+          </option>
+
+          <option
+            value="10"
+            selected
+          >
+            10 Ideas
+          </option>
+
+          <option value="15">
+            15 Ideas
+          </option>
+
+        </select>
+
+
+        <button id="generateIdeasBtn">
+          💡 Generate Ideas
+        </button>
+
+      </div>
+
+
+      <div id="ideasResult">
+        Your content ideas will appear here.
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+    AI IMAGE GENERATOR
+    ========================= -->
+
+    <section
+      class="image-box"
+      id="imageGeneratorSection"
+    >
+
+      <div class="image-header">
+
+        <span class="image-icon">
+          🖼️
+        </span>
+
+        <div>
+
+          <h2>
+            AI Image Generator
+          </h2>
+
+          <p>
+            Create visuals for Instagram,
+            YouTube, posters and social media.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="image-controls">
+
+        <div class="image-field full">
+
+          <label for="imagePrompt">
+            What image do you want?
+          </label>
+
+          <textarea
+            id="imagePrompt"
+            placeholder="Example: A premium LIC savings awareness poster with a happy Indian family, professional blue theme, clean modern design..."
+          ></textarea>
 
         </div>
 
 
-        <div class="topbar-right">
+        <div class="image-field">
 
+          <label for="imageType">
+            Image Type
+          </label>
 
-            <div
-                id="backendStatus"
-                title="Render Backend Status"
-            >
+          <select id="imageType">
 
-                <span id="backendStatusDot"></span>
+            <option value="Instagram Post">
+              📱 Instagram Post
+            </option>
 
-                <span id="backendStatusText">
-                    Connecting...
-                </span>
+            <option value="Instagram Story">
+              📲 Instagram Story
+            </option>
 
-            </div>
+            <option value="YouTube Thumbnail">
+              ▶️ YouTube Thumbnail
+            </option>
 
+            <option value="Poster">
+              🖼️ Poster
+            </option>
 
-            <button
-                id="logoutBtn"
-                type="button"
-            >
-                🚪 Logout
-            </button>
+            <option value="Square Post">
+              ⬜ Square Post
+            </option>
 
-
-            <div
-                class="profile"
-                title="Logged-in user"
-            >
-                AI
-            </div>
-
+          </select>
 
         </div>
 
-    </header>
 
+        <div class="image-field">
 
+          <label for="imageStyle">
+            Visual Style
+          </label>
 
-    <!-- =================================================
-         DASHBOARD
-    ================================================== -->
+          <select id="imageStyle">
 
-    <main class="dashboard">
+            <option value="Modern Premium">
+              ✨ Modern Premium
+            </option>
 
+            <option value="Clean Minimal">
+              🧼 Clean Minimal
+            </option>
 
-        <!-- MAIN GENERATOR -->
+            <option value="Professional">
+              💼 Professional
+            </option>
 
-        <section class="hero">
+            <option value="Realistic">
+              📸 Realistic
+            </option>
 
-            <h2>
-                What do you want to create?
-            </h2>
+            <option value="Cinematic">
+              🎬 Cinematic
+            </option>
 
+            <option value="Creative">
+              🎨 Creative
+            </option>
 
-            <p>
-                Generate ideas, scripts, captions, hooks
-                and more with your AI content assistant.
-            </p>
+          </select>
 
+        </div>
 
-            <textarea
-                id="topicInput"
-                placeholder="Example: Instagram reel about LIC savings..."
-            ></textarea>
 
+        <div class="image-field">
 
-            <label for="contentType">
-                Content Type
-            </label>
+          <label for="imageSize">
+            Quality
+          </label>
 
+          <select id="imageSize">
 
-            <select id="contentType">
+            <option value="1K">
+              1K
+            </option>
 
-                <option value="Instagram Reel">
-                    🎬 Instagram Reel
-                </option>
+            <option value="2K">
+              2K
+            </option>
 
-                <option value="Instagram Post">
-                    📱 Instagram Post
-                </option>
+          </select>
 
-                <option value="YouTube Video">
-                    ▶️ YouTube Video
-                </option>
+        </div>
 
-                <option value="LinkedIn Post">
-                    💼 LinkedIn Post
-                </option>
 
-                <option value="Caption">
-                    📝 Caption
-                </option>
-
-                <option value="Ad Copy">
-                    🎯 Ad Copy
-                </option>
-
-            </select>
-
-
-            <label for="language">
-                Language
-            </label>
-
-
-            <select id="language">
-
-                <option value="Hindi">
-                    🇮🇳 Hindi
-                </option>
-
-                <option value="English">
-                    🇬🇧 English
-                </option>
-
-                <option value="Hinglish">
-                    🔄 Hinglish
-                </option>
-
-            </select>
-
-
-            <button
-                id="generateBtn"
-                type="button"
-            >
-                ✨ Generate Content
-            </button>
-
-        </section>
-
-
-
-        <!-- =================================================
-             QUICK TOOLS
-        ================================================== -->
-
-        <section class="tools">
-
-
-            <div
-                class="tool-card"
-                id="contentIdeasCard"
-                role="button"
-                tabindex="0"
-                title="Open Content Ideas"
-            >
-
-                <span>
-                    💡
-                </span>
-
-                <h3>
-                    Content Ideas
-                </h3>
-
-                <p>
-                    Generate fresh content ideas.
-                </p>
-
-            </div>
-
-
-            <div
-                class="tool-card"
-                id="imageGeneratorCard"
-                role="button"
-                tabindex="0"
-                title="Open AI Image Generator"
-            >
-
-                <span>
-                    🖼️
-                </span>
-
-                <h3>
-                    AI Image
-                </h3>
-
-                <p>
-                    Create images for posts, stories
-                    and thumbnails.
-                </p>
-
-            </div>
-
-
-            <div class="tool-card">
-
-                <span>
-                    🎬
-                </span>
-
-                <h3>
-                    Scripts
-                </h3>
-
-                <p>
-                    Create short-form video scripts.
-                </p>
-
-            </div>
-
-
-            <div class="tool-card">
-
-                <span>
-                    🪝
-                </span>
-
-                <h3>
-                    Hooks
-                </h3>
-
-                <p>
-                    Create attention-grabbing hooks.
-                </p>
-
-            </div>
-
-
-            <div class="tool-card">
-
-                <span>
-                    📝
-                </span>
-
-                <h3>
-                    Captions
-                </h3>
-
-                <p>
-                    Generate social media captions.
-                </p>
-
-            </div>
-
-
-            <div class="tool-card">
-
-                <span>
-                    #️⃣
-                </span>
-
-                <h3>
-                    Hashtags
-                </h3>
-
-                <p>
-                    Find relevant hashtags.
-                </p>
-
-            </div>
-
-
-            <div class="tool-card">
-
-                <span>
-                    📢
-                </span>
-
-                <h3>
-                    CTA
-                </h3>
-
-                <p>
-                    Create strong calls to action.
-                </p>
-
-            </div>
-
-
-        </section>
-
-
-
-        <!-- =================================================
-             AI RESULT
-        ================================================== -->
-
-        <section class="result-box">
-
-            <h2>
-                AI Result
-            </h2>
-
-
-            <div id="result">
-
-                Your generated content will appear here.
-
-            </div>
-
-        </section>
-
-
-
-        <!-- =================================================
-             CONTENT IDEAS
-        ================================================== -->
-
-        <section
-            class="ideas-box"
-            id="contentIdeasSection"
+        <button
+          id="generateImageBtn"
+          class="image-generate-btn"
         >
+          🖼️ Generate Image
+        </button>
 
+      </div>
 
-            <div class="ideas-header">
 
-                <div>
+      <div
+        id="imageResult"
+        class="image-result"
+      >
 
-                    <span class="ideas-icon">
-                        💡
-                    </span>
+        <div class="image-placeholder">
 
-                    <h2>
-                        Content Ideas
-                    </h2>
+          <span>
+            🖼️
+          </span>
 
-                    <p>
-                        Generate fresh ideas for your next
-                        post, reel or video.
-                    </p>
+          <p>
+            Your generated image will appear here.
+          </p>
 
-                </div>
+        </div>
 
-            </div>
+      </div>
 
+    </section>
 
-            <div class="ideas-controls">
-
-
-                <input
-                    type="text"
-                    id="ideasTopic"
-                    placeholder="Example: LIC savings, digital skills, YouTube growth..."
-                >
-
-
-                <select id="ideasLanguage">
-
-                    <option value="Hindi">
-                        🇮🇳 Hindi
-                    </option>
-
-                    <option value="English">
-                        🇬🇧 English
-                    </option>
-
-                    <option value="Hinglish">
-                        🔄 Hinglish
-                    </option>
-
-                </select>
-
-
-                <select id="ideasCount">
-
-                    <option value="5">
-                        5 Ideas
-                    </option>
-
-                    <option
-                        value="10"
-                        selected
-                    >
-                        10 Ideas
-                    </option>
-
-                    <option value="15">
-                        15 Ideas
-                    </option>
-
-                </select>
-
-
-                <button
-                    id="generateIdeasBtn"
-                    type="button"
-                >
-                    💡 Generate Ideas
-                </button>
-
-
-            </div>
-
-
-            <div id="ideasResult">
-
-                Your content ideas will appear here.
-
-            </div>
-
-
-        </section>
-
-
-
-        <!-- =================================================
-             AI IMAGE GENERATOR
-        ================================================== -->
-
-        <section
-            class="image-box"
-            id="imageGeneratorSection"
-        >
-
-
-            <div class="image-header">
-
-                <span class="image-icon">
-                    🖼️
-                </span>
-
-
-                <div>
-
-                    <h2>
-                        AI Image Generator
-                    </h2>
-
-                    <p>
-                        Create visuals for Instagram,
-                        YouTube, posters and social media.
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <div class="image-controls">
-
-
-                <div class="image-field full">
-
-                    <label for="imagePrompt">
-                        What image do you want?
-                    </label>
-
-
-                    <textarea
-                        id="imagePrompt"
-                        placeholder="Example: A premium LIC savings awareness poster with a happy Indian family, professional blue theme, clean modern design..."
-                    ></textarea>
-
-                </div>
-
-
-                <div class="image-field">
-
-                    <label for="imageType">
-                        Image Type
-                    </label>
-
-
-                    <select id="imageType">
-
-                        <option value="Instagram Post">
-                            📱 Instagram Post
-                        </option>
-
-                        <option value="Instagram Story">
-                            📲 Instagram Story
-                        </option>
-
-                        <option value="YouTube Thumbnail">
-                            ▶️ YouTube Thumbnail
-                        </option>
-
-                        <option value="Poster">
-                            🖼️ Poster
-                        </option>
-
-                        <option value="Square Post">
-                            ⬜ Square Post
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                <div class="image-field">
-
-                    <label for="imageStyle">
-                        Visual Style
-                    </label>
-
-
-                    <select id="imageStyle">
-
-                        <option value="Modern Premium">
-                            ✨ Modern Premium
-                        </option>
-
-                        <option value="Clean Minimal">
-                            🧼 Clean Minimal
-                        </option>
-
-                        <option value="Professional">
-                            💼 Professional
-                        </option>
-
-                        <option value="Realistic">
-                            📸 Realistic
-                        </option>
-
-                        <option value="Cinematic">
-                            🎬 Cinematic
-                        </option>
-
-                        <option value="Creative">
-                            🎨 Creative
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                <div class="image-field">
-
-                    <label for="imageSize">
-                        Quality
-                    </label>
-
-
-                    <select id="imageSize">
-
-                        <option value="1K">
-                            1K
-                        </option>
-
-                        <option value="2K">
-                            2K
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                <button
-                    id="generateImageBtn"
-                    class="image-generate-btn"
-                    type="button"
-                >
-                    🖼️ Generate Image
-                </button>
-
-
-            </div>
-
-
-            <div
-                id="imageResult"
-                class="image-result"
-            >
-
-                <div class="image-placeholder">
-
-                    <span>
-                        🖼️
-                    </span>
-
-                    <p>
-                        Your generated image will appear here.
-                    </p>
-
-                </div>
-
-            </div>
-
-
-        </section>
-
-
-    </main>
+  </main>
 
 </div>
 
 
-
-<!-- =====================================================
-     EXISTING JAVASCRIPT
-====================================================== -->
-
+<!-- =========================
+EXISTING AI JAVASCRIPT
+========================= -->
 
 <!-- HISTORY -->
-
 <script
-    type="module"
-    src="history.js"
+  type="module"
+  src="history.js"
 ></script>
-
-
-<!-- MAIN AI GENERATOR -->
 
 <script src="script.js"></script>
 
 
 <!-- AI CHAT -->
-
 <script src="chat.js"></script>
 
 
 <!-- DASHBOARD / PROFILE / SETTINGS -->
-
 <script
-    type="module"
-    src="dashboard.js"
+  type="module"
+  src="dashboard.js"
 ></script>
 
 
-
-<!-- =====================================================
-     CARD SCROLL
-====================================================== -->
+<!-- =========================
+CARD SCROLL
+========================= -->
 
 <script>
 
-    document.addEventListener(
-        "DOMContentLoaded",
-        function () {
+const contentIdeasCard =
+  document.getElementById("contentIdeasCard");
+
+const contentIdeasSection =
+  document.getElementById("contentIdeasSection");
+
+if(
+  contentIdeasCard &&
+  contentIdeasSection
+){
+
+  contentIdeasCard.style.cursor =
+    "pointer";
+
+  contentIdeasCard.addEventListener(
+    "click",
+    function(){
+
+      contentIdeasSection.scrollIntoView({
+        behavior:"smooth",
+        block:"start"
+      });
+
+    }
+  );
+
+  contentIdeasCard.addEventListener(
+    "keydown",
+    function(event){
+
+      if(
+        event.key === "Enter" ||
+        event.key === " "
+      ){
+
+        event.preventDefault();
+
+        contentIdeasSection.scrollIntoView({
+          behavior:"smooth",
+          block:"start"
+        });
+
+      }
+
+    }
+  );
+
+}
 
 
-            /* CONTENT IDEAS */
+/* IMAGE CARD SCROLL */
 
-            const contentIdeasCard =
-                document.getElementById(
-                    "contentIdeasCard"
-                );
+const imageGeneratorCard =
+  document.getElementById("imageGeneratorCard");
 
+const imageGeneratorSection =
+  document.getElementById("imageGeneratorSection");
 
-            const contentIdeasSection =
-                document.getElementById(
-                    "contentIdeasSection"
-                );
+if(
+  imageGeneratorCard &&
+  imageGeneratorSection
+){
 
+  imageGeneratorCard.style.cursor =
+    "pointer";
 
-            if (
-                contentIdeasCard &&
-                contentIdeasSection
-            ) {
+  imageGeneratorCard.addEventListener(
+    "click",
+    function(){
 
-                contentIdeasCard.style.cursor =
-                    "pointer";
+      imageGeneratorSection.scrollIntoView({
+        behavior:"smooth",
+        block:"start"
+      });
 
+    }
+  );
 
-                contentIdeasCard.addEventListener(
-                    "click",
-                    function () {
+  imageGeneratorCard.addEventListener(
+    "keydown",
+    function(event){
 
-                        contentIdeasSection.scrollIntoView({
-                            behavior: "smooth",
-                            block: "start"
-                        });
+      if(
+        event.key === "Enter" ||
+        event.key === " "
+      ){
 
-                    }
-                );
+        event.preventDefault();
 
+        imageGeneratorSection.scrollIntoView({
+          behavior:"smooth",
+          block:"start"
+        });
 
-                contentIdeasCard.addEventListener(
-                    "keydown",
-                    function (event) {
+      }
 
-                        if (
-                            event.key === "Enter" ||
-                            event.key === " "
-                        ) {
+    }
+  );
 
-                            event.preventDefault();
-
-
-                            contentIdeasSection.scrollIntoView({
-                                behavior: "smooth",
-                                block: "start"
-                            });
-
-                        }
-
-                    }
-                );
-
-            }
-
-
-
-            /* IMAGE GENERATOR */
-
-            const imageGeneratorCard =
-                document.getElementById(
-                    "imageGeneratorCard"
-                );
-
-
-            const imageGeneratorSection =
-                document.getElementById(
-                    "imageGeneratorSection"
-                );
-
-
-            if (
-                imageGeneratorCard &&
-                imageGeneratorSection
-            ) {
-
-                imageGeneratorCard.style.cursor =
-                    "pointer";
-
-
-                imageGeneratorCard.addEventListener(
-                    "click",
-                    function () {
-
-                        imageGeneratorSection.scrollIntoView({
-                            behavior: "smooth",
-                            block: "start"
-                        });
-
-                    }
-                );
-
-
-                imageGeneratorCard.addEventListener(
-                    "keydown",
-                    function (event) {
-
-                        if (
-                            event.key === "Enter" ||
-                            event.key === " "
-                        ) {
-
-                            event.preventDefault();
-
-
-                            imageGeneratorSection.scrollIntoView({
-                                behavior: "smooth",
-                                block: "start"
-                            });
-
-                        }
-
-                    }
-                );
-
-            }
-
-        }
-    );
+}
 
 </script>
 
 
-
-<!-- =====================================================
-     FIREBASE AUTH
-====================================================== -->
+<!-- =========================
+FIREBASE AUTH
+========================= -->
 
 <script
-    type="module"
-    src="auth.js"
+  type="module"
+  src="auth.js"
 ></script>
 
 
-
-<!-- =====================================================
-     BACKEND CONNECTIVITY
-====================================================== -->
+<!-- =========================
+BACKEND CONNECTIVITY STATUS
+========================= -->
 
 <script>
 
-    const AI_BACKEND_URL =
-        "https://ai-content-agent-3hb3.onrender.com/";
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
+    const statusBox =
+      document.getElementById("backendStatus");
+
+    const statusDot =
+      document.getElementById("backendStatusDot");
+
+    const statusText =
+      document.getElementById("backendStatusText");
+
+    const BACKEND_URL =
+      "https://ai-content-agent-3hb3.onrender.com/";
 
 
-    function updateBackendStatus(
-        status,
-        message
-    ) {
+    async function checkBackendConnection(){
 
-        const dot =
-            document.getElementById(
-                "backendStatusDot"
-            );
+      if(
+        !statusDot ||
+        !statusText
+      ){
+        return;
+      }
 
+      statusText.textContent =
+        "Connecting...";
 
-        const text =
-            document.getElementById(
-                "backendStatusText"
-            );
-
-
-        if (!dot || !text) {
-            return;
-        }
+      statusDot.style.background =
+        "#f1c40f";
 
 
-        if (status === "connected") {
-
-            dot.style.background =
-                "#22c55e";
-
-            dot.style.boxShadow =
-                "0 0 0 3px rgba(34,197,94,.12)";
-
-            text.textContent =
-                "Connected";
-
-        }
-
-        else if (status === "disconnected") {
-
-            dot.style.background =
-                "#ef4444";
-
-            dot.style.boxShadow =
-                "0 0 0 3px rgba(239,68,68,.12)";
-
-            text.textContent =
-                "Disconnected";
-
-        }
-
-        else {
-
-            dot.style.background =
-                "#f59e0b";
-
-            dot.style.boxShadow =
-                "0 0 0 3px rgba(245,158,11,.12)";
-
-            text.textContent =
-                message ||
-                "Connecting...";
-
-        }
-
-    }
-
-
-
-    async function checkBackendConnection() {
+      try{
 
         const controller =
-            new AbortController();
-
+          new AbortController();
 
         const timeout =
-            setTimeout(
-                () => {
-                    controller.abort();
-                },
-                12000
-            );
+          setTimeout(
+            () => controller.abort(),
+            10000
+          );
 
 
-        try {
-
-            const response =
-                await fetch(
-                    AI_BACKEND_URL,
-                    {
-                        method: "GET",
-                        mode: "cors",
-                        cache: "no-store",
-                        signal: controller.signal
-                    }
-                );
-
-
-            clearTimeout(timeout);
-
-
-            if (
-                response.ok ||
-                response.status === 200 ||
-                response.status === 404 ||
-                response.type === "opaque"
-            ) {
-
-                updateBackendStatus(
-                    "connected"
-                );
-
+        const response =
+          await fetch(
+            BACKEND_URL,
+            {
+              method:"GET",
+              cache:"no-store",
+              signal:controller.signal
             }
+          );
 
-            else {
 
-                updateBackendStatus(
-                    "disconnected"
-                );
+        clearTimeout(timeout);
 
-            }
+
+        if(!response.ok){
+
+          throw new Error(
+            "Backend returned HTTP " +
+            response.status
+          );
 
         }
 
-        catch (error) {
 
-            try {
+        statusText.textContent =
+          "Connected";
 
-                const fallbackCtrl =
-                    new AbortController();
+        statusDot.style.background =
+          "#20c997";
 
-
-                const fallbackTimeout =
-                    setTimeout(
-                        () => {
-                            fallbackCtrl.abort();
-                        },
-                        6000
-                    );
+        statusBox.title =
+          "AI backend connected";
 
 
-                await fetch(
-                    AI_BACKEND_URL,
-                    {
-                        method: "HEAD",
-                        mode: "no-cors",
-                        cache: "no-store",
-                        signal: fallbackCtrl.signal
-                    }
-                );
+      }catch(error){
 
+        console.error(
+          "Backend Connectivity Error:",
+          error
+        );
 
-                clearTimeout(
-                    fallbackTimeout
-                );
+        statusText.textContent =
+          "Disconnected";
 
+        statusDot.style.background =
+          "#ff5c5c";
 
-                updateBackendStatus(
-                    "connected"
-                );
+        statusBox.title =
+          "AI backend is not reachable";
 
-            }
-
-            catch (fallbackError) {
-
-                clearTimeout(
-                    timeout
-                );
-
-
-                updateBackendStatus(
-                    "disconnected"
-                );
-
-
-                console.log(
-                    "Backend offline or unreachable:",
-                    error
-                );
-
-            }
-
-        }
+      }
 
     }
 
 
+    checkBackendConnection();
 
-    document.addEventListener(
-        "DOMContentLoaded",
-        function () {
-
-            updateBackendStatus(
-                "checking",
-                "Connecting..."
-            );
-
-
-            checkBackendConnection();
-
-
-            setInterval(
-                checkBackendConnection,
-                30000
-            );
-
-        }
+    setInterval(
+      checkBackendConnection,
+      30000
     );
+
+  }
+);
 
 </script>
 
-
 </body>
-
 </html>
