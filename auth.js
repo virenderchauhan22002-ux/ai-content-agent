@@ -31,7 +31,7 @@ import {
 // ==========================================
 
 const firebaseConfig = {
-    apiKey: "AIzaSyAF9-LEijO0b7I7OcaT5I74f2UtfGDdc78JGqQ",
+    apiKey:"AIzaSyAF9-LEij0O7caT5I74f2UtfGDdc78JGqQ",
     authDomain: "ai-content-agent-a9820.firebaseapp.com",
     projectId: "ai-content-agent-a9820",
     storageBucket: "ai-content-agent-a9820.firebasestorage.app",
@@ -801,4 +801,4 @@ onAuthStateChanged(
         }
 
     }
-);
+); 
