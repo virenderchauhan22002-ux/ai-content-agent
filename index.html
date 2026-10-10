@@ -7,6 +7,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>AI Content Agent</title>
+    <div id="backendStatus"
+     style="
+        display:flex;
+        align-items:center;
+        gap:7px;
+        font-size:13px;
+        font-weight:600;
+        color:#73758a;
+        margin-left:12px;
+     ">
+    <span id="backendStatusDot"
+          style="
+             width:9px;
+             height:9px;
+             border-radius:50%;
+             background:#f4b400;
+             display:inline-block;
+          ">
+    </span>
+
+    <span id="backendStatusText">
+        Connecting...
+    </span>
+</div>
 
     <link rel="stylesheet" href="style.css">
 
@@ -1179,6 +1203,126 @@
     type="module"
     src="auth.js"
 ></script>
+<script>
+/* =========================================================
+   BACKEND CONNECTIVITY STATUS
+   AI CONTENT AGENT
+   ========================================================= */
+
+const AI_BACKEND_URL =
+    "https://ai-content-agent-3hb3.onrender.com/";
+
+function updateBackendStatus(status, message) {
+
+    const dot =
+        document.getElementById("backendStatusDot");
+
+    const text =
+        document.getElementById("backendStatusText");
+
+    if (!dot || !text) return;
+
+    if (status === "connected") {
+
+        dot.style.background = "#16a34a";
+        text.style.color = "#16a34a";
+        text.textContent = "Connected";
+
+    } else if (status === "disconnected") {
+
+        dot.style.background = "#dc2626";
+        text.style.color = "#dc2626";
+        text.textContent = "Disconnected";
+
+    } else {
+
+        dot.style.background = "#f4b400";
+        text.style.color = "#73758a";
+        text.textContent =
+            message || "Connecting...";
+
+    }
+}
+
+
+async function checkBackendConnection() {
+
+    updateBackendStatus(
+        "checking",
+        "Connecting..."
+    );
+
+    const controller =
+        new AbortController();
+
+    const timeout =
+        setTimeout(() => {
+            controller.abort();
+        }, 10000);
+
+    try {
+
+        const response =
+            await fetch(
+                AI_BACKEND_URL,
+                {
+                    method: "GET",
+                    cache: "no-store",
+                    signal: controller.signal
+                }
+            );
+
+        clearTimeout(timeout);
+
+        if (response.ok) {
+
+            updateBackendStatus(
+                "connected",
+                "Connected"
+            );
+
+        } else {
+
+            updateBackendStatus(
+                "disconnected",
+                "Disconnected"
+            );
+
+        }
+
+    } catch (error) {
+
+        clearTimeout(timeout);
+
+        updateBackendStatus(
+            "disconnected",
+            "Disconnected"
+        );
+
+        console.log(
+            "Backend connection check failed:",
+            error
+        );
+    }
+}
+
+
+/* First check */
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        checkBackendConnection();
+
+        /* Recheck every 30 seconds */
+        setInterval(
+            checkBackendConnection,
+            30000
+        );
+
+    }
+);
+</script>
 
 
 </body>
