@@ -13,13 +13,22 @@ import {
     signOut
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
+import {
+    getFirestore,
+    doc,
+    getDoc,
+    setDoc,
+    updateDoc,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
 
 // ==========================================
 // FIREBASE CONFIG
 // ==========================================
 
 const firebaseConfig = {
-    apiKey: "AIzaSyAF9-LEij0O7caT5I74f2UtfGDdc78JGqQ",
+    apiKey: "AIzaSyAF9-LEijO0bI7OcaT5I74f2UtfGDdc78JGqQ",
     authDomain: "ai-content-agent-a9820.firebaseapp.com",
     projectId: "ai-content-agent-a9820",
     storageBucket: "ai-content-agent-a9820.firebasestorage.app",
@@ -35,6 +44,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 const auth = getAuth(app);
+
+const db = getFirestore(app);
 
 
 // ==========================================
@@ -89,7 +100,10 @@ let isLoginMode = true;
 // SHOW MESSAGE
 // ==========================================
 
-function showAuthMessage(message, type = "error") {
+function showAuthMessage(
+    message,
+    type = "error"
+) {
 
     if (!authMessage) return;
 
@@ -100,11 +114,15 @@ function showAuthMessage(message, type = "error") {
         "block";
 
     if (type === "success") {
+
         authMessage.style.color =
             "#188038";
+
     } else {
+
         authMessage.style.color =
             "#d93025";
+
     }
 
 }
@@ -137,51 +155,67 @@ function updateAuthMode() {
     if (isLoginMode) {
 
         if (authTitle) {
+
             authTitle.textContent =
                 "Welcome Back";
+
         }
 
         if (authSubtitle) {
+
             authSubtitle.textContent =
                 "Login to continue creating smarter content with AI.";
+
         }
 
         if (authButton) {
+
             authButton.textContent =
                 "🔐 Login";
+
         }
 
         if (authToggle) {
+
             authToggle.innerHTML =
                 `Don't have an account?
                  <button type="button" id="switchAuthMode">
                     Create Account
                  </button>`;
+
         }
 
     } else {
 
         if (authTitle) {
+
             authTitle.textContent =
                 "Create Your Account";
+
         }
 
         if (authSubtitle) {
+
             authSubtitle.textContent =
                 "Create a free account and start using AI Content Agent.";
+
         }
 
         if (authButton) {
+
             authButton.textContent =
                 "🚀 Create Account";
+
         }
 
         if (authToggle) {
+
             authToggle.innerHTML =
                 `Already have an account?
                  <button type="button" id="switchAuthMode">
                     Login
                  </button>`;
+
         }
 
     }
@@ -217,6 +251,106 @@ function updateAuthMode() {
 // ==========================================
 
 updateAuthMode();
+
+
+// ==========================================
+// CREATE / UPDATE FIRESTORE USER
+// ==========================================
+
+async function ensureUserDocument(user) {
+
+    if (!user) return;
+
+
+    const userRef =
+        doc(
+            db,
+            "users",
+            user.uid
+        );
+
+
+    try {
+
+        const userSnapshot =
+            await getDoc(userRef);
+
+
+        // ==================================
+        // USER DOES NOT EXIST IN FIRESTORE
+        // ==================================
+
+        if (!userSnapshot.exists()) {
+
+            await setDoc(
+                userRef,
+                {
+                    uid: user.uid,
+
+                    email:
+                        user.email || "",
+
+                    name:
+                        user.displayName || "",
+
+                    role:
+                        "user",
+
+                    plan:
+                        "free",
+
+                    status:
+                        "active",
+
+                    createdAt:
+                        serverTimestamp(),
+
+                    lastLoginAt:
+                        serverTimestamp()
+                }
+            );
+
+
+            console.log(
+                "Firestore user document created:",
+                user.uid
+            );
+
+
+            return;
+        }
+
+
+        // ==================================
+        // EXISTING USER
+        // UPDATE LAST LOGIN ONLY
+        // ==================================
+
+        await updateDoc(
+            userRef,
+            {
+                lastLoginAt:
+                    serverTimestamp()
+            }
+        );
+
+
+        console.log(
+            "Firestore user document updated:",
+            user.uid
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Firestore User Document Error:",
+            error
+        );
+
+    }
+
+}
 
 
 // ==========================================
@@ -292,20 +426,46 @@ if (authForm) {
 
             try {
 
+                // ==================================
+                // LOGIN
+                // ==================================
+
                 if (isLoginMode) {
 
-                    await signInWithEmailAndPassword(
-                        auth,
-                        email,
-                        password
+                    const credential =
+                        await signInWithEmailAndPassword(
+                            auth,
+                            email,
+                            password
+                        );
+
+
+                    // Make sure existing users
+                    // also get a Firestore document
+
+                    await ensureUserDocument(
+                        credential.user
                     );
+
 
                 } else {
 
-                    await createUserWithEmailAndPassword(
-                        auth,
-                        email,
-                        password
+                    // ==================================
+                    // CREATE ACCOUNT
+                    // ==================================
+
+                    const credential =
+                        await createUserWithEmailAndPassword(
+                            auth,
+                            email,
+                            password
+                        );
+
+
+                    // Create Firestore user document
+
+                    await ensureUserDocument(
+                        credential.user
                     );
 
                 }
@@ -329,42 +489,65 @@ if (authForm) {
                 switch (error.code) {
 
                     case "auth/invalid-email":
+
                         message =
                             "Please enter a valid email address.";
+
                         break;
+
 
                     case "auth/user-not-found":
+
                         message =
                             "No account found with this email.";
+
                         break;
+
 
                     case "auth/wrong-password":
+
                     case "auth/invalid-credential":
+
                         message =
                             "Incorrect email or password.";
+
                         break;
+
 
                     case "auth/email-already-in-use":
+
                         message =
                             "An account already exists with this email.";
+
                         break;
+
 
                     case "auth/weak-password":
+
                         message =
                             "Password should be at least 6 characters.";
+
                         break;
+
 
                     case "auth/too-many-requests":
+
                         message =
                             "Too many attempts. Please try again later.";
+
                         break;
+
 
                     case "auth/network-request-failed":
+
                         message =
                             "Network error. Please check your internet connection.";
+
                         break;
 
+
                     default:
+
                         message =
                             error.message ||
                             message;
@@ -372,7 +555,9 @@ if (authForm) {
                 }
 
 
-                showAuthMessage(message);
+                showAuthMessage(
+                    message
+                );
 
 
             } finally {
@@ -412,7 +597,9 @@ if (logoutBtn) {
 
             try {
 
-                await signOut(auth);
+                await signOut(
+                    auth
+                );
 
             } catch (error) {
 
@@ -435,20 +622,26 @@ if (logoutBtn) {
 
 onAuthStateChanged(
     auth,
-    (user) => {
+    async (user) => {
 
         if (user) {
 
+            // ==================================
             // USER LOGGED IN
+            // ==================================
 
             if (authScreen) {
+
                 authScreen.style.display =
                     "none";
+
             }
 
             if (appContent) {
+
                 appContent.style.display =
                     "block";
+
             }
 
 
@@ -468,9 +661,20 @@ onAuthStateChanged(
 
 
             if (logoutBtn) {
+
                 logoutBtn.style.display =
                     "inline-flex";
+
             }
+
+
+            // ==================================
+            // ENSURE FIRESTORE USER
+            // ==================================
+
+            await ensureUserDocument(
+                user
+            );
 
 
             console.log(
@@ -481,22 +685,30 @@ onAuthStateChanged(
 
         } else {
 
+            // ==================================
             // USER LOGGED OUT
+            // ==================================
 
             if (authScreen) {
+
                 authScreen.style.display =
                     "flex";
+
             }
 
             if (appContent) {
+
                 appContent.style.display =
                     "none";
+
             }
 
 
             if (logoutBtn) {
+
                 logoutBtn.style.display =
                     "none";
+
             }
 
 
