@@ -3,7 +3,11 @@
 // AI CONTENT AGENT
 // ==========================================
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import {
+    initializeApp,
+    getApp,
+    getApps
+} from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 
 import {
     getAuth,
@@ -38,12 +42,20 @@ const firebaseConfig = {
 
 // ==========================================
 // INITIALIZE FIREBASE
+// Separate named app prevents duplicate-app
+// conflict with other project files.
 // ==========================================
 
-const app = initializeApp(firebaseConfig);
+const app = getApps().some(
+    existingApp => existingApp.name === "AIContentAuth"
+)
+    ? getApp("AIContentAuth")
+    : initializeApp(
+        firebaseConfig,
+        "AIContentAuth"
+    );
 
 const auth = getAuth(app);
-
 const db = getFirestore(app);
 
 
@@ -96,7 +108,7 @@ let isLoginMode = true;
 
 
 // ==========================================
-// SHOW MESSAGE
+// SHOW AUTH MESSAGE
 // ==========================================
 
 function showAuthMessage(
@@ -112,23 +124,15 @@ function showAuthMessage(
     authMessage.style.display =
         "block";
 
-    if (type === "success") {
-
-        authMessage.style.color =
-            "#188038";
-
-    } else {
-
-        authMessage.style.color =
-            "#d93025";
-
-    }
-
+    authMessage.style.color =
+        type === "success"
+            ? "#188038"
+            : "#d93025";
 }
 
 
 // ==========================================
-// CLEAR MESSAGE
+// CLEAR AUTH MESSAGE
 // ==========================================
 
 function clearAuthMessage() {
@@ -139,12 +143,11 @@ function clearAuthMessage() {
 
     authMessage.style.display =
         "none";
-
 }
 
 
 // ==========================================
-// UPDATE AUTH UI
+// UPDATE AUTH MODE
 // ==========================================
 
 function updateAuthMode() {
@@ -260,7 +263,6 @@ async function ensureUserDocument(user) {
 
     if (!user) return;
 
-
     const userRef =
         doc(
             db,
@@ -271,82 +273,8 @@ async function ensureUserDocument(user) {
 
     try {
 
-        const userSnapshot =
-            await getDoc(userRef);
-
-
-        // ==========================================
-        // USER DOES NOT EXIST
-        // CREATE COMPLETE DOCUMENT
-        // ==========================================
-
-        if (!userSnapshot.exists()) {
-
-            const email =
-                user.email || "";
-
-            const name =
-                user.displayName ||
-                (
-                    email
-                        ? email.split("@")[0]
-                        : "User"
-                );
-
-
-            await setDoc(
-                userRef,
-                {
-                    uid:
-                        user.uid,
-
-                    email:
-                        email,
-
-                    name:
-                        name,
-
-                    role:
-                        "user",
-
-                    plan:
-                        "free",
-
-                    status:
-                        "active",
-
-                    createdAt:
-                        serverTimestamp(),
-
-                    lastLoginAt:
-                        serverTimestamp()
-                }
-            );
-
-
-            console.log(
-                "Firestore user document created:",
-                user.uid
-            );
-
-
-            return;
-
-        }
-
-
-        // ==========================================
-        // EXISTING USER
-        // FILL MISSING FIELDS
-        // ==========================================
-
-        const existingData =
-            userSnapshot.data() || {};
-
-
         const email =
             user.email || "";
-
 
         const name =
             user.displayName ||
@@ -357,7 +285,33 @@ async function ensureUserDocument(user) {
             );
 
 
-        const updates = {
+        const userSnapshot =
+            await getDoc(userRef);
+
+
+        // ==========================================
+        // COMPLETE USER DATA
+        // ==========================================
+
+        const userData = {
+
+            uid:
+                user.uid,
+
+            email:
+                email,
+
+            name:
+                name,
+
+            role:
+                "user",
+
+            plan:
+                "free",
+
+            status:
+                "active",
 
             lastLoginAt:
                 serverTimestamp()
@@ -365,89 +319,92 @@ async function ensureUserDocument(user) {
         };
 
 
-        // UID
+        // ==========================================
+        // NEW USER
+        // ==========================================
 
-        if (!existingData.uid) {
+        if (!userSnapshot.exists()) {
 
-            updates.uid =
-                user.uid;
-
-        }
-
-
-        // EMAIL
-
-        if (!existingData.email) {
-
-            updates.email =
-                email;
-
-        }
+            userData.createdAt =
+                serverTimestamp();
 
 
-        // NAME
+            await setDoc(
+                userRef,
+                userData
+            );
 
-        if (!existingData.name) {
 
-            updates.name =
-                name;
+            console.log(
+                "Firestore user document CREATED:",
+                userData
+            );
+
+
+            return;
 
         }
 
 
-        // ROLE
+        // ==========================================
+        // EXISTING USER
+        // Preserve important existing values
+        // ==========================================
 
-        if (!existingData.role) {
-
-            updates.role =
-                "user";
-
-        }
+        const existingData =
+            userSnapshot.data() || {};
 
 
-        // PLAN
+        if (existingData.role) {
 
-        if (!existingData.plan) {
-
-            updates.plan =
-                "free";
+            userData.role =
+                existingData.role;
 
         }
 
 
-        // STATUS
+        if (existingData.plan) {
 
-        if (!existingData.status) {
-
-            updates.status =
-                "active";
+            userData.plan =
+                existingData.plan;
 
         }
 
 
-        // CREATED AT
+        if (existingData.status) {
 
-        if (!existingData.createdAt) {
+            userData.status =
+                existingData.status;
 
-            updates.createdAt =
+        }
+
+
+        if (existingData.createdAt) {
+
+            userData.createdAt =
+                existingData.createdAt;
+
+        } else {
+
+            userData.createdAt =
                 serverTimestamp();
 
         }
 
 
+        // ==========================================
+        // WRITE COMPLETE USER DOCUMENT
+        // ==========================================
+
         await setDoc(
             userRef,
-            updates,
-            {
-                merge: true
-            }
+            userData
         );
 
 
         console.log(
-            "Firestore user document updated:",
-            user.uid,
-            updates
+            "Firestore user document UPDATED:",
+            userData
         );
 
 
@@ -562,10 +519,6 @@ if (authForm) {
                         );
 
 
-                    // Make sure Firestore
-                    // user document exists
-                    // and has all required fields
-
                     await ensureUserDocument(
                         credential.user
                     );
@@ -584,8 +537,6 @@ if (authForm) {
                             password
                         );
 
-
-                    // Create Firestore user document
 
                     await ensureUserDocument(
                         credential.user
@@ -801,7 +752,6 @@ onAuthStateChanged(
 
             // ==========================================
             // ENSURE FIRESTORE USER
-            // This also fixes old blank documents
             // ==========================================
 
             await ensureUserDocument(
