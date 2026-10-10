@@ -18,7 +18,6 @@ import {
     doc,
     getDoc,
     setDoc,
-    updateDoc,
     serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
@@ -28,7 +27,7 @@ import {
 // ==========================================
 
 const firebaseConfig = {
-    apiKey: "AIzaSyAF9-LEijO0bI7OcaT5I74f2UtfGDdc78JGqQ",
+    apiKey: "AIzaSyAF9-LEijO0b7I7OcaT5I74f2UtfGDdc78JGqQ",
     authDomain: "ai-content-agent-a9820.firebaseapp.com",
     projectId: "ai-content-agent-a9820",
     storageBucket: "ai-content-agent-a9820.firebasestorage.app",
@@ -276,22 +275,36 @@ async function ensureUserDocument(user) {
             await getDoc(userRef);
 
 
-        // ==================================
-        // USER DOES NOT EXIST IN FIRESTORE
-        // ==================================
+        // ==========================================
+        // USER DOES NOT EXIST
+        // CREATE COMPLETE DOCUMENT
+        // ==========================================
 
         if (!userSnapshot.exists()) {
+
+            const email =
+                user.email || "";
+
+            const name =
+                user.displayName ||
+                (
+                    email
+                        ? email.split("@")[0]
+                        : "User"
+                );
+
 
             await setDoc(
                 userRef,
                 {
-                    uid: user.uid,
+                    uid:
+                        user.uid,
 
                     email:
-                        user.email || "",
+                        email,
 
                     name:
-                        user.displayName || "",
+                        name,
 
                     role:
                         "user",
@@ -318,26 +331,123 @@ async function ensureUserDocument(user) {
 
 
             return;
+
         }
 
 
-        // ==================================
+        // ==========================================
         // EXISTING USER
-        // UPDATE LAST LOGIN ONLY
-        // ==================================
+        // FILL MISSING FIELDS
+        // ==========================================
 
-        await updateDoc(
+        const existingData =
+            userSnapshot.data() || {};
+
+
+        const email =
+            user.email || "";
+
+
+        const name =
+            user.displayName ||
+            (
+                email
+                    ? email.split("@")[0]
+                    : "User"
+            );
+
+
+        const updates = {
+
+            lastLoginAt:
+                serverTimestamp()
+
+        };
+
+
+        // UID
+
+        if (!existingData.uid) {
+
+            updates.uid =
+                user.uid;
+
+        }
+
+
+        // EMAIL
+
+        if (!existingData.email) {
+
+            updates.email =
+                email;
+
+        }
+
+
+        // NAME
+
+        if (!existingData.name) {
+
+            updates.name =
+                name;
+
+        }
+
+
+        // ROLE
+
+        if (!existingData.role) {
+
+            updates.role =
+                "user";
+
+        }
+
+
+        // PLAN
+
+        if (!existingData.plan) {
+
+            updates.plan =
+                "free";
+
+        }
+
+
+        // STATUS
+
+        if (!existingData.status) {
+
+            updates.status =
+                "active";
+
+        }
+
+
+        // CREATED AT
+
+        if (!existingData.createdAt) {
+
+            updates.createdAt =
+                serverTimestamp();
+
+        }
+
+
+        await setDoc(
             userRef,
+            updates,
             {
-                lastLoginAt:
-                    serverTimestamp()
+                merge: true
             }
         );
 
 
         console.log(
             "Firestore user document updated:",
-            user.uid
+            user.uid,
+            updates
         );
 
 
@@ -375,6 +485,10 @@ if (authForm) {
                 authPassword.value;
 
 
+            // ==========================================
+            // EMAIL VALIDATION
+            // ==========================================
+
             if (!email) {
 
                 showAuthMessage(
@@ -385,6 +499,10 @@ if (authForm) {
 
             }
 
+
+            // ==========================================
+            // PASSWORD VALIDATION
+            // ==========================================
 
             if (!password) {
 
@@ -408,6 +526,10 @@ if (authForm) {
             }
 
 
+            // ==========================================
+            // BUTTON LOADING
+            // ==========================================
+
             if (authButton) {
 
                 authButton.disabled =
@@ -426,9 +548,9 @@ if (authForm) {
 
             try {
 
-                // ==================================
+                // ==========================================
                 // LOGIN
-                // ==================================
+                // ==========================================
 
                 if (isLoginMode) {
 
@@ -440,8 +562,9 @@ if (authForm) {
                         );
 
 
-                    // Make sure existing users
-                    // also get a Firestore document
+                    // Make sure Firestore
+                    // user document exists
+                    // and has all required fields
 
                     await ensureUserDocument(
                         credential.user
@@ -450,9 +573,9 @@ if (authForm) {
 
                 } else {
 
-                    // ==================================
+                    // ==========================================
                     // CREATE ACCOUNT
-                    // ==================================
+                    // ==========================================
 
                     const credential =
                         await createUserWithEmailAndPassword(
@@ -626,9 +749,9 @@ onAuthStateChanged(
 
         if (user) {
 
-            // ==================================
+            // ==========================================
             // USER LOGGED IN
-            // ==================================
+            // ==========================================
 
             if (authScreen) {
 
@@ -645,6 +768,10 @@ onAuthStateChanged(
             }
 
 
+            // ==========================================
+            // PROFILE
+            // ==========================================
+
             if (profile) {
 
                 profile.textContent =
@@ -660,6 +787,10 @@ onAuthStateChanged(
             }
 
 
+            // ==========================================
+            // LOGOUT BUTTON
+            // ==========================================
+
             if (logoutBtn) {
 
                 logoutBtn.style.display =
@@ -668,9 +799,10 @@ onAuthStateChanged(
             }
 
 
-            // ==================================
+            // ==========================================
             // ENSURE FIRESTORE USER
-            // ==================================
+            // This also fixes old blank documents
+            // ==========================================
 
             await ensureUserDocument(
                 user
@@ -685,9 +817,9 @@ onAuthStateChanged(
 
         } else {
 
-            // ==================================
+            // ==========================================
             // USER LOGGED OUT
-            // ==================================
+            // ==========================================
 
             if (authScreen) {
 
