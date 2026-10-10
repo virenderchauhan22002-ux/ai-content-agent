@@ -41,26 +41,24 @@ const firebaseConfig = {
 
 
 // ==========================================
-// INITIALIZE FIREBASE
-// Separate named app prevents duplicate-app
-// conflict with other project files.
+// USE EXISTING DEFAULT FIREBASE APP
 // ==========================================
 
-const app = getApps().some(
-    existingApp => existingApp.name === "AIContentAuth"
-)
-    ? getApp("AIContentAuth")
-    : initializeApp(
-        firebaseConfig,
-        "AIContentAuth"
-    );
+const app = getApps().length
+    ? getApp()
+    : initializeApp(firebaseConfig);
+
+
+// ==========================================
+// FIREBASE SERVICES
+// ==========================================
 
 const auth = getAuth(app);
 const db = getFirestore(app);
 
 
 // ==========================================
-// ELEMENTS
+// DOM ELEMENTS
 // ==========================================
 
 const authScreen =
@@ -108,7 +106,7 @@ let isLoginMode = true;
 
 
 // ==========================================
-// SHOW AUTH MESSAGE
+// AUTH MESSAGE
 // ==========================================
 
 function showAuthMessage(
@@ -116,7 +114,9 @@ function showAuthMessage(
     type = "error"
 ) {
 
-    if (!authMessage) return;
+    if (!authMessage) {
+        return;
+    }
 
     authMessage.textContent =
         message;
@@ -131,15 +131,14 @@ function showAuthMessage(
 }
 
 
-// ==========================================
-// CLEAR AUTH MESSAGE
-// ==========================================
-
 function clearAuthMessage() {
 
-    if (!authMessage) return;
+    if (!authMessage) {
+        return;
+    }
 
-    authMessage.textContent = "";
+    authMessage.textContent =
+        "";
 
     authMessage.style.display =
         "none";
@@ -147,12 +146,13 @@ function clearAuthMessage() {
 
 
 // ==========================================
-// UPDATE AUTH MODE
+// LOGIN / REGISTER MODE
 // ==========================================
 
 function updateAuthMode() {
 
     clearAuthMessage();
+
 
     if (isLoginMode) {
 
@@ -163,12 +163,14 @@ function updateAuthMode() {
 
         }
 
+
         if (authSubtitle) {
 
             authSubtitle.textContent =
                 "Login to continue creating smarter content with AI.";
 
         }
+
 
         if (authButton) {
 
@@ -177,13 +179,19 @@ function updateAuthMode() {
 
         }
 
+
         if (authToggle) {
 
             authToggle.innerHTML =
-                `Don't have an account?
-                 <button type="button" id="switchAuthMode">
+                `
+                Don't have an account?
+                <button
+                    type="button"
+                    id="switchAuthMode"
+                >
                     Create Account
-                 </button>`;
+                </button>
+                `;
 
         }
 
@@ -196,12 +204,14 @@ function updateAuthMode() {
 
         }
 
+
         if (authSubtitle) {
 
             authSubtitle.textContent =
                 "Create a free account and start using AI Content Agent.";
 
         }
+
 
         if (authButton) {
 
@@ -210,13 +220,19 @@ function updateAuthMode() {
 
         }
 
+
         if (authToggle) {
 
             authToggle.innerHTML =
-                `Already have an account?
-                 <button type="button" id="switchAuthMode">
+                `
+                Already have an account?
+                <button
+                    type="button"
+                    id="switchAuthMode"
+                >
                     Login
-                 </button>`;
+                </button>
+                `;
 
         }
 
@@ -248,20 +264,19 @@ function updateAuthMode() {
 }
 
 
-// ==========================================
-// INITIAL AUTH UI
-// ==========================================
-
 updateAuthMode();
 
 
 // ==========================================
-// CREATE / UPDATE FIRESTORE USER
+// ENSURE USER DOCUMENT
 // ==========================================
 
 async function ensureUserDocument(user) {
 
-    if (!user) return;
+    if (!user) {
+        return;
+    }
+
 
     const userRef =
         doc(
@@ -276,6 +291,7 @@ async function ensureUserDocument(user) {
         const email =
             user.email || "";
 
+
         const name =
             user.displayName ||
             (
@@ -288,10 +304,6 @@ async function ensureUserDocument(user) {
         const userSnapshot =
             await getDoc(userRef);
 
-
-        // ==========================================
-        // COMPLETE USER DATA
-        // ==========================================
 
         const userData = {
 
@@ -319,9 +331,9 @@ async function ensureUserDocument(user) {
         };
 
 
-        // ==========================================
+        // ==================================
         // NEW USER
-        // ==========================================
+        // ==================================
 
         if (!userSnapshot.exists()) {
 
@@ -346,14 +358,15 @@ async function ensureUserDocument(user) {
         }
 
 
-        // ==========================================
+        // ==================================
         // EXISTING USER
-        // Preserve important existing values
-        // ==========================================
+        // ==================================
 
         const existingData =
             userSnapshot.data() || {};
 
+
+        // Preserve existing role
 
         if (existingData.role) {
 
@@ -363,6 +376,8 @@ async function ensureUserDocument(user) {
         }
 
 
+        // Preserve existing plan
+
         if (existingData.plan) {
 
             userData.plan =
@@ -371,6 +386,8 @@ async function ensureUserDocument(user) {
         }
 
 
+        // Preserve existing status
+
         if (existingData.status) {
 
             userData.status =
@@ -378,6 +395,8 @@ async function ensureUserDocument(user) {
 
         }
 
+
+        // Preserve createdAt
 
         if (existingData.createdAt) {
 
@@ -392,9 +411,7 @@ async function ensureUserDocument(user) {
         }
 
 
-        // ==========================================
-        // WRITE COMPLETE USER DOCUMENT
-        // ==========================================
+        // Update complete document
 
         await setDoc(
             userRef,
@@ -421,7 +438,7 @@ async function ensureUserDocument(user) {
 
 
 // ==========================================
-// LOGIN / REGISTER
+// LOGIN / REGISTER FORM
 // ==========================================
 
 if (authForm) {
@@ -438,13 +455,14 @@ if (authForm) {
             const email =
                 authEmail.value.trim();
 
+
             const password =
                 authPassword.value;
 
 
-            // ==========================================
-            // EMAIL VALIDATION
-            // ==========================================
+            // ==============================
+            // VALIDATION
+            // ==============================
 
             if (!email) {
 
@@ -456,10 +474,6 @@ if (authForm) {
 
             }
 
-
-            // ==========================================
-            // PASSWORD VALIDATION
-            // ==========================================
 
             if (!password) {
 
@@ -483,9 +497,9 @@ if (authForm) {
             }
 
 
-            // ==========================================
+            // ==============================
             // BUTTON LOADING
-            // ==========================================
+            // ==============================
 
             if (authButton) {
 
@@ -505,9 +519,9 @@ if (authForm) {
 
             try {
 
-                // ==========================================
+                // ==========================
                 // LOGIN
-                // ==========================================
+                // ==========================
 
                 if (isLoginMode) {
 
@@ -523,12 +537,14 @@ if (authForm) {
                         credential.user
                     );
 
+                }
 
-                } else {
 
-                    // ==========================================
-                    // CREATE ACCOUNT
-                    // ==========================================
+                // ==========================
+                // REGISTER
+                // ==========================
+
+                else {
 
                     const credential =
                         await createUserWithEmailAndPassword(
@@ -545,7 +561,11 @@ if (authForm) {
                 }
 
 
-                authForm.reset();
+                if (authForm) {
+
+                    authForm.reset();
+
+                }
 
 
             } catch (error) {
@@ -620,6 +640,16 @@ if (authForm) {
                         break;
 
 
+                    case "auth/api-key-not-valid":
+
+                    case "auth/api-key-not-valid.-please-pass-a-valid-api-key.":
+
+                        message =
+                            "Firebase configuration/API key is invalid.";
+
+                        break;
+
+
                     default:
 
                         message =
@@ -633,13 +663,13 @@ if (authForm) {
                     message
                 );
 
-
             } finally {
 
                 if (authButton) {
 
                     authButton.disabled =
                         false;
+
 
                     authButton.textContent =
                         authButton.dataset.originalText ||
@@ -700,9 +730,9 @@ onAuthStateChanged(
 
         if (user) {
 
-            // ==========================================
-            // USER LOGGED IN
-            // ==========================================
+            // ==============================
+            // HIDE LOGIN
+            // ==============================
 
             if (authScreen) {
 
@@ -710,6 +740,11 @@ onAuthStateChanged(
                     "none";
 
             }
+
+
+            // ==============================
+            // SHOW APP
+            // ==============================
 
             if (appContent) {
 
@@ -719,9 +754,9 @@ onAuthStateChanged(
             }
 
 
-            // ==========================================
+            // ==============================
             // PROFILE
-            // ==========================================
+            // ==============================
 
             if (profile) {
 
@@ -732,15 +767,16 @@ onAuthStateChanged(
                             .toUpperCase()
                         : "AI";
 
+
                 profile.title =
                     user.email || "";
 
             }
 
 
-            // ==========================================
+            // ==============================
             // LOGOUT BUTTON
-            // ==========================================
+            // ==============================
 
             if (logoutBtn) {
 
@@ -750,9 +786,9 @@ onAuthStateChanged(
             }
 
 
-            // ==========================================
-            // ENSURE FIRESTORE USER
-            // ==========================================
+            // ==============================
+            // FIRESTORE USER
+            // ==============================
 
             await ensureUserDocument(
                 user
@@ -764,12 +800,11 @@ onAuthStateChanged(
                 user.email
             );
 
-
         } else {
 
-            // ==========================================
-            // USER LOGGED OUT
-            // ==========================================
+            // ==============================
+            // SHOW LOGIN
+            // ==============================
 
             if (authScreen) {
 
@@ -778,6 +813,11 @@ onAuthStateChanged(
 
             }
 
+
+            // ==============================
+            // HIDE APP
+            // ==============================
+
             if (appContent) {
 
                 appContent.style.display =
@@ -785,6 +825,10 @@ onAuthStateChanged(
 
             }
 
+
+            // ==============================
+            // HIDE LOGOUT
+            // ==============================
 
             if (logoutBtn) {
 
@@ -801,4 +845,4 @@ onAuthStateChanged(
         }
 
     }
-); 
+);
