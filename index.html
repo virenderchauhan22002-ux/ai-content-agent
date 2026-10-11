@@ -540,9 +540,11 @@ body::before{
   box-shadow:var(--d-soft-shadow) !important;
   transition:
     transform .22s ease,
-    box-shadow .22s ease !important;
+    box-shadow .22s ease,
+    border-color .22s ease !important;
   overflow:hidden !important;
   box-sizing:border-box;
+  cursor:pointer;
 }
 
 .tool-card::after{
@@ -562,6 +564,12 @@ body::before{
   box-shadow:
     0 20px 34px rgba(51,113,177,.16),
     inset 0 1px 0 #fff !important;
+}
+
+.tool-card.active-card{
+  border-color:rgba(22,119,255,.5) !important;
+  box-shadow:0 14px 28px rgba(22,119,255,.18), inset 0 0 0 1px rgba(22,119,255,.3) !important;
+  background:linear-gradient(145deg,#ffffff,#e8f4ff) !important;
 }
 
 .tool-card span{
@@ -601,6 +609,30 @@ body::before{
   font-size:12px !important;
   line-height:1.45 !important;
   margin:0 !important;
+}
+
+/* =========================
+   COMPACT EXPANDABLE BEHAVIOR
+========================= */
+
+.compact-hidden{
+  display:none !important;
+}
+
+.compact-visible{
+  display:block !important;
+  animation:panelFadeIn .28s ease;
+}
+
+@keyframes panelFadeIn{
+  from{
+    opacity:0;
+    transform:translateY(10px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
 }
 
 /* =========================
@@ -1185,7 +1217,13 @@ MAIN APP
       </div>
 
 
-      <div class="tool-card">
+      <div
+        class="tool-card"
+        id="scriptsCard"
+        role="button"
+        tabindex="0"
+        title="Open Scripts"
+      >
 
         <span>
           🎬
@@ -1202,7 +1240,13 @@ MAIN APP
       </div>
 
 
-      <div class="tool-card">
+      <div
+        class="tool-card"
+        id="hooksCard"
+        role="button"
+        tabindex="0"
+        title="Open Hooks"
+      >
 
         <span>
           🪝
@@ -1219,7 +1263,13 @@ MAIN APP
       </div>
 
 
-      <div class="tool-card">
+      <div
+        class="tool-card"
+        id="captionsCard"
+        role="button"
+        tabindex="0"
+        title="Open Captions"
+      >
 
         <span>
           📝
@@ -1236,7 +1286,13 @@ MAIN APP
       </div>
 
 
-      <div class="tool-card">
+      <div
+        class="tool-card"
+        id="hashtagsCard"
+        role="button"
+        tabindex="0"
+        title="Open Hashtags"
+      >
 
         <span>
           #️⃣
@@ -1253,7 +1309,13 @@ MAIN APP
       </div>
 
 
-      <div class="tool-card">
+      <div
+        class="tool-card"
+        id="ctaCard"
+        role="button"
+        tabindex="0"
+        title="Open CTA"
+      >
 
         <span>
           📢
@@ -1276,7 +1338,7 @@ MAIN APP
     AI RESULT
     ========================= -->
 
-    <section class="result-box">
+    <section class="result-box compact-hidden" id="mainResultSection">
 
       <h2>
         AI Result
@@ -1294,7 +1356,7 @@ MAIN APP
     ========================= -->
 
     <section
-      class="ideas-box"
+      class="ideas-box compact-hidden"
       id="contentIdeasSection"
     >
 
@@ -1384,7 +1446,7 @@ MAIN APP
     ========================= -->
 
     <section
-      class="image-box"
+      class="image-box compact-hidden"
       id="imageGeneratorSection"
     >
 
@@ -1578,112 +1640,89 @@ EXISTING AI JAVASCRIPT
 
 
 <!-- =========================
-CARD SCROLL
+COMPACT CARD ACCORDION CONTROLLER
 ========================= -->
 
 <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const resultSection = document.getElementById("mainResultSection");
+  const ideasSection = document.getElementById("contentIdeasSection");
+  const imageSection = document.getElementById("imageGeneratorSection");
+  const contentTypeSelect = document.getElementById("contentType");
+  const generateBtn = document.getElementById("generateBtn");
 
-const contentIdeasCard =
-  document.getElementById("contentIdeasCard");
+  const cards = [
+    { id: "contentIdeasCard", section: ideasSection },
+    { id: "imageGeneratorCard", section: imageSection },
+    { id: "scriptsCard", section: resultSection, contentType: "Instagram Reel" },
+    { id: "hooksCard", section: resultSection, contentType: "Instagram Post" },
+    { id: "captionsCard", section: resultSection, contentType: "Caption" },
+    { id: "hashtagsCard", section: resultSection, contentType: "Instagram Post" },
+    { id: "ctaCard", section: resultSection, contentType: "Ad Copy" }
+  ];
 
-const contentIdeasSection =
-  document.getElementById("contentIdeasSection");
+  const allSections = [resultSection, ideasSection, imageSection];
+  const allCardEls = cards.map(c => document.getElementById(c.id)).filter(Boolean);
 
-if(
-  contentIdeasCard &&
-  contentIdeasSection
-){
+  function openOnlySection(targetSection, activeCardEl) {
+    allSections.forEach(sec => {
+      if (sec) {
+        sec.classList.remove("compact-visible");
+        sec.classList.add("compact-hidden");
+      }
+    });
 
-  contentIdeasCard.style.cursor =
-    "pointer";
+    allCardEls.forEach(card => card.classList.remove("active-card"));
 
-  contentIdeasCard.addEventListener(
-    "click",
-    function(){
+    if (targetSection) {
+      targetSection.classList.remove("compact-hidden");
+      targetSection.classList.add("compact-visible");
+      if (activeCardEl) activeCardEl.classList.add("active-card");
 
-      contentIdeasSection.scrollIntoView({
-        behavior:"smooth",
-        block:"start"
-      });
-
-    }
-  );
-
-  contentIdeasCard.addEventListener(
-    "keydown",
-    function(event){
-
-      if(
-        event.key === "Enter" ||
-        event.key === " "
-      ){
-
-        event.preventDefault();
-
-        contentIdeasSection.scrollIntoView({
-          behavior:"smooth",
-          block:"start"
+      setTimeout(() => {
+        targetSection.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
         });
+      }, 50);
+    }
+  }
 
+  cards.forEach(item => {
+    const cardEl = document.getElementById(item.id);
+    if (!cardEl) return;
+
+    function handleAction() {
+      if (item.contentType && contentTypeSelect) {
+        contentTypeSelect.value = item.contentType;
       }
 
-    }
-  );
+      const isAlreadyOpen = item.section && item.section.classList.contains("compact-visible") && cardEl.classList.contains("active-card");
 
-}
-
-
-/* IMAGE CARD SCROLL */
-
-const imageGeneratorCard =
-  document.getElementById("imageGeneratorCard");
-
-const imageGeneratorSection =
-  document.getElementById("imageGeneratorSection");
-
-if(
-  imageGeneratorCard &&
-  imageGeneratorSection
-){
-
-  imageGeneratorCard.style.cursor =
-    "pointer";
-
-  imageGeneratorCard.addEventListener(
-    "click",
-    function(){
-
-      imageGeneratorSection.scrollIntoView({
-        behavior:"smooth",
-        block:"start"
-      });
-
-    }
-  );
-
-  imageGeneratorCard.addEventListener(
-    "keydown",
-    function(event){
-
-      if(
-        event.key === "Enter" ||
-        event.key === " "
-      ){
-
-        event.preventDefault();
-
-        imageGeneratorSection.scrollIntoView({
-          behavior:"smooth",
-          block:"start"
-        });
-
+      if (isAlreadyOpen) {
+        item.section.classList.remove("compact-visible");
+        item.section.classList.add("compact-hidden");
+        cardEl.classList.remove("active-card");
+      } else {
+        openOnlySection(item.section, cardEl);
       }
-
     }
-  );
 
-}
+    cardEl.addEventListener("click", handleAction);
+    cardEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        handleAction();
+      }
+    });
+  });
 
+  if (generateBtn && resultSection) {
+    generateBtn.addEventListener("click", () => {
+      openOnlySection(resultSection, null);
+    });
+  }
+});
 </script>
 
 
