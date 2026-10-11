@@ -14,6 +14,7 @@ import {
     onAuthStateChanged,
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
+    sendPasswordResetEmail,
     signOut
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
@@ -31,7 +32,7 @@ import {
 // ==========================================
 
 const firebaseConfig = {
-    apiKey:"AIzaSyAF9-LEij0O7caT5I74f2UtfGDdc78JGqQ",
+    apiKey: "AIzaSyAF9-LEij0O7caT5I74f2UtfGDdc78JGqQ",
     authDomain: "ai-content-agent-a9820.firebaseapp.com",
     projectId: "ai-content-agent-a9820",
     storageBucket: "ai-content-agent-a9820.firebasestorage.app",
@@ -146,6 +147,225 @@ function clearAuthMessage() {
 
 
 // ==========================================
+// FORGOT PASSWORD UI
+// ==========================================
+
+function createForgotPasswordLink() {
+
+    if (!authPassword || !authButton) {
+        return;
+    }
+
+    let forgotPassword =
+        document.getElementById("forgotPassword");
+
+    if (!forgotPassword) {
+
+        forgotPassword =
+            document.createElement("button");
+
+        forgotPassword.type =
+            "button";
+
+        forgotPassword.id =
+            "forgotPassword";
+
+        forgotPassword.textContent =
+            "Forgot Password?";
+
+        // Keep the design simple and consistent
+        forgotPassword.style.display =
+            "block";
+
+        forgotPassword.style.width =
+            "100%";
+
+        forgotPassword.style.marginTop =
+            "8px";
+
+        forgotPassword.style.marginBottom =
+            "8px";
+
+        forgotPassword.style.padding =
+            "4px";
+
+        forgotPassword.style.border =
+            "none";
+
+        forgotPassword.style.background =
+            "transparent";
+
+        forgotPassword.style.color =
+            "#2563eb";
+
+        forgotPassword.style.fontSize =
+            "13px";
+
+        forgotPassword.style.fontWeight =
+            "600";
+
+        forgotPassword.style.cursor =
+            "pointer";
+
+        forgotPassword.style.textAlign =
+            "right";
+
+        authButton.parentNode.insertBefore(
+            forgotPassword,
+            authButton
+        );
+
+
+        forgotPassword.addEventListener(
+            "click",
+            async () => {
+
+                clearAuthMessage();
+
+                const email =
+                    authEmail
+                        ? authEmail.value.trim()
+                        : "";
+
+                if (!email) {
+
+                    showAuthMessage(
+                        "Please enter your email first."
+                    );
+
+                    if (authEmail) {
+                        authEmail.focus();
+                    }
+
+                    return;
+                }
+
+
+                // Basic email validation
+                if (
+                    !email.includes("@") ||
+                    !email.includes(".")
+                ) {
+
+                    showAuthMessage(
+                        "Please enter a valid email address."
+                    );
+
+                    if (authEmail) {
+                        authEmail.focus();
+                    }
+
+                    return;
+                }
+
+
+                forgotPassword.disabled =
+                    true;
+
+                forgotPassword.textContent =
+                    "Sending reset email...";
+
+
+                try {
+
+                    await sendPasswordResetEmail(
+                        auth,
+                        email
+                    );
+
+                    showAuthMessage(
+                        "Password reset email sent. Please check your inbox and spam folder.",
+                        "success"
+                    );
+
+                } catch (error) {
+
+                    console.error(
+                        "Password Reset Error:",
+                        error
+                    );
+
+                    let message =
+                        "Unable to send password reset email. Please try again.";
+
+                    switch (error.code) {
+
+                        case "auth/invalid-email":
+
+                            message =
+                                "Please enter a valid email address.";
+
+                            break;
+
+
+                        case "auth/user-not-found":
+
+                            message =
+                                "No account found with this email.";
+
+                            break;
+
+
+                        case "auth/too-many-requests":
+
+                            message =
+                                "Too many requests. Please try again later.";
+
+                            break;
+
+
+                        case "auth/network-request-failed":
+
+                            message =
+                                "Network error. Please check your internet connection.";
+
+                            break;
+
+
+                        case "auth/operation-not-allowed":
+
+                            message =
+                                "Password reset is currently unavailable.";
+
+                            break;
+
+
+                        default:
+
+                            message =
+                                error.message ||
+                                message;
+
+                    }
+
+                    showAuthMessage(
+                        message
+                    );
+
+                } finally {
+
+                    forgotPassword.disabled =
+                        false;
+
+                    forgotPassword.textContent =
+                        "Forgot Password?";
+
+                }
+
+            }
+        );
+
+    }
+
+    // Show only in Login mode
+    forgotPassword.style.display =
+        isLoginMode
+            ? "block"
+            : "none";
+}
+
+
+// ==========================================
 // LOGIN / REGISTER MODE
 // ==========================================
 
@@ -185,6 +405,7 @@ function updateAuthMode() {
             authToggle.innerHTML =
                 `
                 Don't have an account?
+
                 <button
                     type="button"
                     id="switchAuthMode"
@@ -226,6 +447,7 @@ function updateAuthMode() {
             authToggle.innerHTML =
                 `
                 Already have an account?
+
                 <button
                     type="button"
                     id="switchAuthMode"
@@ -237,6 +459,10 @@ function updateAuthMode() {
         }
 
     }
+
+
+    // Create / update Forgot Password
+    createForgotPasswordLink();
 
 
     const switchButton =
@@ -663,6 +889,7 @@ if (authForm) {
                     message
                 );
 
+
             } finally {
 
                 if (authButton) {
@@ -799,6 +1026,7 @@ onAuthStateChanged(
                 "User logged in:",
                 user.email
             );
+
 
         } else {
 
