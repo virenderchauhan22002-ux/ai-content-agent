@@ -74,100 +74,297 @@ document.addEventListener("DOMContentLoaded", () => {
  
         return div.innerHTML; 
     } 
- 
- 
-    function formatAIText(text) { 
-        if (!text) { 
-            return ""; 
-        } 
 
-        let cleanText = String(text).trim();
-        cleanText = cleanText.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    // ========================================== 
+    // STRICT OUTPUT CLEANING FUNCTIONS
+    // ========================================== 
 
-        const lines = cleanText.split("\n");
-        let htmlOutput = "";
-        let inUl = false;
-        let inOl = false;
+    function sanitizeMarkdown(rawText, preserveHashtags = false) {
+        if (!rawText) return "";
 
-        function closeLists() {
-            if (inUl) {
-                htmlOutput += "</ul>";
-                inUl = false;
-            }
-            if (inOl) {
-                htmlOutput += "</ol>";
-                inOl = false;
-            }
+        let text = String(rawText);
+
+        // Standardize newlines
+        text = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+
+        // Code fences and backticks
+        text = text.replace(/```[\s\S]*?```/g, "");
+        text = text.replace(/`([^`]+)`/g, "$1");
+        text = text.replace(/`/g, "");
+
+        // Horizontal rules: ---, \---, ____, ***, etc.
+        text = text.replace(/^[ \t]*\\?[-—_*]{3,}[ \t]*$/gm, "");
+
+        // Markdown escaped sequences
+        text = text.replace(/\\([#*_`[\]()\-+!.]|[—–])/g, "$1");
+
+        // Markdown headings: ####, ###, ##, #
+        text = text.replace(/^[ \t]*#{1,6}[ \t]*/gm, "");
+
+        // Bold and italics: ***, **, *, __, _
+        text = text.replace(/\*\*\*([^*]+)\*\*\*/g, "$1");
+        text = text.replace(/\*\*([^*]+)\*\*/g, "$1");
+        text = text.replace(/__([^_]+)__/g, "$1");
+        text = text.replace(/\*([^*\n]+)\*/g, "$1");
+        text = text.replace(/_([^_\n]+)_/g, "$1");
+
+        // Stray asterisks or underscores
+        text = text.replace(/[*_]{1,3}/g, "");
+
+        // Bullet symbols at beginning of lines
+        text = text.replace(/^[ \t]*[•*+–—][ \t]+/gm, "");
+        text = text.replace(/^[ \t]*-[ \t]+(?!\d)/gm, "");
+
+        // Remove non-hashtag standalone #
+        if (!preserveHashtags) {
+            text = text.replace(/(^|\s)#(?!\w)/g, "$1");
+            text = text.replace(/#/g, "");
         }
 
+        // Collapse excess blank lines
+        text = text.replace(/\n{3,}/g, "\n\n");
+
+        return text.trim();
+    }
+
+    // 1. HASHTAGS: All unique hashtags, no extra text, # preserved, Devnagari + English
+    function extractHashtagsOnly(text) {
+        if (!text) return "";
+
+        const hashtagRegex = /#([\p{L}\p{N}_\u0900-\u097F]+)/gu;
+        const matches = text.match(hashtagRegex);
+
+        if (!matches || matches.length === 0) {
+            return "";
+        }
+
+        const seen = new Set();
+        const uniqueHashtags = [];
+
+        matches.forEach(tag => {
+            const cleanTag = tag.trim();
+            const lowerTag = cleanTag.toLowerCase();
+            if (!seen.has(lowerTag)) {
+                seen.add(lowerTag);
+                uniqueHashtags.push(cleanTag);
+            }
+        });
+
+        return uniqueHashtags.join(" ");
+    }
+
+    // 2. SCRIPTS: Only script content. Remove trailing Caption, Hashtags, CTA, Conclusion
+    function cleanScriptsOutput(text) {
+        let cleaned = sanitizeMarkdown(text, false);
+
+        const trailingSplit = /\n\s*(?:(?:📌|📝|💬|📢|🎯|#️⃣)?\s*(?:caption|कैप्शन|hashtags?|हैशटैग|cta|call to action|निष्कर्ष|conclusion)[\s:-][\s\S]*$)/i;
+        cleaned = cleaned.replace(trailingSplit, "");
+
+        // Remove trailing hashtag-only lines
+        cleaned = cleaned.replace(/\n\s*(?:#[^\s#]+\s*)+$/g, "");
+
+        return cleaned.trim();
+    }
+
+    // 3. HOOKS: Strict - Only actual hook lines, maximum 7. Never number normal paragraphs
+    function cleanHooksOutput(text) {
+        const cleaned = sanitizeMarkdown(text, false);
+        const lines = cleaned.split("\n");
+        const hookLines = [];
+
+        let inHookBlock = false;
+        let blockLines = [];
+
+        // Check for dedicated Hooks block
         for (let i = 0; i < lines.length; i++) {
-            let line = lines[i].trim();
-
-            if (!line) {
-                closeLists();
-                htmlOutput += '<div style="margin:6px 0;"></div>';
+            const l = lines[i].trim();
+            if (/^(?:hooks?|हुक्स?)[\s:-]/i.test(l)) {
+                inHookBlock = true;
                 continue;
             }
-
-            // Headings clean rendering
-            if (/^###\s+/.test(line)) {
-                closeLists();
-                htmlOutput += `<h4 style="margin:12px 0 6px;color:#102c57;font-size:15px;font-weight:700;">${escapeHTML(line.replace(/^###\s+/, ""))}</h4>`;
-                continue;
-            } else if (/^##\s+/.test(line)) {
-                closeLists();
-                htmlOutput += `<h3 style="margin:15px 0 8px;color:#102c57;font-size:16px;font-weight:800;">${escapeHTML(line.replace(/^##\s+/, ""))}</h3>`;
-                continue;
-            } else if (/^#\s+/.test(line)) {
-                closeLists();
-                htmlOutput += `<h2 style="margin:18px 0 10px;color:#102c57;font-size:18px;font-weight:850;">${escapeHTML(line.replace(/^#\s+/, ""))}</h2>`;
-                continue;
+            if (inHookBlock && /^(?:script|body|outro|caption|hashtags?|cta|call to action|scene|दृश्य)[\s:-]/i.test(l)) {
+                inHookBlock = false;
+                break;
             }
-
-            // Bullet points (- or * or •)
-            if (/^[-*•]\s+/.test(line)) {
-                if (inOl) {
-                    htmlOutput += "</ol>";
-                    inOl = false;
-                }
-                if (!inUl) {
-                    htmlOutput += '<ul style="margin:6px 0 10px;padding-left:22px;">';
-                    inUl = true;
-                }
-                let item = escapeHTML(line.replace(/^[-*•]\s+/, ""));
-                item = item.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>');
-                htmlOutput += `<li style="margin-bottom:5px;line-height:1.55;">${item}</li>`;
-                continue;
+            if (inHookBlock && l) {
+                blockLines.push(l);
             }
-
-            // Numbered lists (1., 2., etc.)
-            const numMatch = line.match(/^(\d+)\.\s+(.*)/);
-            if (numMatch) {
-                if (inUl) {
-                    htmlOutput += "</ul>";
-                    inUl = false;
-                }
-                if (!inOl) {
-                    htmlOutput += '<ol style="margin:6px 0 10px;padding-left:22px;">';
-                    inOl = true;
-                }
-                let item = escapeHTML(numMatch[2]);
-                item = item.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>');
-                htmlOutput += `<li style="margin-bottom:5px;line-height:1.55;">${item}</li>`;
-                continue;
-            }
-
-            // Paragraphs and bold/italic conversion
-            closeLists();
-            let parsed = escapeHTML(line);
-            parsed = parsed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>');
-            htmlOutput += `<p style="margin:4px 0 8px;line-height:1.6;color:#17304f;">${parsed}</p>`;
         }
 
-        closeLists();
+        const targetLines = blockLines.length > 0 ? blockLines : lines;
+
+        targetLines.forEach(line => {
+            const trimmed = line.trim();
+            if (!trimmed) return;
+
+            // Reject headings, explanations, structural labels
+            if (/^(?:hooks?|हुक्स?|topic|विषय|script|caption|hashtags?|cta|intro|outro|body|conclusion)[\s:-]/i.test(trimmed)) return;
+            if (/^(?:दृश्य|सीन|scene|dialogue|action|visual|audio)[\s:-]/i.test(trimmed)) return;
+
+            // STRICT: Must be a legitimate numbered hook format (1., 1), Hook 1:)
+            const match = trimmed.match(/^(?:Hook\s*\d+[\s:-]+|\d+[\).]\s*)(.*)/i);
+            if (match) {
+                const hookText = match[1].trim();
+                // Reject if the line is just a heading or section name
+                if (hookText && !/^(?:Hook|Script|Body|Outro|Caption|Hashtags|CTA)[\s:-]/i.test(hookText)) {
+                    if (hookLines.length < 7) {
+                        hookLines.push(`${hookLines.length + 1}. ${hookText}`);
+                    }
+                }
+            }
+        });
+
+        // Strict: If no explicit numbered hooks found, return empty rather than fabricating hooks from paragraphs
+        if (hookLines.length > 0) {
+            return hookLines.join("\n");
+        }
+
+        return "";
+    }
+
+    // 4. CAPTIONS: Pure caption text only. Strip script, hook, hashtags, and CTA
+    function cleanCaptionsOutput(text) {
+        let cleaned = sanitizeMarkdown(text, false);
+
+        // If explicitly labeled caption block exists, take only that
+        const captionBlockMatch = cleaned.match(/(?:caption|कैप्शन|post caption)[\s:-]+([\s\S]*?)(?=\n\s*(?:(?:#️⃣|📢|🎯)?\s*(?:hashtags?|हैशटैग|cta|call to action|script)|$))/i);
+        if (captionBlockMatch && captionBlockMatch[1].trim()) {
+            cleaned = captionBlockMatch[1].trim();
+        }
+
+        cleaned = cleaned.replace(/^(?:caption|कैप्शन|post caption)[\s:-]+/i, "");
+
+        // Cut trailing hashtag or CTA sections
+        const cutPattern = /\n\s*(?:(?:#️⃣|📢|🎯)?\s*(?:hashtags?|हैशटैग|cta|call to action)[\s:-][\s\S]*$)/i;
+        cleaned = cleaned.replace(cutPattern, "");
+
+        // Remove trailing hashtags cluster
+        cleaned = cleaned.replace(/(?:\s*#[a-zA-Z0-9_\u0900-\u097F]+){2,}\s*$/, "");
+
+        return cleaned.trim();
+    }
+
+    // 5. CTA: Strict - Only actual CTA lines, maximum 7. Never number normal paragraphs
+    function cleanCTAOutput(text) {
+        const cleaned = sanitizeMarkdown(text, false);
+        const lines = cleaned.split("\n");
+        const ctaLines = [];
+
+        let inCtaBlock = false;
+        let blockLines = [];
+
+        // Check for dedicated CTA block
+        for (let i = 0; i < lines.length; i++) {
+            const l = lines[i].trim();
+            if (/^(?:cta|call to action|कॉल टू एक्शन)[\s:-]/i.test(l)) {
+                inCtaBlock = true;
+                continue;
+            }
+            if (inCtaBlock && /^(?:script|caption|hashtags?|hook|body|outro|scene|दृश्य)[\s:-]/i.test(l)) {
+                inCtaBlock = false;
+                break;
+            }
+            if (inCtaBlock && l) {
+                blockLines.push(l);
+            }
+        }
+
+        const targetLines = blockLines.length > 0 ? blockLines : lines;
+
+        targetLines.forEach(line => {
+            const trimmed = line.trim();
+            if (!trimmed) return;
+
+            // Reject headings, explanations, structural labels
+            if (/^(?:cta|call to action|कॉल टू एक्शन|निष्कर्ष|conclusion|actions?|topic|विषय|script|caption|hook|hashtags?|intro|outro|body)[\s:-]/i.test(trimmed)) return;
+            if (trimmed.startsWith("#")) return;
+
+            // STRICT: Must be a legitimate numbered CTA format (1., 1), CTA 1:)
+            const match = trimmed.match(/^(?:CTA\s*\d+[\s:-]+|\d+[\).]\s*)(.*)/i);
+            if (match) {
+                const ctaText = match[1].trim();
+                if (ctaText && !/^(?:CTA|Hook|Script|Body|Outro|Caption|Hashtags)[\s:-]/i.test(ctaText)) {
+                    if (ctaLines.length < 7) {
+                        ctaLines.push(`${ctaLines.length + 1}. ${ctaText}`);
+                    }
+                }
+            }
+        });
+
+        // Strict: Return only real CTA lines; never number unrelated paragraphs
+        if (ctaLines.length > 0) {
+            return ctaLines.join("\n");
+        }
+
+        return "";
+    }
+
+    function cleanAIOutputByMode(rawText, mode) {
+        if (!rawText) return "";
+
+        switch (mode) {
+            case "hashtags":
+                return extractHashtagsOnly(rawText);
+            case "scripts":
+                return cleanScriptsOutput(rawText);
+            case "hooks":
+                return cleanHooksOutput(rawText);
+            case "captions":
+                return cleanCaptionsOutput(rawText);
+            case "cta":
+                return cleanCTAOutput(rawText);
+            default:
+                return sanitizeMarkdown(rawText, false);
+        }
+    }
+ 
+    function formatAIText(text, mode = "general") { 
+        if (!text) return ""; 
+
+        const processed = cleanAIOutputByMode(text, mode);
+
+        // Strict Hashtags Presentation
+        if (mode === "hashtags") {
+            const safeTags = escapeHTML(processed);
+            if (!safeTags.trim()) {
+                return `<p style="color:#d93025;margin:8px 0;">No valid hashtags found. Please try generating again.</p>`;
+            }
+            return `
+                <div class="ai-hashtags-output" style="line-height:2.0;font-size:15px;color:#1677ff;word-wrap:break-word;white-space:normal;padding:6px 2px;">
+                    ${safeTags}
+                </div>
+            `;
+        }
+
+        // Handle empty safe results for strictly filtered modes
+        if ((mode === "hooks" || mode === "cta") && !processed.trim()) {
+            return `<p style="color:#d93025;margin:8px 0;">No valid ${mode.toUpperCase()} lines found in response. Please try generating again.</p>`;
+        }
+
+        const lines = processed.split("\n");
+        let htmlOutput = "";
+
+        lines.forEach(line => {
+            const trimmed = line.trim();
+            if (!trimmed) {
+                htmlOutput += '<div style="margin:8px 0;"></div>';
+                return;
+            }
+
+            const safeLine = escapeHTML(trimmed);
+
+            // Highlight structural labels cleanly
+            if (/^(?:Hook|Body|Outro|Main Script|Target Duration|Topic|हुक|बॉडी|आउट्रो)[\s:-]/i.test(trimmed)) {
+                htmlOutput += `<p style="margin:10px 0 4px;font-weight:700;color:#102c57;line-height:1.6;">${safeLine}</p>`;
+            } else if (/^\d+[\).]\s*/.test(trimmed)) {
+                htmlOutput += `<p style="margin:4px 0 6px;line-height:1.6;color:#17304f;">${safeLine}</p>`;
+            } else {
+                htmlOutput += `<p style="margin:4px 0 8px;line-height:1.65;color:#17304f;">${safeLine}</p>`;
+            }
+        });
+
         return `<div class="ai-clean-output" style="text-align:left;word-break:break-word;">${htmlOutput}</div>`;
     } 
- 
  
     function showMessage(element, message, type = "normal") { 
         if (!element) return; 
@@ -189,7 +386,6 @@ document.addEventListener("DOMContentLoaded", () => {
         `; 
     } 
 
-    // Strict boundary enforcement so output types never cross-pollinate
     function getModePrompt(topic, mode) {
         switch (mode) {
             case "scripts":
@@ -221,6 +417,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 contentType ? contentType.value : "Instagram Reel"; 
             const selectedLanguage = 
                 language ? language.value : "Hindi"; 
+            const activeMode = activeContentMode;
  
             if (!topic) { 
  
@@ -237,7 +434,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return; 
             } 
  
-            const finalTopicPayload = getModePrompt(topic, activeContentMode);
+            const finalTopicPayload = getModePrompt(topic, activeMode);
  
             setButtonLoading( 
                 generateBtn, 
@@ -326,7 +523,7 @@ document.addEventListener("DOMContentLoaded", () => {
  
                     result.innerHTML = ` 
                         <div class="ai-generated-content"> 
-                            ${formatAIText(generatedText)} 
+                            ${formatAIText(generatedText, activeMode)} 
                         </div> 
                     `; 
  
