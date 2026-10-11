@@ -24,7 +24,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const imageSize = document.getElementById("imageSize"); 
     const generateImageBtn = document.getElementById("generateImageBtn"); 
     const imageResult = document.getElementById("imageResult"); 
- 
+
+    // Tool Cards from index.html
+    const scriptsCard = document.getElementById("scriptsCard");
+    const hooksCard = document.getElementById("hooksCard");
+    const captionsCard = document.getElementById("captionsCard");
+    const hashtagsCard = document.getElementById("hashtagsCard");
+    const ctaCard = document.getElementById("ctaCard");
+
+    // Track active specialized mode
+    let activeContentMode = "general";
  
     // ========================================== 
     // HELPER FUNCTIONS 
@@ -71,11 +80,92 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!text) { 
             return ""; 
         } 
- 
-        return escapeHTML(text) 
-            .replace(/\r\n/g, "\n") 
-            .replace(/\r/g, "\n") 
-            .replace(/\n/g, "<br>"); 
+
+        let cleanText = String(text).trim();
+        cleanText = cleanText.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+
+        const lines = cleanText.split("\n");
+        let htmlOutput = "";
+        let inUl = false;
+        let inOl = false;
+
+        function closeLists() {
+            if (inUl) {
+                htmlOutput += "</ul>";
+                inUl = false;
+            }
+            if (inOl) {
+                htmlOutput += "</ol>";
+                inOl = false;
+            }
+        }
+
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i].trim();
+
+            if (!line) {
+                closeLists();
+                htmlOutput += '<div style="margin:6px 0;"></div>';
+                continue;
+            }
+
+            // Headings clean rendering
+            if (/^###\s+/.test(line)) {
+                closeLists();
+                htmlOutput += `<h4 style="margin:12px 0 6px;color:#102c57;font-size:15px;font-weight:700;">${escapeHTML(line.replace(/^###\s+/, ""))}</h4>`;
+                continue;
+            } else if (/^##\s+/.test(line)) {
+                closeLists();
+                htmlOutput += `<h3 style="margin:15px 0 8px;color:#102c57;font-size:16px;font-weight:800;">${escapeHTML(line.replace(/^##\s+/, ""))}</h3>`;
+                continue;
+            } else if (/^#\s+/.test(line)) {
+                closeLists();
+                htmlOutput += `<h2 style="margin:18px 0 10px;color:#102c57;font-size:18px;font-weight:850;">${escapeHTML(line.replace(/^#\s+/, ""))}</h2>`;
+                continue;
+            }
+
+            // Bullet points (- or * or •)
+            if (/^[-*•]\s+/.test(line)) {
+                if (inOl) {
+                    htmlOutput += "</ol>";
+                    inOl = false;
+                }
+                if (!inUl) {
+                    htmlOutput += '<ul style="margin:6px 0 10px;padding-left:22px;">';
+                    inUl = true;
+                }
+                let item = escapeHTML(line.replace(/^[-*•]\s+/, ""));
+                item = item.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>');
+                htmlOutput += `<li style="margin-bottom:5px;line-height:1.55;">${item}</li>`;
+                continue;
+            }
+
+            // Numbered lists (1., 2., etc.)
+            const numMatch = line.match(/^(\d+)\.\s+(.*)/);
+            if (numMatch) {
+                if (inUl) {
+                    htmlOutput += "</ul>";
+                    inUl = false;
+                }
+                if (!inOl) {
+                    htmlOutput += '<ol style="margin:6px 0 10px;padding-left:22px;">';
+                    inOl = true;
+                }
+                let item = escapeHTML(numMatch[2]);
+                item = item.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>');
+                htmlOutput += `<li style="margin-bottom:5px;line-height:1.55;">${item}</li>`;
+                continue;
+            }
+
+            // Paragraphs and bold/italic conversion
+            closeLists();
+            let parsed = escapeHTML(line);
+            parsed = parsed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>');
+            htmlOutput += `<p style="margin:4px 0 8px;line-height:1.6;color:#17304f;">${parsed}</p>`;
+        }
+
+        closeLists();
+        return `<div class="ai-clean-output" style="text-align:left;word-break:break-word;">${htmlOutput}</div>`;
     } 
  
  
@@ -98,6 +188,24 @@ document.addEventListener("DOMContentLoaded", () => {
             </div> 
         `; 
     } 
+
+    // Strict boundary enforcement so output types never cross-pollinate
+    function getModePrompt(topic, mode) {
+        switch (mode) {
+            case "scripts":
+                return `Topic: "${topic}". [RULE: Output ONLY a short video script with Hook, Body, and Outro dialogue. Do NOT include captions, do NOT include hashtags, and do NOT add separate CTA options.]`;
+            case "hooks":
+                return `Topic: "${topic}". [RULE: Output ONLY 5 to 7 catchy opening hooks as a numbered list. Do NOT output a full script, captions, hashtags, or CTAs.]`;
+            case "captions":
+                return `Topic: "${topic}". [RULE: Output ONLY a clean social media post caption. Do NOT include video scripts, do NOT include hashtag lists, and do NOT include CTA bullet options.]`;
+            case "hashtags":
+                return `Topic: "${topic}". [RULE: Output ONLY 15 to 25 relevant hashtags separated by spaces. Do NOT include scripts, captions, intros, or CTAs. Do not truncate Hindi hashtags.]`;
+            case "cta":
+                return `Topic: "${topic}". [RULE: Output ONLY 5 to 7 strong Call To Action (CTA) lines as a numbered list. Do NOT output scripts, captions, or hashtags.]`;
+            default:
+                return topic;
+        }
+    }
  
  
     // ========================================== 
@@ -129,6 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return; 
             } 
  
+            const finalTopicPayload = getModePrompt(topic, activeContentMode);
  
             setButtonLoading( 
                 generateBtn, 
@@ -166,7 +275,7 @@ document.addEventListener("DOMContentLoaded", () => {
  
                     body: JSON.stringify({ 
  
-                        topic: topic, 
+                        topic: finalTopicPayload, 
  
                         contentType: 
                             selectedContentType, 
@@ -295,8 +404,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ); 
  
  
-            if (ideasResult) { 
- 
+            if (ideasResult) 
                 ideasResult.innerHTML = ` 
                     <div style="text-align:center;"> 
                         <div style="font-size:24px; margin-bottom:8px;"> 
@@ -308,8 +416,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         </div> 
                     </div> 
                 `; 
- 
-            } 
  
  
             try { 
@@ -923,7 +1029,31 @@ document.addEventListener("DOMContentLoaded", () => {
         ); 
  
     } 
- 
+
+    // ========================================== 
+    // DASHBOARD CARDS MODE ATTACHMENT 
+    // ========================================== 
+
+    function attachCardMode(cardElement, modeName, defaultContentType) {
+        if (!cardElement) return;
+
+        cardElement.addEventListener("click", () => {
+            activeContentMode = modeName;
+            if (contentType && defaultContentType) {
+                contentType.value = defaultContentType;
+            }
+
+            if (topicInput) {
+                topicInput.placeholder = `Enter topic for ${modeName.toUpperCase()}...`;
+            }
+        });
+    }
+
+    attachCardMode(scriptsCard, "scripts", "Instagram Reel");
+    attachCardMode(hooksCard, "hooks", "Instagram Post");
+    attachCardMode(captionsCard, "captions", "Caption");
+    attachCardMode(hashtagsCard, "hashtags", "Instagram Post");
+    attachCardMode(ctaCard, "cta", "Ad Copy");
  
     console.log( 
         "AI Content Agent frontend loaded successfully." 
