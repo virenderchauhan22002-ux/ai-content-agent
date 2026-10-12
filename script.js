@@ -23,10 +23,10 @@ document.addEventListener("DOMContentLoaded", () => {
     let lastGeneratedText = "";
     let lastGeneratedData = null;
 
-    /*
-     * Remove old separate content cards.
-     * HTML ko manually edit karne ki zarurat nahi.
-     */
+    /* =========================================================
+       REMOVE OLD SEPARATE CONTENT CARDS
+    ========================================================= */
+
     [
         "scriptsCard",
         "hooksCard",
@@ -95,17 +95,51 @@ document.addEventListener("DOMContentLoaded", () => {
             .trim();
     }
 
+    /*
+     * Removes markdown symbols without destroying Hindi text.
+     */
     function removeMarkdown(text) {
         return cleanText(text)
+            .replace(/\\\*\\\*([^*]+?)\\\*\\\*/g, "$1")
+            .replace(/\*\*([^*]+?)\*\*/g, "$1")
+            .replace(/__([^_]+?)__/g, "$1")
+            .replace(/\\_/g, "_")
+            .replace(/\\\*/g, "*")
             .replace(/^\s*#{1,6}\s*/gm, "")
-            .replace(/\*\*([^*]+)\*\*/g, "$1")
-            .replace(/__([^_]+)__/g, "$1")
-            .replace(/\*([^*\n]+)\*/g, "$1")
-            .replace(/_([^_\n]+)_/g, "$1")
-            .replace(/^[\s]*[•*+]\s+/gm, "")
-            .replace(/^[\s]*-\s+(?!\d)/gm, "")
+            .replace(/^\s*[•*+]\s+/gm, "")
+            .replace(/^\s*-\s+(?!\d)/gm, "")
             .replace(/^\s*[-=_]{3,}\s*$/gm, "")
             .trim();
+    }
+
+    /*
+     * Clean a single content idea.
+     */
+    function cleanIdeaText(text) {
+        let idea = String(text || "");
+
+        idea = idea
+            .replace(/\r\n/g, "\n")
+            .replace(/\r/g, "\n")
+            .replace(/```[\s\S]*?```/g, "")
+            .replace(/\\\*\\\*/g, "")
+            .replace(/\*\*/g, "")
+            .replace(/__+/g, "")
+            .replace(/^\s*[•*+\-]\s*/g, "")
+            .replace(/^\s*\d+\s*[\.\):-]\s*/g, "")
+            .replace(/^\s*\d+\s*$/g, "")
+            .replace(
+                /\s*(?:✨\s*)?use\s+this\s+idea\s*$/i,
+                ""
+            )
+            .replace(
+                /\s*(?:✨\s*)?इस\s+आइडिया\s+का\s+उपयोग\s+करें\s*$/i,
+                ""
+            )
+            .replace(/\s{2,}/g, " ")
+            .trim();
+
+        return idea;
     }
 
     /* =========================================================
@@ -228,9 +262,23 @@ document.addEventListener("DOMContentLoaded", () => {
        HASHTAGS
     ========================================================= */
 
-    function cleanHashtags(text) {
+    function cleanHashtags(text, topic = "") {
+        let source = String(text || "");
+
+        /*
+         * Remove markdown / unwanted symbols.
+         */
+        source = source
+            .replace(/\\\*/g, "")
+            .replace(/\*\*/g, "")
+            .replace(/[`*_]/g, "")
+            .replace(/\r\n/g, "\n");
+
+        /*
+         * Extract proper hashtag tokens.
+         */
         const matches =
-            String(text || "").match(
+            source.match(
                 /#[\p{L}\p{N}_]+/gu
             ) || [];
 
@@ -238,8 +286,40 @@ document.addEventListener("DOMContentLoaded", () => {
         const seen = new Set();
 
         matches.forEach((tag) => {
-            const cleanTag = tag.trim();
-            const key = cleanTag.toLowerCase();
+            let cleanTag = tag.trim();
+
+            /*
+             * Remove punctuation accidentally attached.
+             */
+            cleanTag = cleanTag.replace(
+                /[.,!?;:।|()[\]{}]+$/g,
+                ""
+            );
+
+            /*
+             * Ignore broken 1-character hashtags.
+             */
+            const hashtagBody =
+                cleanTag.replace(/^#/, "");
+
+            if (
+                !hashtagBody ||
+                hashtagBody.length < 3
+            ) {
+                return;
+            }
+
+            /*
+             * Ignore obvious markdown leftovers.
+             */
+            if (
+                /^[0-9]+$/.test(hashtagBody)
+            ) {
+                return;
+            }
+
+            const key =
+                cleanTag.toLowerCase();
 
             if (!seen.has(key)) {
                 seen.add(key);
@@ -247,7 +327,78 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
-        return unique.slice(0, 25).join(" ");
+        /*
+         * If AI returned usable hashtags, use them.
+         */
+        if (unique.length >= 5) {
+            return unique
+                .slice(0, 25)
+                .join(" ");
+        }
+
+        /*
+         * Fallback: create simple hashtags from topic.
+         * This prevents broken one/two-character tags.
+         */
+        const fallback = [];
+
+        const topicWords =
+            String(topic || "")
+                .replace(
+                    /[^\p{L}\p{N}\s]/gu,
+                    " "
+                )
+                .split(/\s+/)
+                .map((word) => word.trim())
+                .filter(
+                    (word) =>
+                        word.length >= 3
+                );
+
+        topicWords.forEach((word) => {
+            const tag = `#${word}`;
+
+            const key =
+                tag.toLowerCase();
+
+            if (!seen.has(key)) {
+                seen.add(key);
+                fallback.push(tag);
+            }
+        });
+
+        /*
+         * Useful generic Hindi/English tags.
+         */
+        const commonTags = [
+            "#बचत",
+            "#निवेश",
+            "#बीमा",
+            "#जीवनबीमा",
+            "#वित्तीययोजना",
+            "#FinancialPlanning",
+            "#Savings",
+            "#Investment",
+            "#LIC",
+            "#MoneyManagement"
+        ];
+
+        commonTags.forEach((tag) => {
+            const key =
+                tag.toLowerCase();
+
+            if (
+                !seen.has(key) &&
+                fallback.length < 20
+            ) {
+                seen.add(key);
+                fallback.push(tag);
+            }
+        });
+
+        return fallback
+            .slice(0, 20)
+            .join(" ");
     }
 
     /* =========================================================
@@ -255,7 +406,10 @@ document.addEventListener("DOMContentLoaded", () => {
     ========================================================= */
 
     function buildFinalOutput(rawText) {
-        const text = cleanGeneratedContent(rawText);
+        const text =
+            cleanGeneratedContent(
+                rawText
+            );
 
         let hook = findSection(
             text,
@@ -287,23 +441,41 @@ document.addEventListener("DOMContentLoaded", () => {
             []
         );
 
-        if (!hook && !script && !caption && !hashtags && !cta) {
+        if (
+            !hook &&
+            !script &&
+            !caption &&
+            !hashtags &&
+            !cta
+        ) {
             script = text;
         }
 
+        const currentTopic =
+            topicInput
+                ? topicInput.value.trim()
+                : "";
+
         hashtags = cleanHashtags(
-            hashtags || text
+            hashtags,
+            currentTopic
         );
 
         if (script) {
             script = script
-                .replace(/#[\p{L}\p{N}_]+/gu, "")
+                .replace(
+                    /#[\p{L}\p{N}_]+/gu,
+                    ""
+                )
                 .trim();
         }
 
         if (caption) {
             caption = caption
-                .replace(/#[\p{L}\p{N}_]+/gu, "")
+                .replace(
+                    /#[\p{L}\p{N}_]+/gu,
+                    ""
+                )
                 .trim();
         }
 
@@ -319,10 +491,16 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderFinalOutput(rawText) {
         if (!result) return;
 
-        lastGeneratedText = String(rawText || "");
-        const data = buildFinalOutput(rawText);
+        lastGeneratedText =
+            String(rawText || "");
 
-        lastGeneratedData = data;
+        const data =
+            buildFinalOutput(
+                rawText
+            );
+
+        lastGeneratedData =
+            data;
 
         let html = "";
 
@@ -330,9 +508,10 @@ document.addEventListener("DOMContentLoaded", () => {
             html += `
                 <div style="margin-bottom:18px;">
                     <div style="
-                        font-weight:700;
+                        font-weight:800;
                         color:#102c57;
-                        margin-bottom:6px;
+                        margin-bottom:7px;
+                        font-size:16px;
                     ">
                         Hook
                     </div>
@@ -351,9 +530,10 @@ document.addEventListener("DOMContentLoaded", () => {
             html += `
                 <div style="margin-bottom:18px;">
                     <div style="
-                        font-weight:700;
+                        font-weight:800;
                         color:#102c57;
-                        margin-bottom:6px;
+                        margin-bottom:7px;
+                        font-size:16px;
                     ">
                         Script
                     </div>
@@ -373,9 +553,10 @@ document.addEventListener("DOMContentLoaded", () => {
             html += `
                 <div style="margin-bottom:18px;">
                     <div style="
-                        font-weight:700;
+                        font-weight:800;
                         color:#102c57;
-                        margin-bottom:6px;
+                        margin-bottom:7px;
+                        font-size:16px;
                     ">
                         Caption
                     </div>
@@ -394,9 +575,10 @@ document.addEventListener("DOMContentLoaded", () => {
             html += `
                 <div style="margin-bottom:18px;">
                     <div style="
-                        font-weight:700;
+                        font-weight:800;
                         color:#102c57;
-                        margin-bottom:6px;
+                        margin-bottom:7px;
+                        font-size:16px;
                     ">
                         Hashtags
                     </div>
@@ -405,6 +587,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         color:#1677ff;
                         line-height:2;
                         word-break:break-word;
+                        font-weight:600;
                     ">
                         ${escapeHTML(data.hashtags)}
                     </div>
@@ -416,9 +599,10 @@ document.addEventListener("DOMContentLoaded", () => {
             html += `
                 <div style="margin-bottom:8px;">
                     <div style="
-                        font-weight:700;
+                        font-weight:800;
                         color:#102c57;
-                        margin-bottom:6px;
+                        margin-bottom:7px;
+                        font-size:16px;
                     ">
                         CTA
                     </div>
@@ -461,7 +645,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /* =========================================================
        RESULT ACTIONS
-       Copy / Rewrite / Regenerate / TXT / PDF
     ========================================================= */
 
     function getReadableResultText() {
@@ -506,7 +689,9 @@ document.addEventListener("DOMContentLoaded", () => {
             );
         }
 
-        return sections.join("\n\n").trim();
+        return sections
+            .join("\n\n")
+            .trim();
     }
 
     function addResultActions() {
@@ -661,10 +846,13 @@ document.addEventListener("DOMContentLoaded", () => {
     ========================================================= */
 
     async function copyResult() {
-        const text = getReadableResultText();
+        const text =
+            getReadableResultText();
 
         if (!text) {
-            alert("Copy karne ke liye content available nahi hai.");
+            alert(
+                "Copy karne ke liye content available nahi hai."
+            );
             return;
         }
 
@@ -971,12 +1159,24 @@ Caption:
 Rewrite and improve the caption.
 
 Hashtags:
-Write 15 to 25 relevant hashtags. Every hashtag must start with #.
+Write 15 to 25 meaningful and relevant hashtags.
 
 CTA:
 Write 3 improved call-to-action lines.
 
-STRICT RULES:
+STRICT HASHTAG RULES:
+- Every hashtag must start with #.
+- Each hashtag must be a COMPLETE meaningful word.
+- Never split a Hindi word into separate characters or fragments.
+- Never create hashtags such as #न, #ज, #भ, #व, #पर when they are incomplete fragments.
+- Hindi hashtags must contain complete Hindi words.
+- English hashtags must contain complete English words.
+- Do not put spaces inside a hashtag.
+- Do not use markdown.
+- Do not number the hashtags.
+- Do not write "Use This Idea" or any extra text.
+
+OTHER RULES:
 - Do not add any other sections.
 - Do not add explanations.
 - Do not use markdown symbols.
@@ -1089,8 +1289,6 @@ ${currentText}
 
     /* =========================================================
        PDF SUPPORT
-       Uses browser canvas + jsPDF.
-       No backend/API cost.
     ========================================================= */
 
     function loadExternalScript(src) {
@@ -1188,16 +1386,10 @@ ${currentText}
         }
 
         try {
-            /*
-             * Load html2canvas.
-             */
             await loadExternalScript(
                 "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
             );
 
-            /*
-             * Load jsPDF.
-             */
             await loadExternalScript(
                 "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
             );
@@ -1220,9 +1412,6 @@ ${currentText}
                 );
             }
 
-            /*
-             * Create temporary printable card.
-             */
             const pdfContent =
                 document.createElement(
                     "div"
@@ -1397,10 +1586,6 @@ ${currentText}
                 error
             );
 
-            /*
-             * Fallback:
-             * Browser print → Save as PDF.
-             */
             try {
                 const printWindow =
                     window.open(
@@ -1555,12 +1740,24 @@ Caption:
 Write one clean social media caption.
 
 Hashtags:
-Write 15 to 25 relevant hashtags. Every hashtag must start with #.
+Write 15 to 25 meaningful and relevant hashtags.
 
 CTA:
 Write 3 strong call-to-action lines.
 
-STRICT RULES:
+STRICT HASHTAG RULES:
+- Every hashtag must start with #.
+- Each hashtag must be a COMPLETE meaningful word.
+- NEVER split a Hindi word into individual characters or fragments.
+- NEVER generate broken hashtags such as #न, #ज, #भ, #व, #पर when they are incomplete.
+- Use complete Hindi words such as #बचत, #निवेश, #जीवनबीमा, #भविष्य, #धनसंचय.
+- English hashtags must also be complete words.
+- Do not put spaces inside a hashtag.
+- Do not number hashtags.
+- Do not add symbols around hashtags.
+- Do not repeat the same hashtag.
+
+OTHER STRICT RULES:
 - Do not add any other sections.
 - Do not add explanations.
 - Do not use markdown symbols.
@@ -1838,15 +2035,22 @@ STRICT RULES:
         );
     }
 
-    function renderIdeas(
-        ideas
-    ) {
+    function renderIdeas(ideas) {
         if (!ideasResult) return;
 
         ideasResult.innerHTML = "";
 
         ideas.forEach(
             (idea, index) => {
+                const cleanedIdea =
+                    cleanIdeaText(
+                        idea
+                    );
+
+                if (!cleanedIdea) {
+                    return;
+                }
+
                 const item =
                     document.createElement(
                         "div"
@@ -1854,6 +2058,17 @@ STRICT RULES:
 
                 item.className =
                     "idea-item";
+
+                item.style.cssText = `
+                    display:flex;
+                    align-items:flex-start;
+                    gap:12px;
+                    margin-bottom:12px;
+                    padding:14px;
+                    border-radius:14px;
+                    background:#f8fbff;
+                    border:1px solid rgba(21,88,166,0.08);
+                `;
 
                 const number =
                     document.createElement(
@@ -1866,6 +2081,19 @@ STRICT RULES:
                 number.textContent =
                     index + 1;
 
+                number.style.cssText = `
+                    min-width:30px;
+                    height:30px;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    border-radius:50%;
+                    background:#eaf3ff;
+                    color:#1558a6;
+                    font-weight:800;
+                    font-size:14px;
+                `;
+
                 const content =
                     document.createElement(
                         "div"
@@ -1873,6 +2101,11 @@ STRICT RULES:
 
                 content.className =
                     "idea-content";
+
+                content.style.cssText = `
+                    flex:1;
+                    min-width:0;
+                `;
 
                 const text =
                     document.createElement(
@@ -1883,7 +2116,15 @@ STRICT RULES:
                     "idea-text";
 
                 text.textContent =
-                    String(idea);
+                    cleanedIdea;
+
+                text.style.cssText = `
+                    color:#102c57;
+                    font-weight:700;
+                    font-size:15px;
+                    line-height:1.55;
+                    margin-bottom:10px;
+                `;
 
                 const useButton =
                     document.createElement(
@@ -1899,11 +2140,21 @@ STRICT RULES:
                 useButton.textContent =
                     "✨ Use This Idea";
 
+                useButton.style.cssText = `
+                    border:none;
+                    border-radius:9px;
+                    padding:8px 12px;
+                    background:#eef5ff;
+                    color:#1558a6;
+                    font-weight:700;
+                    cursor:pointer;
+                `;
+
                 useButton.addEventListener(
                     "click",
                     () => {
                         useIdea(
-                            String(idea),
+                            cleanedIdea,
                             useButton
                         );
                     }
