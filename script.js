@@ -1,11 +1,7 @@
+```javascript
 const API_BASE_URL = "https://ai-content-agent-3hb3.onrender.com";
 
 document.addEventListener("DOMContentLoaded", () => {
-
-    // =========================================================
-    // DOM ELEMENTS
-    // =========================================================
-
     const topicInput = document.getElementById("topicInput");
     const contentType = document.getElementById("contentType");
     const language = document.getElementById("language");
@@ -31,26 +27,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const hashtagsCard = document.getElementById("hashtagsCard");
     const ctaCard = document.getElementById("ctaCard");
 
-    // =========================================================
-    // ACTIVE CONTENT MODE
-    // =========================================================
-
     let activeContentMode = "general";
 
-    // =========================================================
-    // BUTTON HELPERS
-    // =========================================================
+    /* =========================================================
+       BUTTON HELPERS
+    ========================================================= */
 
     function setButtonLoading(button, loadingText, originalText) {
         if (!button) return;
 
         button.disabled = true;
-
-        button.dataset.originalText =
-            originalText || button.textContent;
-
+        button.dataset.originalText = originalText || button.textContent;
         button.textContent = loadingText;
-
         button.style.opacity = "0.7";
         button.style.cursor = "not-allowed";
     }
@@ -61,23 +49,19 @@ document.addEventListener("DOMContentLoaded", () => {
         button.disabled = false;
 
         const originalText =
-            button.dataset.originalText ||
-            button.textContent;
+            button.dataset.originalText || button.textContent;
 
         button.textContent = originalText;
-
         button.style.opacity = "1";
         button.style.cursor = "pointer";
     }
 
-    // =========================================================
-    // HTML ESCAPE
-    // =========================================================
+    /* =========================================================
+       SECURITY / TEXT HELPERS
+    ========================================================= */
 
     function escapeHTML(value) {
-        if (value === null || value === undefined) {
-            return "";
-        }
+        if (value === null || value === undefined) return "";
 
         const div = document.createElement("div");
         div.textContent = String(value);
@@ -85,46 +69,38 @@ document.addEventListener("DOMContentLoaded", () => {
         return div.innerHTML;
     }
 
-    // =========================================================
-    // BASIC MARKDOWN CLEANER
-    // =========================================================
+    function normalizeText(text) {
+        return String(text || "")
+            .replace(/\r\n/g, "\n")
+            .replace(/\r/g, "\n")
+            .replace(/\u00A0/g, " ")
+            .trim();
+    }
 
     function sanitizeMarkdown(rawText, preserveHashtags = false) {
-
         if (!rawText) return "";
 
-        let text = String(rawText);
+        let text = normalizeText(rawText);
 
-        text = text
-            .replace(/\r\n/g, "\n")
-            .replace(/\r/g, "\n");
-
-        // Remove fenced code blocks
         text = text.replace(/```[\s\S]*?```/g, "");
-
-        // Remove inline code marks
         text = text.replace(/`([^`]+)`/g, "$1");
         text = text.replace(/`/g, "");
 
-        // Remove horizontal rules
         text = text.replace(
             /^[ \t]*\\?[-—_*]{3,}[ \t]*$/gm,
             ""
         );
 
-        // Remove escaped markdown characters
         text = text.replace(
             /\\([#*_`[\]()\-+!.]|[—–])/g,
             "$1"
         );
 
-        // Remove markdown heading symbols
         text = text.replace(
             /^[ \t]*#{1,6}[ \t]*/gm,
             ""
         );
 
-        // Bold / italic
         text = text.replace(
             /\*\*\*([^*]+)\*\*\*/g,
             "$1"
@@ -150,13 +126,11 @@ document.addEventListener("DOMContentLoaded", () => {
             "$1"
         );
 
-        // Remaining markdown symbols
         text = text.replace(
             /[*_]{1,3}/g,
             ""
         );
 
-        // Bullet symbols
         text = text.replace(
             /^[ \t]*[•*+–—][ \t]+/gm,
             ""
@@ -167,615 +141,452 @@ document.addEventListener("DOMContentLoaded", () => {
             ""
         );
 
-        // Remove hashtags when requested
         if (!preserveHashtags) {
-
-            text = text.replace(
-                /(^|\s)#(?!\w)/g,
-                "$1"
-            );
-
-            text = text.replace(
-                /#/g,
-                ""
-            );
+            text = text.replace(/#/g, "");
         }
 
-        // Clean excessive blank lines
-        text = text.replace(
-            /\n{3,}/g,
-            "\n\n"
-        );
+        text = text.replace(/\n{3,}/g, "\n\n");
 
         return text.trim();
     }
 
-    // =========================================================
-    // HASHTAG EXTRACTION
-    // ONLY HASHTAGS WILL BE RETURNED
-    // =========================================================
+    /* =========================================================
+       SECTION DETECTION
+    ========================================================= */
 
-    function extractHashtagsOnly(rawText) {
+    function cleanHeaderLine(line) {
+        return String(line || "")
+            .replace(/^[\s>*•\-–—#`*_~📌📝💬📢🎯#️⃣]+/, "")
+            .replace(/[`*_~]/g, "")
+            .trim();
+    }
 
-        if (!rawText) return "";
+    function isSectionHeader(line, section) {
+        const normalized = cleanHeaderLine(line);
 
-        const text = String(rawText)
-            .replace(/\r\n?/g, "\n");
+        const patterns = {
+            scripts:
+                /^(?:script|scripts|video script|स्क्रिप्ट)(?:\s*\([^)]*\))?\s*[:\-–]?\s*$/i,
+
+            hooks:
+                /^(?:hook|hooks|opening hooks|हुक|हुक्स)(?:\s*\([^)]*\))?\s*[:\-–]?\s*$/i,
+
+            captions:
+                /^(?:caption|captions|post caption|social media caption|कैप्शन)(?:\s*\([^)]*\))?\s*[:\-–]?\s*$/i,
+
+            hashtags:
+                /^(?:hashtags?|hash tags?|tags?|हैशटैग|टैग्स?)(?:\s*\([^)]*\))?\s*[:\-–]?\s*$/i,
+
+            cta:
+                /^(?:cta|call to action|कॉल टू एक्शन)(?:\s*\([^)]*\))?\s*[:\-–]?\s*$/i
+        };
+
+        return patterns[section]
+            ? patterns[section].test(normalized)
+            : false;
+    }
+
+    function isAnySectionHeader(line) {
+        return (
+            isSectionHeader(line, "scripts") ||
+            isSectionHeader(line, "hooks") ||
+            isSectionHeader(line, "captions") ||
+            isSectionHeader(line, "hashtags") ||
+            isSectionHeader(line, "cta")
+        );
+    }
+
+    function extractSection(rawText, section) {
+        const text = normalizeText(rawText);
+
+        if (!text) return "";
 
         const lines = text.split("\n");
 
-        function normalizeHeader(line) {
-
-            return line
-                .replace(
-                    /^[\s>*•\-–—#`*_~]+/,
-                    ""
-                )
-                .replace(
-                    /[`*_~]/g,
-                    ""
-                )
-                .trim();
-        }
-
-        function isHashtagHeader(line) {
-
-            const normalized =
-                normalizeHeader(line);
-
-            return /^(?:hashtags?|हैशटैग|tags?|टैग्स?)(?:\s*\([^)]*\))?\s*[:\-–]?\s*(?:#.*)?$/i
-                .test(normalized);
-        }
-
-        function isNextSection(line) {
-
-            const normalized =
-                normalizeHeader(line);
-
-            return /^(?:script|स्क्रिप्ट|hooks?|हुक्स?|caption|कैप्शन|cta|call to action|कॉल टू एक्शन|outro|body|scene|दृश्य|conclusion|निष्कर्ष)(?:\s*\([^)]*\))?\s*[:\-–]?(?:\s|$)/i
-                .test(normalized);
-        }
-
-        let inHashtagBlock = false;
-
-        const blockLines = [];
+        let found = false;
+        const output = [];
 
         for (const rawLine of lines) {
-
             const line = rawLine.trim();
 
-            if (!line) continue;
-
-            if (isHashtagHeader(line)) {
-
-                inHashtagBlock = true;
-
-                const normalized =
-                    normalizeHeader(line);
-
-                const rest =
-                    normalized.replace(
-                        /^(?:hashtags?|हैशटैग|tags?|टैग्स?)(?:\s*\([^)]*\))?\s*[:\-–]?\s*/i,
-                        ""
-                    );
-
-                if (rest) {
-                    blockLines.push(rest);
-                }
-
+            if (isSectionHeader(line, section)) {
+                found = true;
                 continue;
             }
 
-            if (inHashtagBlock) {
+            if (!found) continue;
 
-                if (isNextSection(line)) {
-                    break;
-                }
-
-                blockLines.push(line);
+            if (isAnySectionHeader(line)) {
+                break;
             }
+
+            output.push(rawLine);
         }
 
-        let targetText =
-            blockLines.join(" ");
+        return output.join("\n").trim();
+    }
 
-        // If no hashtag section was found,
-        // accept ONLY lines made almost entirely of hashtags.
-        if (!targetText) {
+    /* =========================================================
+       HASHTAGS
+       ========================================================= */
 
-            const hashtagOnlyLines =
-                lines.filter(rawLine => {
+    function extractHashtagsOnly(rawText) {
+        if (!rawText) return "";
 
-                    const line =
-                        rawLine.trim();
-
-                    if (!line) return false;
-
-                    const tags =
-                        line.match(
-                            /#[\p{L}\p{N}_]+/gu
-                        ) || [];
-
-                    if (!tags.length) {
-                        return false;
-                    }
-
-                    const remainder =
-                        line
-                            .replace(
-                                /#[\p{L}\p{N}_]+/gu,
-                                ""
-                            )
-                            .replace(
-                                /[`*_~\\]/g,
-                                ""
-                            )
-                            .replace(
-                                /[\s|,;:·•\-–—()[\]{}.!?]+/g,
-                                ""
-                            )
-                            .trim();
-
-                    return remainder === "";
-                });
-
-            targetText =
-                hashtagOnlyLines.join(" ");
-        }
+        const text = normalizeText(rawText);
 
         const matches =
-            targetText.match(
-                /#[\p{L}\p{N}_]+/gu
-            ) || [];
+            text.match(/#[\p{L}\p{N}_]+/gu) || [];
 
         const seen = new Set();
         const output = [];
 
         for (const tag of matches) {
-
-            const cleanTag =
-                tag
-                    .replace(
-                        /[*_`~\\]+$/g,
-                        ""
-                    )
-                    .trim();
+            const cleanTag = tag
+                .replace(/[*_`~\\]+$/g, "")
+                .trim();
 
             if (!cleanTag) continue;
 
-            const key =
-                cleanTag.toLocaleLowerCase();
+            const key = cleanTag.toLocaleLowerCase();
 
             if (!seen.has(key)) {
-
                 seen.add(key);
                 output.push(cleanTag);
             }
 
-            if (output.length >= 25) {
-                break;
-            }
+            if (output.length >= 25) break;
         }
 
         return output.join(" ");
     }
 
-    // =========================================================
-    // SCRIPT CLEANER
-    // ONLY SCRIPT
-    // =========================================================
+    /* =========================================================
+       SCRIPT CLEANER
+    ========================================================= */
 
     function cleanScriptsOutput(rawText) {
-
         if (!rawText) return "";
 
-        let text =
-            String(rawText)
-                .replace(/\r\n?/g, "\n");
+        let section = extractSection(rawText, "scripts");
 
-        const lines =
-            text.split("\n");
+        /*
+         If AI did not create a Script heading, use the complete
+         response but remove obvious unwanted sections.
+        */
+        if (!section) {
+            section = normalizeText(rawText);
 
-        const scriptLines = [];
+            const lines = section.split("\n");
+            const filtered = [];
 
-        const stopRegex =
-            /^(?:[#*`_~\\•\-\s📌📝💬📢🎯#️⃣]*)?(?:caption|कैप्शन|post caption|hashtags?|हैशटैग|cta|call to action|कॉल टू एक्शन|निष्कर्ष|conclusion)\s*[:\-–]/i;
-
-        for (const rawLine of lines) {
-
-            const line =
-                rawLine.trim();
-
-            if (stopRegex.test(line)) {
-                break;
-            }
-
-            const tags =
-                line.match(
-                    /#[\p{L}\p{N}_]+/gu
-                ) || [];
-
-            if (tags.length >= 2) {
-
-                const remaining =
-                    line
-                        .replace(
-                            /#[\p{L}\p{N}_]+/gu,
-                            ""
-                        )
-                        .replace(
-                            /[\s*_`~\\:,\-–—]/g,
-                            ""
-                        )
-                        .trim();
-
-                if (!remaining) {
+            for (const line of lines) {
+                if (
+                    isSectionHeader(line, "captions") ||
+                    isSectionHeader(line, "hashtags") ||
+                    isSectionHeader(line, "cta") ||
+                    isSectionHeader(line, "hooks")
+                ) {
                     break;
                 }
+
+                filtered.push(line);
             }
 
-            scriptLines.push(rawLine);
+            section = filtered.join("\n");
         }
 
-        let cleaned =
-            sanitizeMarkdown(
-                scriptLines.join("\n"),
-                false
-            );
+        let cleaned = sanitizeMarkdown(section, false);
 
-        cleaned =
-            cleaned.replace(
-                /\n\s*(?:(?:Caption|कैप्शन|Hashtags?|हैशटैग|CTA|Call to Action|कॉल टू एक्शन)\s*[:\-–][\s\S]*$)/i,
-                ""
-            );
+        /*
+         Remove accidental hashtag blocks.
+        */
+        cleaned = cleaned.replace(
+            /(?:^|\n)\s*(?:hashtags?|हैशटैग|tags?)\s*[:\-–]?\s*(?:#[^\n]+)?/gi,
+            ""
+        );
+
+        /*
+         Remove accidental caption/CTA sections.
+        */
+        cleaned = cleaned.replace(
+            /\n\s*(?:caption|captions|कैप्शन)\s*[:\-–][\s\S]*$/i,
+            ""
+        );
+
+        cleaned = cleaned.replace(
+            /\n\s*(?:cta|call to action|कॉल टू एक्शन)\s*[:\-–][\s\S]*$/i,
+            ""
+        );
 
         return cleaned
             .replace(/\n{3,}/g, "\n\n")
             .trim();
     }
 
-    // =========================================================
-    // HOOKS CLEANER
-    // ONLY HOOKS
-    // =========================================================
+    /* =========================================================
+       HOOK CLEANER
+    ========================================================= */
 
     function cleanHooksOutput(rawText) {
-
         if (!rawText) return "";
 
-        const text =
-            String(rawText)
-                .replace(/\r\n?/g, "\n");
+        let section = extractSection(rawText, "hooks");
 
-        const lines =
-            text.split("\n");
-
-        const hookLines = [];
-
-        const hookHeaderRegex =
-            /^(?:[#*`_~\\•\-\s]|🪝)*\b(?:hooks?|हुक्स?)(?:\s*\([^)]*\))?[\s:*_`~\\-]*$/i;
-
-        const nextSectionRegex =
-            /^(?:[#*`_~\\•\-\s]|📌|📝|💬|📢|🎯)*\b(?:script|स्क्रिप्ट|body|outro|caption|कैप्शन|hashtags?|हैशटैग|cta|call to action|कॉल टू एक्शन|scene|दृश्य|conclusion|निष्कर्ष)[\s:*_`~\\-]/i;
-
-        let inHookBlock = false;
-
-        const blockLines = [];
-
-        for (const rawLine of lines) {
-
-            const line =
-                rawLine.trim();
-
-            if (!line) continue;
-
-            if (hookHeaderRegex.test(line)) {
-
-                inHookBlock = true;
-                continue;
-            }
-
-            if (inHookBlock) {
-
-                if (nextSectionRegex.test(line)) {
-                    break;
-                }
-
-                blockLines.push(line);
-            }
-        }
-
-        // Prefer explicit hook block
-        if (blockLines.length > 0) {
-
-            for (const line of blockLines) {
-
-                const cleaned =
-                    sanitizeMarkdown(
-                        line,
-                        false
-                    ).trim();
-
-                if (!cleaned) continue;
-
-                const match =
-                    cleaned.match(
-                        /^(?:Hook\s*\d*[\s:-]+|\d+[\).]\s*)(.*)/i
-                    );
-
-                if (match && match[1].trim()) {
-
-                    hookLines.push(
-                        `${hookLines.length + 1}. ${match[1].trim()}`
-                    );
-
-                } else if (
-                    cleaned.length < 200
-                ) {
-
-                    hookLines.push(
-                        `${hookLines.length + 1}. ${cleaned}`
-                    );
-                }
-
-                if (hookLines.length >= 7) {
-                    break;
-                }
-            }
-        }
-
-        // If no block, accept ONLY explicit numbered hooks
-        if (hookLines.length === 0) {
+        /*
+         First preference:
+         explicit Hooks section.
+        */
+        if (section) {
+            const lines = section.split("\n");
+            const hooks = [];
 
             for (const rawLine of lines) {
-
-                const cleaned =
-                    sanitizeMarkdown(
-                        rawLine,
-                        false
-                    ).trim();
+                const cleaned = sanitizeMarkdown(
+                    rawLine,
+                    false
+                ).trim();
 
                 if (!cleaned) continue;
 
-                const match =
-                    cleaned.match(
-                        /^(?:Hook\s*\d*[\s:-]+|\d+[\).]\s+)(.*)/i
-                    );
+                if (
+                    isSectionHeader(cleaned, "scripts") ||
+                    isSectionHeader(cleaned, "captions") ||
+                    isSectionHeader(cleaned, "hashtags") ||
+                    isSectionHeader(cleaned, "cta")
+                ) {
+                    break;
+                }
 
-                if (!match) continue;
-
-                const hookText =
-                    match[1].trim();
+                let hookText = cleaned.replace(
+                    /^(?:hook\s*\d*[\s:.-]+|\d+[\).]\s*)/i,
+                    ""
+                ).trim();
 
                 if (!hookText) continue;
 
-                if (
-                    /^(?:script|body|outro|caption|hashtags?|cta)/i
-                        .test(hookText)
-                ) {
-                    continue;
-                }
-
-                hookLines.push(
-                    `${hookLines.length + 1}. ${hookText}`
+                hooks.push(
+                    `${hooks.length + 1}. ${hookText}`
                 );
 
-                if (hookLines.length >= 7) {
-                    break;
-                }
+                if (hooks.length >= 7) break;
+            }
+
+            if (hooks.length) {
+                return hooks.join("\n");
             }
         }
 
-        return hookLines.join("\n").trim();
-    }
-
-    // =========================================================
-    // CAPTION CLEANER
-    // ONLY CAPTION
-    // =========================================================
-
-    function cleanCaptionsOutput(rawText) {
-
-        if (!rawText) return "";
-
-        let cleaned =
-            sanitizeMarkdown(
-                rawText,
-                false
-            );
-
-        const captionBlockMatch =
-            cleaned.match(
-                /(?:caption|कैप्शन|post caption)[\s:-]+([\s\S]*?)(?=\n\s*(?:(?:#️⃣|📢|🎯)?\s*(?:hashtags?|हैशटैग|cta|call to action|script)|$))/i
-            );
-
-        if (
-            captionBlockMatch &&
-            captionBlockMatch[1].trim()
-        ) {
-
-            cleaned =
-                captionBlockMatch[1].trim();
-        }
-
-        cleaned =
-            cleaned.replace(
-                /^(?:caption|कैप्शन|post caption)[\s:-]+/i,
-                ""
-            );
-
-        cleaned =
-            cleaned.replace(
-                /\n\s*(?:(?:#️⃣|📢|🎯)?\s*(?:hashtags?|हैशटैग|cta|call to action)[\s:-][\s\S]*$)/i,
-                ""
-            );
-
-        cleaned =
-            cleaned.replace(
-                /(?:\s*#[a-zA-Z0-9_\u0900-\u097F]+){2,}\s*$/u,
-                ""
-            );
-
-        return cleaned.trim();
-    }
-
-    // =========================================================
-    // CTA CLEANER
-    // ONLY CTA
-    // =========================================================
-
-    function cleanCTAOutput(rawText) {
-
-        if (!rawText) return "";
-
-        const text =
-            String(rawText)
-                .replace(/\r\n?/g, "\n");
-
-        const lines =
-            text.split("\n");
-
-        const ctaLines = [];
-
-        const ctaHeaderRegex =
-            /^(?:[#*`_~\\•\-\s]|📢|🎯)*\b(?:cta|call to action|कॉल टू एक्शन)(?:\s*\([^)]*\))?[\s:*_`~\\-]*$/i;
-
-        const nextSectionRegex =
-            /^(?:[#*`_~\\•\-\s]|📌|📝|💬)*\b(?:script|स्क्रिप्ट|hook|हुक|caption|कैप्शन|hashtags?|हैशटैग|body|outro|scene|दृश्य|conclusion|निष्कर्ष)[\s:*_`~\\-]/i;
-
-        let inCtaBlock = false;
-
-        const blockLines = [];
+        /*
+         Second preference:
+         Find Hook 1 / Hook 2 / numbered hooks.
+        */
+        const lines = normalizeText(rawText).split("\n");
+        const hooks = [];
 
         for (const rawLine of lines) {
+            const cleaned = sanitizeMarkdown(
+                rawLine,
+                false
+            ).trim();
 
-            const line =
-                rawLine.trim();
+            if (!cleaned) continue;
 
-            if (!line) continue;
-
-            if (ctaHeaderRegex.test(line)) {
-
-                inCtaBlock = true;
+            if (
+                /^(?:caption|captions|hashtags?|हैशटैग|cta|call to action|script|скрип्ट|स्क्रिप्ट)/i.test(
+                    cleaned
+                )
+            ) {
                 continue;
             }
 
-            if (inCtaBlock) {
+            const match = cleaned.match(
+                /^(?:Hook\s*\d*[\s:.-]+|\d+[\).]\s+)(.+)$/i
+            );
 
-                if (nextSectionRegex.test(line)) {
-                    break;
-                }
+            if (!match) continue;
 
-                blockLines.push(line);
-            }
+            const hookText = match[1].trim();
+
+            if (!hookText) continue;
+
+            hooks.push(
+                `${hooks.length + 1}. ${hookText}`
+            );
+
+            if (hooks.length >= 7) break;
         }
 
-        // First preference: dedicated CTA section
-        if (blockLines.length > 0) {
+        return hooks.join("\n").trim();
+    }
 
-            for (const line of blockLines) {
+    /* =========================================================
+       CAPTION CLEANER
+    ========================================================= */
 
-                const cleaned =
-                    sanitizeMarkdown(
-                        line,
-                        false
-                    ).trim();
+    function cleanCaptionsOutput(rawText) {
+        if (!rawText) return "";
 
-                if (!cleaned) continue;
+        let section = extractSection(
+            rawText,
+            "captions"
+        );
 
-                const match =
-                    cleaned.match(
-                        /^(?:CTA\s*\d*[\s:-]+|\d+[\).]\s+)(.*)/i
-                    );
+        /*
+         If Caption heading exists, only that block is returned.
+        */
+        if (section) {
+            section = sanitizeMarkdown(
+                section,
+                false
+            );
 
-                if (match && match[1].trim()) {
+            section = section.replace(
+                /\n\s*(?:hashtags?|हैशटैग|tags?|cta|call to action|कॉल टू एक्शन)\s*[:\-–][\s\S]*$/i,
+                ""
+            );
 
-                    const ctaText =
-                        match[1].trim();
+            section = section.replace(
+                /(?:\s*#[\p{L}\p{N}_]+){2,}\s*$/gu,
+                ""
+            );
 
-                    if (
-                        !/^(?:script|body|outro|caption|hashtags?|hook)/i
-                            .test(ctaText)
-                    ) {
-
-                        ctaLines.push(
-                            `${ctaLines.length + 1}. ${ctaText}`
-                        );
-                    }
-
-                } else if (
-                    cleaned.length < 160
-                ) {
-
-                    ctaLines.push(
-                        `${ctaLines.length + 1}. ${cleaned}`
-                    );
-                }
-
-                if (ctaLines.length >= 7) {
-                    break;
-                }
-            }
+            return section.trim();
         }
 
-        // Fallback: ONLY explicit CTA numbered lines
-        if (ctaLines.length === 0) {
+        /*
+         No heading:
+         remove obvious unwanted sections.
+        */
+        let cleaned = normalizeText(rawText);
+
+        cleaned = cleaned.replace(
+            /(?:^|\n)\s*(?:hashtags?|हैशटैग|tags?)\s*[:\-–][\s\S]*$/i,
+            ""
+        );
+
+        cleaned = cleaned.replace(
+            /(?:^|\n)\s*(?:cta|call to action|कॉल टू एक्शन)\s*[:\-–][\s\S]*$/i,
+            ""
+        );
+
+        cleaned = cleaned.replace(
+            /(?:^|\n)\s*(?:script|scripts|स्क्रिप्ट)\s*[:\-–][\s\S]*$/i,
+            ""
+        );
+
+        cleaned = cleaned.replace(
+            /(?:\s*#[\p{L}\p{N}_]+){2,}\s*$/gu,
+            ""
+        );
+
+        return sanitizeMarkdown(
+            cleaned,
+            false
+        ).trim();
+    }
+
+    /* =========================================================
+       CTA CLEANER
+    ========================================================= */
+
+    function cleanCTAOutput(rawText) {
+        if (!rawText) return "";
+
+        let section = extractSection(
+            rawText,
+            "cta"
+        );
+
+        if (section) {
+            const lines = section.split("\n");
+            const ctas = [];
 
             for (const rawLine of lines) {
-
-                const cleaned =
-                    sanitizeMarkdown(
-                        rawLine,
-                        false
-                    ).trim();
+                const cleaned = sanitizeMarkdown(
+                    rawLine,
+                    false
+                ).trim();
 
                 if (!cleaned) continue;
 
-                const match =
-                    cleaned.match(
-                        /^(?:CTA\s*\d*[\s:-]+|\d+[\).]\s+)(.*)/i
-                    );
-
-                if (!match) continue;
-
-                const ctaText =
-                    match[1].trim();
+                let ctaText = cleaned.replace(
+                    /^(?:CTA\s*\d*[\s:.-]+|\d+[\).]\s*)/i,
+                    ""
+                ).trim();
 
                 if (!ctaText) continue;
 
                 if (
-                    /^(?:script|body|outro|caption|hashtags?|hook)/i
-                        .test(ctaText)
+                    /^(?:script|body|outro|caption|captions|hashtags?|hook|hooks)/i.test(
+                        ctaText
+                    )
                 ) {
                     continue;
                 }
 
-                ctaLines.push(
-                    `${ctaLines.length + 1}. ${ctaText}`
+                ctas.push(
+                    `${ctas.length + 1}. ${ctaText}`
                 );
 
-                if (ctaLines.length >= 7) {
-                    break;
-                }
+                if (ctas.length >= 7) break;
+            }
+
+            if (ctas.length) {
+                return ctas.join("\n");
             }
         }
 
-        return ctaLines.join("\n").trim();
+        /*
+         Fallback for numbered CTA output.
+        */
+        const lines = normalizeText(rawText).split("\n");
+        const ctas = [];
+
+        for (const rawLine of lines) {
+            const cleaned = sanitizeMarkdown(
+                rawLine,
+                false
+            ).trim();
+
+            if (!cleaned) continue;
+
+            if (
+                /^(?:script|body|outro|caption|captions|hashtags?|hook|hooks)/i.test(
+                    cleaned
+                )
+            ) {
+                continue;
+            }
+
+            const match = cleaned.match(
+                /^(?:CTA\s*\d*[\s:.-]+|\d+[\).]\s+)(.+)$/i
+            );
+
+            if (!match) continue;
+
+            const ctaText = match[1].trim();
+
+            if (!ctaText) continue;
+
+            ctas.push(
+                `${ctas.length + 1}. ${ctaText}`
+            );
+
+            if (ctas.length >= 7) break;
+        }
+
+        return ctas.join("\n").trim();
     }
 
-    // =========================================================
-    // MODE CLEANER
-    // =========================================================
+    /* =========================================================
+       MAIN MODE CLEANER
+    ========================================================= */
 
     function cleanAIOutputByMode(rawText, mode) {
-
         if (!rawText) return "";
 
         switch (mode) {
-
-            case "hashtags":
-                return extractHashtagsOnly(rawText);
-
             case "scripts":
                 return cleanScriptsOutput(rawText);
 
@@ -784,6 +595,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             case "captions":
                 return cleanCaptionsOutput(rawText);
+
+            case "hashtags":
+                return extractHashtagsOnly(rawText);
 
             case "cta":
                 return cleanCTAOutput(rawText);
@@ -796,41 +610,25 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // =========================================================
-    // FORMAT AI OUTPUT
-    // =========================================================
+    /* =========================================================
+       OUTPUT FORMATTER
+    ========================================================= */
 
-    function formatAIText(
-        text,
-        mode = "general"
-    ) {
-
+    function formatAIText(text, mode = "general") {
         if (!text) return "";
 
-        const processed =
-            cleanAIOutputByMode(
-                text,
-                mode
-            );
-
-        // =====================================================
-        // HASHTAGS
-        // =====================================================
+        const processed = cleanAIOutputByMode(
+            text,
+            mode
+        );
 
         if (mode === "hashtags") {
-
-            const safeTags =
-                escapeHTML(processed);
+            const safeTags = escapeHTML(processed);
 
             if (!safeTags.trim()) {
-
                 return `
-                    <p style="
-                        color:#d93025;
-                        margin:8px 0;
-                    ">
-                        No valid hashtags found.
-                        Please try generating again.
+                    <p style="color:#d93025;margin:8px 0;">
+                        No valid hashtags found. Please try generating again.
                     </p>
                 `;
             }
@@ -852,10 +650,6 @@ document.addEventListener("DOMContentLoaded", () => {
             `;
         }
 
-        // =====================================================
-        // EMPTY HOOKS / CTA
-        // =====================================================
-
         if (
             (
                 mode === "hooks" ||
@@ -863,49 +657,58 @@ document.addEventListener("DOMContentLoaded", () => {
             ) &&
             !processed.trim()
         ) {
-
             return `
-                <p style="
-                    color:#d93025;
-                    margin:8px 0;
-                ">
-                    No valid ${mode.toUpperCase()}
-                    lines found.
+                <p style="color:#d93025;margin:8px 0;">
+                    No valid ${mode.toUpperCase()} lines found.
                     Please try generating again.
                 </p>
             `;
         }
 
-        // =====================================================
-        // NORMAL CONTENT
-        // =====================================================
+        if (
+            mode === "scripts" &&
+            !processed.trim()
+        ) {
+            return `
+                <p style="color:#d93025;margin:8px 0;">
+                    No valid script was generated.
+                    Please try again.
+                </p>
+            `;
+        }
 
-        const lines =
-            processed.split("\n");
+        if (
+            mode === "captions" &&
+            !processed.trim()
+        ) {
+            return `
+                <p style="color:#d93025;margin:8px 0;">
+                    No valid caption was generated.
+                    Please try again.
+                </p>
+            `;
+        }
+
+        const lines = processed.split("\n");
 
         let htmlOutput = "";
 
         lines.forEach(line => {
-
-            const trimmed =
-                line.trim();
+            const trimmed = line.trim();
 
             if (!trimmed) {
-
                 htmlOutput +=
                     '<div style="margin:8px 0;"></div>';
-
                 return;
             }
 
-            const safeLine =
-                escapeHTML(trimmed);
+            const safeLine = escapeHTML(trimmed);
 
             if (
-                /^(?:Hook|Body|Outro|Main Script|Target Duration|Topic|हुक|बॉडी|आउट्रो)[\s:-]/i
-                    .test(trimmed)
+                /^(?:Hook|Body|Outro|Main Script|Target Duration|Topic|हुक|बॉडी|आउट्रो)[\s:-]/i.test(
+                    trimmed
+                )
             ) {
-
                 htmlOutput += `
                     <p style="
                         margin:10px 0 4px;
@@ -916,12 +719,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         ${safeLine}
                     </p>
                 `;
-
             } else if (
-                /^\d+[\).]\s*/
-                    .test(trimmed)
+                /^\d+[\).]\s*/.test(trimmed)
             ) {
-
                 htmlOutput += `
                     <p style="
                         margin:4px 0 6px;
@@ -931,9 +731,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         ${safeLine}
                     </p>
                 `;
-
             } else {
-
                 htmlOutput += `
                     <p style="
                         margin:4px 0 8px;
@@ -959,20 +757,18 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
     }
 
-    // =========================================================
-    // MESSAGE
-    // =========================================================
+    /* =========================================================
+       MESSAGE
+    ========================================================= */
 
     function showMessage(
         element,
         message,
         type = "normal"
     ) {
-
         if (!element) return;
 
-        const safeMessage =
-            escapeHTML(message);
+        const safeMessage = escapeHTML(message);
 
         let color = "";
 
@@ -984,106 +780,107 @@ document.addEventListener("DOMContentLoaded", () => {
             color = "#188038";
         }
 
-        element.innerHTML =
-            `<div style="${color ? `color:${color};` : ""}">
+        element.innerHTML = `
+            <div style="${color ? `color:${color};` : ""}">
                 ${safeMessage}
-            </div>`;
+            </div>
+        `;
     }
 
-    // =========================================================
-    // MODE PROMPT
-    // =========================================================
+    /* =========================================================
+       MODE PROMPTS
+    ========================================================= */
 
-    function getModePrompt(
-        topic,
-        mode
-    ) {
-
+    function getModePrompt(topic, mode) {
         switch (mode) {
-
             case "scripts":
-
                 return `
+OUTPUT_MODE: SCRIPTS
+
 Topic: "${topic}"
 
-IMPORTANT:
-Output ONLY the short video script.
+Generate ONLY a short video script.
 
-Include:
-1. Hook
-2. Body
-3. Outro
+Required structure:
+Hook
+Body
+Outro
 
-Do NOT include:
-- Caption
-- Hashtags
-- CTA options
-- Extra sections
-- Separate caption
-- Separate hashtag list
+STRICT RULES:
+- Output ONLY the script.
+- Do NOT generate a caption.
+- Do NOT generate hashtags.
+- Do NOT generate CTA.
+- Do NOT generate separate hooks.
+- Do NOT generate explanations.
+- Do NOT add any content outside the script.
 
 Return only the script.
 `;
 
             case "hooks":
-
                 return `
+OUTPUT_MODE: HOOKS
+
 Topic: "${topic}"
 
-IMPORTANT:
-Output ONLY 5 to 7 catchy opening hooks.
+Generate ONLY 5 to 7 catchy opening hooks.
 
-Rules:
-- Numbered list only
-- One hook per line
-- No full script
-- No caption
-- No hashtags
-- No CTA
-- No explanation
+STRICT RULES:
+- Numbered list only.
+- One hook per line.
+- Each line must be a hook.
+- No full script.
+- No body.
+- No outro.
+- No caption.
+- No hashtags.
+- No CTA.
+- No explanation.
 
-Return only the hooks.
+Return ONLY the hooks.
 `;
 
             case "captions":
-
                 return `
+OUTPUT_MODE: CAPTION
+
 Topic: "${topic}"
 
-IMPORTANT:
-Output ONLY one clean social media caption.
+Generate ONLY ONE clean social media caption.
 
-Rules:
-- Caption only
-- No video script
-- No hook list
-- No hashtag list
-- No separate CTA section
-- No headings
+STRICT RULES:
+- Caption only.
+- No script.
+- No hook list.
+- No hashtags.
+- No separate CTA.
+- No headings.
+- No explanation.
 
-Return only the caption.
+Return ONLY the caption.
 `;
 
             case "hashtags":
-
                 return `
+OUTPUT_MODE: HASHTAGS
+
 Topic: "${topic}"
 
-IMPORTANT:
-Output ONLY relevant hashtags.
+Generate ONLY relevant hashtags.
 
-Rules:
-- 15 to 25 hashtags
-- Every item MUST start with #
-- Separate hashtags with spaces
-- Hindi hashtags must remain complete
-- NO normal sentences
-- NO caption
-- NO script
-- NO hooks
-- NO CTA
-- NO headings
-- NO explanation
+STRICT RULES:
+- Generate 15 to 25 hashtags.
+- Every item MUST start with #.
+- Separate hashtags with spaces.
+- Hindi hashtags must remain complete.
+- No normal sentences.
+- No caption.
+- No script.
+- No hooks.
+- No CTA.
+- No headings.
+- No explanation.
 
 Example:
 #LIC #LifeInsurance #Savings #FinancialPlanning
@@ -1092,24 +889,24 @@ Return ONLY hashtags.
 `;
 
             case "cta":
-
                 return `
+OUTPUT_MODE: CTA
+
 Topic: "${topic}"
 
-IMPORTANT:
-Output ONLY 5 to 7 strong Call To Action lines.
+Generate ONLY 5 to 7 strong Call To Action lines.
 
-Rules:
-- Numbered list only
-- One CTA per line
-- CTA text only
-- No full script
-- No caption
-- No hashtags
-- No hook list
-- No explanation
+STRICT RULES:
+- Numbered list only.
+- One CTA per line.
+- CTA text only.
+- No full script.
+- No caption.
+- No hashtags.
+- No hooks.
+- No explanation.
 
-Return only CTA lines.
+Return ONLY CTA lines.
 `;
 
             default:
@@ -1117,20 +914,17 @@ Return only CTA lines.
         }
     }
 
-    // =========================================================
-    // MAIN CONTENT GENERATOR
-    // =========================================================
+    /* =========================================================
+       MAIN CONTENT GENERATION
+    ========================================================= */
 
     if (generateBtn) {
-
         generateBtn.addEventListener(
             "click",
             async () => {
-
-                const topic =
-                    topicInput
-                        ? topicInput.value.trim()
-                        : "";
+                const topic = topicInput
+                    ? topicInput.value.trim()
+                    : "";
 
                 const selectedContentType =
                     contentType
@@ -1146,7 +940,6 @@ Return only CTA lines.
                     activeContentMode;
 
                 if (!topic) {
-
                     showMessage(
                         result,
                         "Please enter a topic first.",
@@ -1173,7 +966,6 @@ Return only CTA lines.
                 );
 
                 if (result) {
-
                     result.innerHTML = `
                         <div style="text-align:center;">
                             <div style="
@@ -1182,7 +974,6 @@ Return only CTA lines.
                             ">
                                 ✨
                             </div>
-
                             <div>
                                 Creating your content...
                             </div>
@@ -1191,7 +982,6 @@ Return only CTA lines.
                 }
 
                 try {
-
                     const response =
                         await fetch(
                             `${API_BASE_URL}/generate`,
@@ -1206,6 +996,16 @@ Return only CTA lines.
                                 body: JSON.stringify({
                                     topic:
                                         finalTopicPayload,
+
+                                    /*
+                                     IMPORTANT:
+                                     Send mode separately so backend
+                                     can also understand which card
+                                     was selected.
+                                    */
+                                    mode: activeMode,
+                                    contentMode:
+                                        activeMode,
 
                                     contentType:
                                         selectedContentType,
@@ -1222,21 +1022,17 @@ Return only CTA lines.
                     let data = null;
 
                     try {
-
                         data =
                             JSON.parse(
                                 responseText
                             );
-
                     } catch (jsonErr) {
-
                         if (
                             responseText.includes("502") ||
                             responseText.includes("504") ||
                             responseText.includes("Bad Gateway") ||
                             responseText.includes("Gateway Timeout")
                         ) {
-
                             throw new Error(
                                 "Server sleep mode me hai ya start ho raha hai. Kripya 20 seconds intezar karke dubara click karein."
                             );
@@ -1244,20 +1040,19 @@ Return only CTA lines.
 
                         if (
                             responseText &&
-                            responseText.trim().length > 0 &&
+                            responseText
+                                .trim()
+                                .length > 0 &&
                             !responseText
                                 .trim()
                                 .startsWith("<")
                         ) {
-
                             data = {
                                 success: true,
                                 result:
                                     responseText.trim()
                             };
-
                         } else {
-
                             throw new Error(
                                 "Server is waking up. Please try again in a few moments."
                             );
@@ -1271,7 +1066,6 @@ Return only CTA lines.
                             data.success === false
                         )
                     ) {
-
                         throw new Error(
                             data && data.error
                                 ? data.error
@@ -1296,14 +1090,34 @@ Return only CTA lines.
                             generatedText
                         ).trim()
                     ) {
-
                         throw new Error(
                             "AI returned an empty response."
                         );
                     }
 
-                    if (result) {
+                    /*
+                     IMPORTANT:
+                     Even if backend sends mixed content,
+                     cleanAIOutputByMode() will isolate the
+                     selected mode before displaying it.
+                    */
+                    const finalCleanOutput =
+                        cleanAIOutputByMode(
+                            generatedText,
+                            activeMode
+                        );
 
+                    if (
+                        !String(
+                            finalCleanOutput
+                        ).trim()
+                    ) {
+                        throw new Error(
+                            `AI ne valid ${activeMode.toUpperCase()} output nahi diya. Please try again.`
+                        );
+                    }
+
+                    if (result) {
                         result.innerHTML = `
                             <div class="ai-generated-content">
                                 ${formatAIText(
@@ -1315,7 +1129,6 @@ Return only CTA lines.
                     }
 
                 } catch (error) {
-
                     console.error(
                         "Content Generation Error:",
                         error
@@ -1329,7 +1142,6 @@ Return only CTA lines.
                     );
 
                 } finally {
-
                     resetButton(
                         generateBtn
                     );
@@ -1338,16 +1150,14 @@ Return only CTA lines.
         );
     }
 
-    // =========================================================
-    // CONTENT IDEAS
-    // =========================================================
+    /* =========================================================
+       CONTENT IDEAS
+    ========================================================= */
 
     if (generateIdeasBtn) {
-
         generateIdeasBtn.addEventListener(
             "click",
             async () => {
-
                 const topic =
                     ideasTopic
                         ? ideasTopic.value.trim()
@@ -1367,7 +1177,6 @@ Return only CTA lines.
                         : 10;
 
                 if (!topic) {
-
                     showMessage(
                         ideasResult,
                         "Please enter a topic first.",
@@ -1388,7 +1197,6 @@ Return only CTA lines.
                 );
 
                 if (ideasResult) {
-
                     ideasResult.innerHTML = `
                         <div style="text-align:center;">
                             <div style="
@@ -1397,7 +1205,6 @@ Return only CTA lines.
                             ">
                                 💡
                             </div>
-
                             <div>
                                 Generating fresh content ideas...
                             </div>
@@ -1406,7 +1213,6 @@ Return only CTA lines.
                 }
 
                 try {
-
                     const response =
                         await fetch(
                             `${API_BASE_URL}/generate-ideas`,
@@ -1433,14 +1239,11 @@ Return only CTA lines.
                     let data = null;
 
                     try {
-
                         data =
                             JSON.parse(
                                 responseText
                             );
-
                     } catch (jsonErr) {
-
                         throw new Error(
                             "Ideas server response error. Server wake up ho raha ho sakta hai."
                         );
@@ -1453,7 +1256,6 @@ Return only CTA lines.
                             data.success === false
                         )
                     ) {
-
                         throw new Error(
                             data && data.error
                                 ? data.error
@@ -1478,18 +1280,14 @@ Return only CTA lines.
                     if (
                         ideas.length === 0
                     ) {
-
                         throw new Error(
                             "No ideas were generated. Please try again."
                         );
                     }
 
-                    renderIdeas(
-                        ideas
-                    );
+                    renderIdeas(ideas);
 
                 } catch (error) {
-
                     console.error(
                         "Ideas Generation Error:",
                         error
@@ -1503,7 +1301,6 @@ Return only CTA lines.
                     );
 
                 } finally {
-
                     resetButton(
                         generateIdeasBtn
                     );
@@ -1512,19 +1309,13 @@ Return only CTA lines.
         );
     }
 
-    // =========================================================
-    // RENDER IDEAS
-    // =========================================================
-
     function renderIdeas(ideas) {
-
         if (!ideasResult) return;
 
         ideasResult.innerHTML = "";
 
         ideas.forEach(
             (idea, index) => {
-
                 const item =
                     document.createElement(
                         "div"
@@ -1580,7 +1371,6 @@ Return only CTA lines.
                 useButton.addEventListener(
                     "click",
                     () => {
-
                         useIdea(
                             String(idea),
                             useButton
@@ -1611,15 +1401,10 @@ Return only CTA lines.
         );
     }
 
-    // =========================================================
-    // USE IDEA
-    // =========================================================
-
     function useIdea(
         idea,
         button
     ) {
-
         if (!topicInput) return;
 
         topicInput.value =
@@ -1628,22 +1413,19 @@ Return only CTA lines.
         topicInput.focus();
 
         window.scrollTo({
-            top:
-                Math.max(
-                    0,
-                    topicInput
-                        .getBoundingClientRect()
-                        .top +
+            top: Math.max(
+                0,
+                topicInput
+                    .getBoundingClientRect()
+                    .top +
                     window.scrollY -
                     120
-                ),
+            ),
 
-            behavior:
-                "smooth"
+            behavior: "smooth"
         });
 
         if (button) {
-
             const originalText =
                 button.textContent;
 
@@ -1655,29 +1437,25 @@ Return only CTA lines.
 
             setTimeout(
                 () => {
-
                     button.textContent =
                         originalText;
 
                     button.disabled =
                         false;
-
                 },
                 1500
             );
         }
     }
 
-    // =========================================================
-    // IMAGE GENERATOR
-    // =========================================================
+    /* =========================================================
+       IMAGE GENERATOR
+    ========================================================= */
 
     if (generateImageBtn) {
-
         generateImageBtn.addEventListener(
             "click",
             async () => {
-
                 const prompt =
                     imagePrompt
                         ? imagePrompt.value.trim()
@@ -1699,7 +1477,6 @@ Return only CTA lines.
                         : "1K";
 
                 if (!prompt) {
-
                     showMessage(
                         imageResult,
                         "Please enter an image prompt first.",
@@ -1720,7 +1497,6 @@ Return only CTA lines.
                 );
 
                 if (imageResult) {
-
                     imageResult.innerHTML = `
                         <div class="image-placeholder">
                             <span>🎨</span>
@@ -1732,7 +1508,6 @@ Return only CTA lines.
                 }
 
                 try {
-
                     const response =
                         await fetch(
                             `${API_BASE_URL}/generate-image`,
@@ -1745,15 +1520,11 @@ Return only CTA lines.
                                 },
 
                                 body: JSON.stringify({
-                                    prompt:
-                                        prompt,
-
+                                    prompt: prompt,
                                     imageType:
                                         selectedImageType,
-
                                     style:
                                         selectedStyle,
-
                                     imageSize:
                                         selectedSize
                                 })
@@ -1766,14 +1537,11 @@ Return only CTA lines.
                     let data = null;
 
                     try {
-
                         data =
                             JSON.parse(
                                 responseText
                             );
-
                     } catch (jsonErr) {
-
                         throw new Error(
                             "Image server se invalid response mila."
                         );
@@ -1786,7 +1554,6 @@ Return only CTA lines.
                             data.success === false
                         )
                     ) {
-
                         throw new Error(
                             data && data.error
                                 ? data.error
@@ -1803,7 +1570,6 @@ Return only CTA lines.
                         );
 
                     if (!imgData) {
-
                         throw new Error(
                             "No image was returned by the server."
                         );
@@ -1814,7 +1580,6 @@ Return only CTA lines.
                     );
 
                 } catch (error) {
-
                     console.error(
                         "Image Generation Error:",
                         error
@@ -1828,7 +1593,6 @@ Return only CTA lines.
                     );
 
                 } finally {
-
                     resetButton(
                         generateImageBtn
                     );
@@ -1837,18 +1601,12 @@ Return only CTA lines.
         );
     }
 
-    // =========================================================
-    // RENDER GENERATED IMAGE
-    // =========================================================
-
     function renderGeneratedImage(
         imageData
     ) {
-
         if (!imageResult) return;
 
-        imageResult.innerHTML =
-            "";
+        imageResult.innerHTML = "";
 
         const wrapper =
             document.createElement(
@@ -1895,7 +1653,6 @@ Return only CTA lines.
         downloadButton.addEventListener(
             "click",
             () => {
-
                 downloadImage(
                     imageData
                 );
@@ -1915,16 +1672,10 @@ Return only CTA lines.
         );
     }
 
-    // =========================================================
-    // DOWNLOAD IMAGE
-    // =========================================================
-
     function downloadImage(
         imageData
     ) {
-
         try {
-
             const link =
                 document.createElement(
                     "a"
@@ -1947,7 +1698,6 @@ Return only CTA lines.
             );
 
         } catch (error) {
-
             console.error(
                 "Image Download Error:",
                 error
@@ -1959,21 +1709,18 @@ Return only CTA lines.
         }
     }
 
-    // =========================================================
-    // CTRL + ENTER
-    // =========================================================
+    /* =========================================================
+       KEYBOARD SHORTCUTS
+    ========================================================= */
 
     if (topicInput) {
-
         topicInput.addEventListener(
             "keydown",
             event => {
-
                 if (
                     event.ctrlKey &&
                     event.key === "Enter"
                 ) {
-
                     event.preventDefault();
 
                     if (generateBtn) {
@@ -1985,19 +1732,18 @@ Return only CTA lines.
     }
 
     if (ideasTopic) {
-
         ideasTopic.addEventListener(
             "keydown",
             event => {
-
                 if (
                     event.ctrlKey &&
                     event.key === "Enter"
                 ) {
-
                     event.preventDefault();
 
-                    if (generateIdeasBtn) {
+                    if (
+                        generateIdeasBtn
+                    ) {
                         generateIdeasBtn.click();
                     }
                 }
@@ -2006,19 +1752,18 @@ Return only CTA lines.
     }
 
     if (imagePrompt) {
-
         imagePrompt.addEventListener(
             "keydown",
             event => {
-
                 if (
                     event.ctrlKey &&
                     event.key === "Enter"
                 ) {
-
                     event.preventDefault();
 
-                    if (generateImageBtn) {
+                    if (
+                        generateImageBtn
+                    ) {
                         generateImageBtn.click();
                     }
                 }
@@ -2026,22 +1771,20 @@ Return only CTA lines.
         );
     }
 
-    // =========================================================
-    // CARD MODE CONTROL
-    // =========================================================
+    /* =========================================================
+       CARD MODE SELECTION
+    ========================================================= */
 
     function attachCardMode(
         cardElement,
         modeName,
         defaultContentType
     ) {
-
         if (!cardElement) return;
 
         cardElement.addEventListener(
             "click",
             () => {
-
                 activeContentMode =
                     modeName;
 
@@ -2049,16 +1792,34 @@ Return only CTA lines.
                     contentType &&
                     defaultContentType
                 ) {
+                    /*
+                     Only change select value if
+                     that option actually exists.
+                    */
+                    const optionExists =
+                        Array.from(
+                            contentType.options
+                        ).some(
+                            option =>
+                                option.value ===
+                                defaultContentType
+                        );
 
-                    contentType.value =
-                        defaultContentType;
+                    if (optionExists) {
+                        contentType.value =
+                            defaultContentType;
+                    }
                 }
 
                 if (topicInput) {
-
                     topicInput.placeholder =
                         `Enter topic for ${modeName.toUpperCase()}...`;
                 }
+
+                console.log(
+                    "Active content mode:",
+                    activeContentMode
+                );
             }
         );
     }
@@ -2093,12 +1854,7 @@ Return only CTA lines.
         "Ad Copy"
     );
 
-    // =========================================================
-    // FINAL LOAD MESSAGE
-    // =========================================================
-
     console.log(
         "AI Content Agent frontend loaded successfully."
     );
-
 });
