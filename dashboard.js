@@ -1,4 +1,3 @@
-```javascript
 // ============================================================
 // AI CONTENT AGENT
 // DASHBOARD / PROFILE / SETTINGS / CUSTOMER PORTAL
@@ -1465,6 +1464,70 @@ function createDashboard() {
                         </button>
 
 
+                        <!-- CONNECT INSIDE PROFILE -->
+
+                        <div
+                            class="acaSettingRow"
+                            style="margin-top:18px;"
+                        >
+
+                            <div>
+
+                                <div class="acaSettingTitle">
+                                    🔗 Connect
+                                </div>
+
+                                <div class="acaSettingDescription">
+                                    View connected application services
+                                </div>
+
+                            </div>
+
+
+                            <button
+                                type="button"
+                                class="acaSettingAction"
+                                id="acaConnectButton"
+                            >
+                                Connected
+                            </button>
+
+                        </div>
+
+
+                        <div
+                            id="acaConnectPanel"
+                            class="acaUtilityPanel"
+                            style="display:none;"
+                        >
+
+                            <div class="acaUtilityTitle">
+                                🔗 Connected Services
+                            </div>
+
+                            <div class="acaUtilityText">
+                                Your account is securely connected
+                                with the application's authentication
+                                and cloud services.
+                            </div>
+
+                            <div
+                                class="acaConnectionStatus"
+                            >
+
+                                <span
+                                    class="acaConnectionDot"
+                                ></span>
+
+                                Account Connected
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- LOGOUT -->
+
                         <button
                             type="button"
                             id="acaProfileLogout"
@@ -1579,67 +1642,6 @@ function createDashboard() {
                                 </option>
 
                             </select>
-
-                        </div>
-
-
-                        <!-- CONNECT -->
-
-                        <div class="acaSettingRow">
-
-                            <div>
-
-                                <div class="acaSettingTitle">
-                                    🔗 Connect
-                                </div>
-
-                                <div class="acaSettingDescription">
-                                    View connected application services
-                                </div>
-
-                            </div>
-
-
-                            <button
-                                type="button"
-                                class="acaSettingAction"
-                                id="acaConnectButton"
-                            >
-                                Connected
-                            </button>
-
-                        </div>
-
-
-                        <!-- CONNECT INFORMATION -->
-
-                        <div
-                            id="acaConnectPanel"
-                            class="acaUtilityPanel"
-                            style="display:none;"
-                        >
-
-                            <div class="acaUtilityTitle">
-                                🔗 Connected Services
-                            </div>
-
-                            <div class="acaUtilityText">
-                                Your account is securely connected
-                                with the application's authentication
-                                and cloud services.
-                            </div>
-
-                            <div
-                                class="acaConnectionStatus"
-                            >
-
-                                <span
-                                    class="acaConnectionDot"
-                                ></span>
-
-                                Account Connected
-
-                            </div>
 
                         </div>
 
@@ -2109,42 +2111,6 @@ function createDashboard() {
 
 
     // ========================================================
-    // PASSWORD
-    // ========================================================
-
-    document
-        .getElementById("acaResetPassword")
-        .addEventListener(
-            "click",
-            resetPassword
-        );
-
-
-    // ========================================================
-    // SUPPORT
-    // ========================================================
-
-    document
-        .getElementById("acaSendSupport")
-        .addEventListener(
-            "click",
-            sendSupport
-        );
-
-
-    // ========================================================
-    // DELETE
-    // ========================================================
-
-    document
-        .getElementById("acaDeleteAccount")
-        .addEventListener(
-            "click",
-            deleteAccount
-        );
-
-
-    // ========================================================
     // CONNECT
     // ========================================================
 
@@ -2188,6 +2154,42 @@ function createDashboard() {
         );
 
     }
+
+
+    // ========================================================
+    // PASSWORD
+    // ========================================================
+
+    document
+        .getElementById("acaResetPassword")
+        .addEventListener(
+            "click",
+            resetPassword
+        );
+
+
+    // ========================================================
+    // SUPPORT
+    // ========================================================
+
+    document
+        .getElementById("acaSendSupport")
+        .addEventListener(
+            "click",
+            sendSupport
+        );
+
+
+    // ========================================================
+    // DELETE
+    // ========================================================
+
+    document
+        .getElementById("acaDeleteAccount")
+        .addEventListener(
+            "click",
+            deleteAccount
+        );
 
 
     // ========================================================
