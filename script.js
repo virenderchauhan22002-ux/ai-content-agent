@@ -20,6 +20,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const generateImageBtn = document.getElementById("generateImageBtn");
     const imageResult = document.getElementById("imageResult");
 
+    let lastGeneratedText = "";
+    let lastGeneratedData = null;
+
     /*
      * Remove old separate content cards.
      * HTML ko manually edit karne ki zarurat nahi.
@@ -32,6 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "ctaCard"
     ].forEach((id) => {
         const card = document.getElementById(id);
+
         if (card) {
             card.remove();
         }
@@ -45,6 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!button) return;
 
         button.disabled = true;
+
         button.dataset.originalText =
             originalText || button.textContent;
 
@@ -114,17 +119,11 @@ document.addEventListener("DOMContentLoaded", () => {
             return "";
         }
 
-        /*
-         * Remove accidental outer labels that the AI may add.
-         */
         text = text.replace(
             /^\s*(?:AI\s*)?(?:generated\s*)?(?:content|answer)\s*[:\-]?\s*/i,
             ""
         );
 
-        /*
-         * Normalize section names.
-         */
         text = text.replace(
             /^\s*(?:1\.\s*)?(?:hook|hooks|हुक)\s*[:\-]?\s*/gim,
             "Hook:\n"
@@ -150,9 +149,6 @@ document.addEventListener("DOMContentLoaded", () => {
             "CTA:\n"
         );
 
-        /*
-         * Remove duplicate blank lines.
-         */
         text = text.replace(/\n{3,}/g, "\n\n");
 
         return text.trim();
@@ -175,6 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (started) {
                     output.push("");
                 }
+
                 continue;
             }
 
@@ -290,11 +287,6 @@ document.addEventListener("DOMContentLoaded", () => {
             []
         );
 
-        /*
-         * Fallback:
-         * Agar AI headings properly nahi deta, complete response
-         * ko Script ke roop mein use karenge.
-         */
         if (!hook && !script && !caption && !hashtags && !cta) {
             script = text;
         }
@@ -303,9 +295,6 @@ document.addEventListener("DOMContentLoaded", () => {
             hashtags || text
         );
 
-        /*
-         * Hashtags ko script/caption se hatao.
-         */
         if (script) {
             script = script
                 .replace(/#[\p{L}\p{N}_]+/gu, "")
@@ -330,7 +319,10 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderFinalOutput(rawText) {
         if (!result) return;
 
+        lastGeneratedText = String(rawText || "");
         const data = buildFinalOutput(rawText);
+
+        lastGeneratedData = data;
 
         let html = "";
 
@@ -344,6 +336,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     ">
                         Hook
                     </div>
+
                     <div style="
                         color:#17304f;
                         line-height:1.65;
@@ -364,6 +357,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     ">
                         Script
                     </div>
+
                     <div style="
                         color:#17304f;
                         line-height:1.65;
@@ -385,6 +379,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     ">
                         Caption
                     </div>
+
                     <div style="
                         color:#17304f;
                         line-height:1.65;
@@ -405,6 +400,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     ">
                         Hashtags
                     </div>
+
                     <div style="
                         color:#1677ff;
                         line-height:2;
@@ -426,6 +422,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     ">
                         CTA
                     </div>
+
                     <div style="
                         color:#17304f;
                         line-height:1.65;
@@ -449,6 +446,7 @@ document.addEventListener("DOMContentLoaded", () => {
         result.innerHTML = `
             <div
                 class="ai-generated-content"
+                id="aiGeneratedContent"
                 style="
                     text-align:left;
                     word-break:break-word;
@@ -457,13 +455,1054 @@ document.addEventListener("DOMContentLoaded", () => {
                 ${html}
             </div>
         `;
+
+        addResultActions();
+    }
+
+    /* =========================================================
+       RESULT ACTIONS
+       Copy / Rewrite / Regenerate / TXT / PDF
+    ========================================================= */
+
+    function getReadableResultText() {
+        if (!lastGeneratedData) {
+            return lastGeneratedText || "";
+        }
+
+        const sections = [];
+
+        if (lastGeneratedData.hook) {
+            sections.push(
+                "Hook:\n" +
+                lastGeneratedData.hook
+            );
+        }
+
+        if (lastGeneratedData.script) {
+            sections.push(
+                "Script:\n" +
+                lastGeneratedData.script
+            );
+        }
+
+        if (lastGeneratedData.caption) {
+            sections.push(
+                "Caption:\n" +
+                lastGeneratedData.caption
+            );
+        }
+
+        if (lastGeneratedData.hashtags) {
+            sections.push(
+                "Hashtags:\n" +
+                lastGeneratedData.hashtags
+            );
+        }
+
+        if (lastGeneratedData.cta) {
+            sections.push(
+                "CTA:\n" +
+                lastGeneratedData.cta
+            );
+        }
+
+        return sections.join("\n\n").trim();
+    }
+
+    function addResultActions() {
+        if (!result) return;
+
+        const oldActions =
+            document.getElementById(
+                "aiResultActions"
+            );
+
+        if (oldActions) {
+            oldActions.remove();
+        }
+
+        const actions =
+            document.createElement("div");
+
+        actions.id =
+            "aiResultActions";
+
+        actions.style.cssText = `
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+            margin-top:18px;
+            padding-top:16px;
+            border-top:1px solid rgba(16,44,87,0.10);
+        `;
+
+        actions.innerHTML = `
+            <button
+                type="button"
+                id="copyResultBtn"
+                style="
+                    border:none;
+                    border-radius:10px;
+                    padding:10px 14px;
+                    background:#eef5ff;
+                    color:#1558a6;
+                    font-weight:600;
+                    cursor:pointer;
+                "
+            >
+                📋 Copy
+            </button>
+
+            <button
+                type="button"
+                id="rewriteResultBtn"
+                style="
+                    border:none;
+                    border-radius:10px;
+                    padding:10px 14px;
+                    background:#f1edff;
+                    color:#5d3dbb;
+                    font-weight:600;
+                    cursor:pointer;
+                "
+            >
+                ✨ Rewrite
+            </button>
+
+            <button
+                type="button"
+                id="regenerateResultBtn"
+                style="
+                    border:none;
+                    border-radius:10px;
+                    padding:10px 14px;
+                    background:#eaf8f0;
+                    color:#177245;
+                    font-weight:600;
+                    cursor:pointer;
+                "
+            >
+                🔄 Regenerate
+            </button>
+
+            <button
+                type="button"
+                id="txtResultBtn"
+                style="
+                    border:none;
+                    border-radius:10px;
+                    padding:10px 14px;
+                    background:#fff5e8;
+                    color:#a45b00;
+                    font-weight:600;
+                    cursor:pointer;
+                "
+            >
+                📄 TXT
+            </button>
+
+            <button
+                type="button"
+                id="pdfResultBtn"
+                style="
+                    border:none;
+                    border-radius:10px;
+                    padding:10px 14px;
+                    background:#ffecec;
+                    color:#b42318;
+                    font-weight:600;
+                    cursor:pointer;
+                "
+            >
+                📑 PDF
+            </button>
+        `;
+
+        result.appendChild(actions);
+
+        document
+            .getElementById("copyResultBtn")
+            ?.addEventListener(
+                "click",
+                copyResult
+            );
+
+        document
+            .getElementById("rewriteResultBtn")
+            ?.addEventListener(
+                "click",
+                rewriteResult
+            );
+
+        document
+            .getElementById("regenerateResultBtn")
+            ?.addEventListener(
+                "click",
+                regenerateResult
+            );
+
+        document
+            .getElementById("txtResultBtn")
+            ?.addEventListener(
+                "click",
+                downloadTXT
+            );
+
+        document
+            .getElementById("pdfResultBtn")
+            ?.addEventListener(
+                "click",
+                downloadPDF
+            );
+    }
+
+    /* =========================================================
+       COPY
+    ========================================================= */
+
+    async function copyResult() {
+        const text = getReadableResultText();
+
+        if (!text) {
+            alert("Copy karne ke liye content available nahi hai.");
+            return;
+        }
+
+        const button =
+            document.getElementById(
+                "copyResultBtn"
+            );
+
+        try {
+            await navigator.clipboard.writeText(
+                text
+            );
+
+            if (button) {
+                const oldText =
+                    button.textContent;
+
+                button.textContent =
+                    "✓ Copied";
+
+                setTimeout(() => {
+                    button.textContent =
+                        oldText;
+                }, 1500);
+            }
+
+        } catch (error) {
+            console.error(
+                "Copy Error:",
+                error
+            );
+
+            const textarea =
+                document.createElement(
+                    "textarea"
+                );
+
+            textarea.value = text;
+
+            document.body.appendChild(
+                textarea
+            );
+
+            textarea.select();
+
+            document.execCommand(
+                "copy"
+            );
+
+            textarea.remove();
+
+            if (button) {
+                button.textContent =
+                    "✓ Copied";
+
+                setTimeout(() => {
+                    button.textContent =
+                        "📋 Copy";
+                }, 1500);
+            }
+        }
+    }
+
+    /* =========================================================
+       MAIN GENERATION REQUEST
+    ========================================================= */
+
+    async function generateContentRequest(
+        prompt,
+        selectedContentType,
+        selectedLanguage
+    ) {
+        const response =
+            await fetch(
+                `${API_BASE_URL}/generate`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        topic: prompt,
+                        contentType:
+                            selectedContentType,
+                        language:
+                            selectedLanguage
+                    })
+                }
+            );
+
+        const responseText =
+            await response.text();
+
+        let data;
+
+        try {
+            data =
+                JSON.parse(
+                    responseText
+                );
+        } catch (error) {
+            throw new Error(
+                "Server ne valid response nahi diya. Please try again."
+            );
+        }
+
+        if (
+            !response.ok ||
+            (
+                data &&
+                data.success === false
+            )
+        ) {
+            throw new Error(
+                data && data.error
+                    ? data.error
+                    : "Content generation failed."
+            );
+        }
+
+        const generatedText =
+            data &&
+            (
+                data.result ||
+                data.content ||
+                data.reply ||
+                data.output ||
+                data.text
+            );
+
+        if (
+            !generatedText ||
+            !String(generatedText).trim()
+        ) {
+            throw new Error(
+                "AI returned an empty response."
+            );
+        }
+
+        return String(
+            generatedText
+        );
+    }
+
+    /* =========================================================
+       REGENERATE
+    ========================================================= */
+
+    async function regenerateResult() {
+        if (!topicInput) return;
+
+        const topic =
+            topicInput.value.trim();
+
+        const selectedContentType =
+            contentType
+                ? contentType.value
+                : "Instagram Reel";
+
+        const selectedLanguage =
+            language
+                ? language.value
+                : "Hindi";
+
+        if (!topic) {
+            alert(
+                "Pehle topic enter karein."
+            );
+            return;
+        }
+
+        const button =
+            document.getElementById(
+                "regenerateResultBtn"
+            );
+
+        setButtonLoading(
+            button,
+            "🔄 Generating...",
+            "🔄 Regenerate"
+        );
+
+        try {
+            const prompt =
+                getMainPrompt(
+                    topic,
+                    selectedContentType,
+                    selectedLanguage
+                );
+
+            const generatedText =
+                await generateContentRequest(
+                    prompt,
+                    selectedContentType,
+                    selectedLanguage
+                );
+
+            renderFinalOutput(
+                generatedText
+            );
+
+        } catch (error) {
+            console.error(
+                "Regenerate Error:",
+                error
+            );
+
+            showMessage(
+                result,
+                error.message ||
+                    "Regeneration failed.",
+                "error"
+            );
+
+        } finally {
+            resetButton(
+                button
+            );
+        }
+    }
+
+    /* =========================================================
+       REWRITE
+    ========================================================= */
+
+    async function rewriteResult() {
+        const currentText =
+            getReadableResultText();
+
+        if (!currentText) {
+            alert(
+                "Rewrite karne ke liye pehle content generate karein."
+            );
+            return;
+        }
+
+        const selectedContentType =
+            contentType
+                ? contentType.value
+                : "Instagram Reel";
+
+        const selectedLanguage =
+            language
+                ? language.value
+                : "Hindi";
+
+        const button =
+            document.getElementById(
+                "rewriteResultBtn"
+            );
+
+        setButtonLoading(
+            button,
+            "✨ Rewriting...",
+            "✨ Rewrite"
+        );
+
+        if (result) {
+            result.innerHTML = `
+                <div style="
+                    text-align:center;
+                    padding:15px;
+                ">
+                    <div style="
+                        font-size:24px;
+                        margin-bottom:8px;
+                    ">
+                        ✨
+                    </div>
+
+                    <div>
+                        Rewriting your content...
+                    </div>
+                </div>
+            `;
+        }
+
+        try {
+            const rewritePrompt = `
+Rewrite the following social media content.
+
+Make it:
+- More natural
+- More engaging
+- More professional
+- Easy to understand
+- Better suited for social media
+- Different from the original wording
+- Same meaning
+- Same language
+
+Return ONLY these five sections in exactly this order:
+
+Hook:
+Write one improved attention-grabbing hook.
+
+Script:
+Rewrite and improve the complete script.
+
+Caption:
+Rewrite and improve the caption.
+
+Hashtags:
+Write 15 to 25 relevant hashtags. Every hashtag must start with #.
+
+CTA:
+Write 3 improved call-to-action lines.
+
+STRICT RULES:
+- Do not add any other sections.
+- Do not add explanations.
+- Do not use markdown symbols.
+- Do not use code blocks.
+- Keep the content in ${selectedLanguage}.
+
+ORIGINAL CONTENT:
+
+${currentText}
+`;
+
+            const generatedText =
+                await generateContentRequest(
+                    rewritePrompt,
+                    selectedContentType,
+                    selectedLanguage
+                );
+
+            renderFinalOutput(
+                generatedText
+            );
+
+        } catch (error) {
+            console.error(
+                "Rewrite Error:",
+                error
+            );
+
+            showMessage(
+                result,
+                error.message ||
+                    "Rewrite failed.",
+                "error"
+            );
+
+        } finally {
+            resetButton(
+                button
+            );
+        }
+    }
+
+    /* =========================================================
+       TXT DOWNLOAD
+    ========================================================= */
+
+    function downloadTXT() {
+        const text =
+            getReadableResultText();
+
+        if (!text) {
+            alert(
+                "Download karne ke liye content available nahi hai."
+            );
+            return;
+        }
+
+        try {
+            const blob =
+                new Blob(
+                    [text],
+                    {
+                        type:
+                            "text/plain;charset=utf-8"
+                    }
+                );
+
+            const url =
+                URL.createObjectURL(
+                    blob
+                );
+
+            const link =
+                document.createElement(
+                    "a"
+                );
+
+            link.href = url;
+
+            link.download =
+                "ai-content-agent-content.txt";
+
+            document.body.appendChild(
+                link
+            );
+
+            link.click();
+
+            document.body.removeChild(
+                link
+            );
+
+            setTimeout(() => {
+                URL.revokeObjectURL(
+                    url
+                );
+            }, 1000);
+
+        } catch (error) {
+            console.error(
+                "TXT Download Error:",
+                error
+            );
+
+            alert(
+                "TXT download failed. Please try again."
+            );
+        }
+    }
+
+    /* =========================================================
+       PDF SUPPORT
+       Uses browser canvas + jsPDF.
+       No backend/API cost.
+    ========================================================= */
+
+    function loadExternalScript(src) {
+        return new Promise(
+            (resolve, reject) => {
+                const existing =
+                    document.querySelector(
+                        `script[src="${src}"]`
+                    );
+
+                if (existing) {
+                    if (
+                        existing.dataset.loaded ===
+                        "true"
+                    ) {
+                        resolve();
+                        return;
+                    }
+
+                    existing.addEventListener(
+                        "load",
+                        resolve,
+                        {
+                            once: true
+                        }
+                    );
+
+                    existing.addEventListener(
+                        "error",
+                        reject,
+                        {
+                            once: true
+                        }
+                    );
+
+                    return;
+                }
+
+                const script =
+                    document.createElement(
+                        "script"
+                    );
+
+                script.src = src;
+
+                script.onload = () => {
+                    script.dataset.loaded =
+                        "true";
+
+                    resolve();
+                };
+
+                script.onerror = () => {
+                    reject(
+                        new Error(
+                            "PDF library load failed."
+                        )
+                    );
+                };
+
+                document.head.appendChild(
+                    script
+                );
+            }
+        );
+    }
+
+    async function downloadPDF() {
+        const text =
+            getReadableResultText();
+
+        if (!text) {
+            alert(
+                "PDF banane ke liye content available nahi hai."
+            );
+            return;
+        }
+
+        const button =
+            document.getElementById(
+                "pdfResultBtn"
+            );
+
+        const originalText =
+            button
+                ? button.textContent
+                : "📑 PDF";
+
+        if (button) {
+            button.disabled = true;
+            button.textContent =
+                "📑 Creating PDF...";
+            button.style.opacity =
+                "0.7";
+        }
+
+        try {
+            /*
+             * Load html2canvas.
+             */
+            await loadExternalScript(
+                "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+            );
+
+            /*
+             * Load jsPDF.
+             */
+            await loadExternalScript(
+                "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+            );
+
+            if (
+                typeof html2canvas ===
+                "undefined"
+            ) {
+                throw new Error(
+                    "PDF canvas library unavailable."
+                );
+            }
+
+            if (
+                !window.jspdf ||
+                !window.jspdf.jsPDF
+            ) {
+                throw new Error(
+                    "PDF library unavailable."
+                );
+            }
+
+            /*
+             * Create temporary printable card.
+             */
+            const pdfContent =
+                document.createElement(
+                    "div"
+                );
+
+            pdfContent.style.position =
+                "fixed";
+
+            pdfContent.style.left =
+                "-100000px";
+
+            pdfContent.style.top =
+                "0";
+
+            pdfContent.style.width =
+                "794px";
+
+            pdfContent.style.padding =
+                "45px";
+
+            pdfContent.style.background =
+                "#ffffff";
+
+            pdfContent.style.color =
+                "#17304f";
+
+            pdfContent.style.fontFamily =
+                "Arial, sans-serif";
+
+            pdfContent.style.fontSize =
+                "16px";
+
+            pdfContent.style.lineHeight =
+                "1.7";
+
+            pdfContent.innerHTML = `
+                <div style="
+                    font-size:26px;
+                    font-weight:700;
+                    color:#102c57;
+                    margin-bottom:8px;
+                ">
+                    AI Content Agent
+                </div>
+
+                <div style="
+                    font-size:14px;
+                    color:#667085;
+                    margin-bottom:25px;
+                ">
+                    AI Generated Content
+                </div>
+
+                ${escapeHTML(text)
+                    .replace(
+                        /\n/g,
+                        "<br>"
+                    )}
+            `;
+
+            document.body.appendChild(
+                pdfContent
+            );
+
+            const canvas =
+                await html2canvas(
+                    pdfContent,
+                    {
+                        scale:2,
+                        backgroundColor:
+                            "#ffffff",
+                        useCORS:true
+                    }
+                );
+
+            document.body.removeChild(
+                pdfContent
+            );
+
+            const {
+                jsPDF
+            } = window.jspdf;
+
+            const pdf =
+                new jsPDF({
+                    orientation:
+                        "p",
+                    unit:
+                        "mm",
+                    format:
+                        "a4"
+                });
+
+            const pageWidth =
+                pdf.internal.pageSize
+                    .getWidth();
+
+            const pageHeight =
+                pdf.internal.pageSize
+                    .getHeight();
+
+            const margin =
+                10;
+
+            const usableWidth =
+                pageWidth -
+                margin * 2;
+
+            const imageHeight =
+                canvas.height *
+                usableWidth /
+                canvas.width;
+
+            let remainingHeight =
+                imageHeight;
+
+            let position =
+                margin;
+
+            const imageData =
+                canvas.toDataURL(
+                    "image/jpeg",
+                    0.92
+                );
+
+            pdf.addImage(
+                imageData,
+                "JPEG",
+                margin,
+                position,
+                usableWidth,
+                imageHeight
+            );
+
+            remainingHeight -=
+                pageHeight -
+                margin * 2;
+
+            while (
+                remainingHeight > 0
+            ) {
+                position =
+                    margin -
+                    (
+                        imageHeight -
+                        remainingHeight
+                    );
+
+                pdf.addPage();
+
+                pdf.addImage(
+                    imageData,
+                    "JPEG",
+                    margin,
+                    position,
+                    usableWidth,
+                    imageHeight
+                );
+
+                remainingHeight -=
+                    pageHeight -
+                    margin * 2;
+            }
+
+            pdf.save(
+                "ai-content-agent-content.pdf"
+            );
+
+        } catch (error) {
+            console.error(
+                "PDF Download Error:",
+                error
+            );
+
+            /*
+             * Fallback:
+             * Browser print → Save as PDF.
+             */
+            try {
+                const printWindow =
+                    window.open(
+                        "",
+                        "_blank"
+                    );
+
+                if (!printWindow) {
+                    throw new Error(
+                        "Popup blocked."
+                    );
+                }
+
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>AI Content Agent</title>
+
+                        <style>
+                            body {
+                                font-family:
+                                    Arial,
+                                    sans-serif;
+
+                                padding:40px;
+
+                                color:#17304f;
+
+                                line-height:1.7;
+                            }
+
+                            h1 {
+                                color:#102c57;
+                            }
+
+                            .content {
+                                white-space:pre-wrap;
+                            }
+
+                            @media print {
+                                body {
+                                    padding:20px;
+                                }
+                            }
+                        </style>
+                    </head>
+
+                    <body>
+                        <h1>
+                            AI Content Agent
+                        </h1>
+
+                        <div class="content">
+                            ${escapeHTML(text)}
+                        </div>
+                    </body>
+                    </html>
+                `);
+
+                printWindow.document.close();
+
+                printWindow.focus();
+
+                setTimeout(() => {
+                    printWindow.print();
+                }, 500);
+
+            } catch (fallbackError) {
+                console.error(
+                    "PDF fallback error:",
+                    fallbackError
+                );
+
+                alert(
+                    "PDF download failed. Please try again."
+                );
+            }
+
+        } finally {
+            if (button) {
+                button.disabled =
+                    false;
+
+                button.textContent =
+                    originalText;
+
+                button.style.opacity =
+                    "1";
+            }
+        }
     }
 
     /* =========================================================
        ERROR MESSAGE
     ========================================================= */
 
-    function showMessage(element, message, type = "normal") {
+    function showMessage(
+        element,
+        message,
+        type = "normal"
+    ) {
         if (!element) return;
 
         const color =
@@ -474,7 +1513,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     : "";
 
         element.innerHTML = `
-            <div style="${color ? `color:${color};` : ""}">
+            <div style="
+                ${color
+                    ? `color:${color};`
+                    : ""}
+            ">
                 ${escapeHTML(message)}
             </div>
         `;
@@ -534,170 +1577,114 @@ STRICT RULES:
     ========================================================= */
 
     if (generateBtn) {
-        generateBtn.addEventListener("click", async () => {
-            const topic =
-                topicInput
-                    ? topicInput.value.trim()
-                    : "";
+        generateBtn.addEventListener(
+            "click",
+            async () => {
+                const topic =
+                    topicInput
+                        ? topicInput.value.trim()
+                        : "";
 
-            const selectedContentType =
-                contentType
-                    ? contentType.value
-                    : "Instagram Reel";
+                const selectedContentType =
+                    contentType
+                        ? contentType.value
+                        : "Instagram Reel";
 
-            const selectedLanguage =
-                language
-                    ? language.value
-                    : "Hindi";
+                const selectedLanguage =
+                    language
+                        ? language.value
+                        : "Hindi";
 
-            if (!topic) {
-                showMessage(
-                    result,
-                    "Please enter a topic first.",
-                    "error"
-                );
+                if (!topic) {
+                    showMessage(
+                        result,
+                        "Please enter a topic first.",
+                        "error"
+                    );
 
-                if (topicInput) {
-                    topicInput.focus();
+                    if (topicInput) {
+                        topicInput.focus();
+                    }
+
+                    return;
                 }
 
-                return;
-            }
-
-            setButtonLoading(
-                generateBtn,
-                "✨ Generating...",
-                "✨ Generate Content"
-            );
-
-            if (result) {
-                result.innerHTML = `
-                    <div style="
-                        text-align:center;
-                        padding:15px;
-                    ">
-                        <div style="
-                            font-size:24px;
-                            margin-bottom:8px;
-                        ">
-                            ✨
-                        </div>
-                        <div>
-                            Creating your complete content...
-                        </div>
-                    </div>
-                `;
-            }
-
-            try {
-                const response = await fetch(
-                    `${API_BASE_URL}/generate`,
-                    {
-                        method: "POST",
-
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        },
-
-                        body: JSON.stringify({
-                            topic: getMainPrompt(
-                                topic,
-                                selectedContentType,
-                                selectedLanguage
-                            ),
-
-                            contentType:
-                                selectedContentType,
-
-                            language:
-                                selectedLanguage
-                        })
-                    }
+                setButtonLoading(
+                    generateBtn,
+                    "✨ Generating...",
+                    "✨ Generate Content"
                 );
 
-                const responseText =
-                    await response.text();
+                if (result) {
+                    result.innerHTML = `
+                        <div style="
+                            text-align:center;
+                            padding:15px;
+                        ">
+                            <div style="
+                                font-size:24px;
+                                margin-bottom:8px;
+                            ">
+                                ✨
+                            </div>
 
-                let data;
+                            <div>
+                                Creating your complete content...
+                            </div>
+                        </div>
+                    `;
+                }
 
                 try {
-                    data = JSON.parse(
-                        responseText
+                    const prompt =
+                        getMainPrompt(
+                            topic,
+                            selectedContentType,
+                            selectedLanguage
+                        );
+
+                    const generatedText =
+                        await generateContentRequest(
+                            prompt,
+                            selectedContentType,
+                            selectedLanguage
+                        );
+
+                    renderFinalOutput(
+                        generatedText
                     );
+
                 } catch (error) {
-                    throw new Error(
-                        "Server ne valid response nahi diya. Please try again."
-                    );
-                }
-
-                if (
-                    !response.ok ||
-                    (
-                        data &&
-                        data.success === false
-                    )
-                ) {
-                    throw new Error(
-                        data && data.error
-                            ? data.error
-                            : "Content generation failed."
-                    );
-                }
-
-                const generatedText =
-                    data &&
-                    (
-                        data.result ||
-                        data.content ||
-                        data.reply ||
-                        data.output ||
-                        data.text
+                    console.error(
+                        "Content Generation Error:",
+                        error
                     );
 
-                if (
-                    !generatedText ||
-                    !String(generatedText).trim()
-                ) {
-                    throw new Error(
-                        "AI returned an empty response."
+                    let message =
+                        error.message ||
+                        "Something went wrong.";
+
+                    if (
+                        error.name ===
+                        "TypeError"
+                    ) {
+                        message =
+                            "Backend se connection nahi ho pa raha. Render server check karke 20 seconds baad try karein.";
+                    }
+
+                    showMessage(
+                        result,
+                        message,
+                        "error"
+                    );
+
+                } finally {
+                    resetButton(
+                        generateBtn
                     );
                 }
-
-                renderFinalOutput(
-                    generatedText
-                );
-
-            } catch (error) {
-                console.error(
-                    "Content Generation Error:",
-                    error
-                );
-
-                let message =
-                    error.message ||
-                    "Something went wrong.";
-
-                if (
-                    error.name ===
-                    "TypeError"
-                ) {
-                    message =
-                        "Backend se connection nahi ho pa raha. Render server check karke 20 seconds baad try karein.";
-                }
-
-                showMessage(
-                    result,
-                    message,
-                    "error"
-                );
-
-            } finally {
-                resetButton(
-                    generateBtn
-                );
             }
-        });
+        );
     }
 
     /* =========================================================
@@ -825,7 +1812,9 @@ STRICT RULES:
                         );
                     }
 
-                    renderIdeas(ideas);
+                    renderIdeas(
+                        ideas
+                    );
 
                 } catch (error) {
                     console.error(
@@ -849,7 +1838,9 @@ STRICT RULES:
         );
     }
 
-    function renderIdeas(ideas) {
+    function renderIdeas(
+        ideas
+    ) {
         if (!ideasResult) return;
 
         ideasResult.innerHTML = "";
@@ -947,19 +1938,23 @@ STRICT RULES:
     ) {
         if (!topicInput) return;
 
-        topicInput.value = idea;
+        topicInput.value =
+            idea;
+
         topicInput.focus();
 
         window.scrollTo({
             top:
                 Math.max(
                     0,
-                    topicInput.getBoundingClientRect()
+                    topicInput
+                        .getBoundingClientRect()
                         .top +
                         window.scrollY -
                         120
                 ),
-            behavior: "smooth"
+            behavior:
+                "smooth"
         });
 
         if (button) {
@@ -1037,6 +2032,7 @@ STRICT RULES:
                     imageResult.innerHTML = `
                         <div class="image-placeholder">
                             <span>🎨</span>
+
                             <p>
                                 Creating your image...
                             </p>
