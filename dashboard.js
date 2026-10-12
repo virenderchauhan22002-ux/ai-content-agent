@@ -1,6 +1,8 @@
+```javascript
 // ============================================================
 // AI CONTENT AGENT
 // DASHBOARD / PROFILE / SETTINGS / CUSTOMER PORTAL
+// FINAL PREMIUM 3D UI
 // ============================================================
 
 import {
@@ -41,8 +43,10 @@ let db = null;
 let currentUser = null;
 let dashboardCreated = false;
 
+
 // Customer-Side Read-Only Settings Store
 let activeAppSettings = {
+
     ads: {
         enabled: true,
         frequency: "medium",
@@ -50,22 +54,27 @@ let activeAppSettings = {
         placement: "between-actions",
         network: "none"
     },
+
     announcement: {
         enabled: false,
         title: "",
         message: ""
     },
+
     plans: {
         freeContentLimit: 10,
         freeChatLimit: 10,
         freeImageLimit: 3,
         paidNoAds: true
     },
+
     app: {
         appVersion: APP_VERSION,
         maintenanceMode: false
     }
+
 };
+
 
 let userPlan = {
     isPaid: false,
@@ -135,7 +144,7 @@ function waitForFirebase() {
 
 
 // ============================================================
-// STYLES
+// FINAL PREMIUM 3D STYLES
 // ============================================================
 
 function addStyles() {
@@ -148,18 +157,33 @@ function addStyles() {
         return;
     }
 
+
     const style =
         document.createElement("style");
 
+
     style.id =
         "aiContentDashboardStyles";
+
 
     style.textContent = `
 
         .profile {
             cursor: pointer !important;
             user-select: none;
+            transition:
+                transform .2s ease,
+                box-shadow .2s ease;
         }
+
+        .profile:hover {
+            transform: translateY(-2px);
+        }
+
+
+        /* =====================================================
+           OVERLAY
+           ===================================================== */
 
         #acaDashboardOverlay {
             position: fixed;
@@ -168,318 +192,1038 @@ function addStyles() {
             display: none;
             align-items: center;
             justify-content: center;
-            padding: 15px;
+            padding: 14px;
             box-sizing: border-box;
-            background: rgba(0, 0, 0, 0.55);
+
+            background:
+                radial-gradient(
+                    circle at 20% 10%,
+                    rgba(59,130,246,.18),
+                    transparent 35%
+                ),
+                radial-gradient(
+                    circle at 90% 90%,
+                    rgba(99,102,241,.18),
+                    transparent 40%
+                ),
+                rgba(7,15,35,.68);
+
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
         }
+
+
+        /* =====================================================
+           MAIN PANEL
+           ===================================================== */
 
         #acaDashboardPanel {
-            width: min(1000px, 100%);
-            max-height: 90vh;
-            background: #ffffff;
-            border-radius: 18px;
+            width: min(1060px, 100%);
+            max-height: 91vh;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #ffffff 0%,
+                    #f8fbff 45%,
+                    #eef5ff 100%
+                );
+
+            border: 1px solid rgba(255,255,255,.85);
+
+            border-radius: 26px;
+
             overflow: hidden;
+
             display: flex;
-            box-shadow: 0 25px 70px rgba(0,0,0,.30);
+
+            box-shadow:
+                0 35px 90px rgba(0,0,0,.30),
+                0 12px 30px rgba(37,99,235,.15),
+                inset 0 1px 0 rgba(255,255,255,.95);
+
+            position: relative;
         }
+
+
+        /* =====================================================
+           SIDEBAR
+           ===================================================== */
 
         #acaDashboardSidebar {
-            width: 210px;
+            width: 225px;
             flex-shrink: 0;
-            background: #f7f8ff;
-            border-right: 1px solid #e5e6ef;
-            padding: 18px;
+
+            background:
+                linear-gradient(
+                    160deg,
+                    #f9fcff 0%,
+                    #eef5ff 100%
+                );
+
+            border-right: 1px solid #dbe7f7;
+
+            padding: 20px 14px;
+
             box-sizing: border-box;
+
             overflow-y: auto;
+
+            box-shadow:
+                5px 0 18px rgba(37,99,235,.05);
         }
 
+
         #acaDashboardSidebar h3 {
-            margin: 0 0 16px;
+            margin: 3px 8px 20px;
+
             font-size: 18px;
-            color: #181927;
+
+            color: #13213d;
+
+            font-weight: 800;
+
+            letter-spacing: -.3px;
         }
+
 
         .acaDashboardNav {
             width: 100%;
-            display: block;
-            border: none;
+
+            display: flex;
+            align-items: center;
+            gap: 9px;
+
+            border: 1px solid transparent;
+
             background: transparent;
-            color: #5f6170;
+
+            color: #65738b;
+
             text-align: left;
-            padding: 10px 11px;
-            border-radius: 9px;
-            margin-bottom: 5px;
+
+            padding: 12px;
+
+            border-radius: 13px;
+
+            margin-bottom: 6px;
+
             cursor: pointer;
+
             font-size: 13px;
+            font-weight: 600;
+
+            transition: all .2s ease;
+
+            box-sizing: border-box;
         }
+
 
         .acaDashboardNav:hover {
-            background: #e9eaff;
-            color: #5556df;
+            color: #2563eb;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #ffffff,
+                    #eef5ff
+                );
+
+            border-color: #dbeafe;
+
+            transform: translateX(2px);
+
+            box-shadow:
+                0 5px 14px rgba(37,99,235,.08);
         }
 
+
         .acaDashboardNav.active {
-            background: #e2e3ff;
-            color: #5556df;
-            font-weight: 600;
+            color: #ffffff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #2563eb,
+                    #4f46e5
+                );
+
+            border-color: #3b82f6;
+
+            font-weight: 700;
+
+            box-shadow:
+                0 8px 20px rgba(37,99,235,.25),
+                inset 0 1px 0 rgba(255,255,255,.25);
+
+            transform: translateY(-1px);
         }
+
+
+        /* =====================================================
+           CONTENT
+           ===================================================== */
 
         #acaDashboardContent {
             position: relative;
+
             flex: 1;
+
             min-width: 0;
+
             overflow-y: auto;
-            padding: 25px;
+
+            padding: 30px;
+
             box-sizing: border-box;
         }
+
 
         #acaDashboardClose {
             position: absolute;
-            top: 14px;
-            right: 14px;
-            width: 34px;
-            height: 34px;
-            border: none;
+
+            top: 17px;
+            right: 17px;
+
+            width: 38px;
+            height: 38px;
+
+            border: 1px solid #dbe5f2;
+
             border-radius: 50%;
-            background: #f0f1f6;
-            color: #555766;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #ffffff,
+                    #edf4fc
+                );
+
+            color: #52627a;
+
             cursor: pointer;
+
             font-size: 17px;
+
             z-index: 2;
+
+            box-shadow:
+                0 5px 14px rgba(30,64,175,.10);
+
+            transition: all .2s ease;
         }
+
+
+        #acaDashboardClose:hover {
+            color: #dc2626;
+
+            transform:
+                rotate(90deg)
+                scale(1.05);
+
+            box-shadow:
+                0 7px 18px rgba(220,38,38,.15);
+        }
+
+
+        /* =====================================================
+           SECTIONS
+           ===================================================== */
 
         .acaDashboardSection {
             display: none;
-            padding-top: 5px;
-            padding-right: 35px;
+
+            padding-top: 4px;
+            padding-right: 38px;
         }
+
 
         .acaDashboardSection.active {
             display: block;
+            animation: acaSectionIn .22s ease;
         }
+
+
+        @keyframes acaSectionIn {
+
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+        }
+
 
         .acaDashboardSection h2 {
-            margin: 0 0 18px;
-            color: #181927;
-            font-size: 22px;
+            margin: 0 0 20px;
+
+            color: #12213d;
+
+            font-size: 25px;
+
+            font-weight: 800;
+
+            letter-spacing: -.5px;
         }
+
 
         .acaDashboardSection p {
-            color: #666875;
+            color: #65738b;
+
             font-size: 14px;
-            line-height: 1.6;
+
+            line-height: 1.65;
         }
+
+
+        /* =====================================================
+           CARDS
+           ===================================================== */
 
         .acaDashboardCard {
-            background: #fafaff;
-            border: 1px solid #e5e6ef;
-            border-radius: 14px;
-            padding: 18px;
-            margin-bottom: 15px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #ffffff,
+                    #f4f8ff
+                );
+
+            border: 1px solid #dce7f5;
+
+            border-radius: 18px;
+
+            padding: 20px;
+
+            margin-bottom: 16px;
+
+            box-shadow:
+                0 12px 30px rgba(30,64,175,.07),
+                inset 0 1px 0 rgba(255,255,255,.95);
+
+            transition:
+                transform .2s ease,
+                box-shadow .2s ease;
         }
+
+
+        .acaDashboardCard:hover {
+
+            box-shadow:
+                0 16px 35px rgba(30,64,175,.10),
+                inset 0 1px 0 rgba(255,255,255,.95);
+
+        }
+
+
+        /* =====================================================
+           PROFILE AVATAR
+           ===================================================== */
 
         #acaProfileAvatar {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
+
+            width: 68px;
+            height: 68px;
+
+            border-radius: 20px;
+
             display: flex;
+
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #4f6cff, #716cff);
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #2563eb,
+                    #4f46e5
+                );
+
             color: white;
+
             font-size: 25px;
-            font-weight: 700;
+
+            font-weight: 800;
+
             margin-bottom: 16px;
+
+            box-shadow:
+                0 12px 25px rgba(37,99,235,.25),
+                inset 0 1px 0 rgba(255,255,255,.30);
+
+            border: 1px solid rgba(255,255,255,.35);
         }
+
+
+        /* =====================================================
+           PLAN BADGE
+           ===================================================== */
+
+        .acaPlanBadge {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            padding: 7px 12px;
+
+            border-radius: 999px;
+
+            font-size: 11px;
+
+            font-weight: 800;
+
+            text-transform: uppercase;
+
+            letter-spacing: .4px;
+
+            box-shadow:
+                0 4px 10px rgba(0,0,0,.05);
+        }
+
+
+        .acaPlanBadge.free {
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #eef2f7,
+                    #dce4ee
+                );
+
+            color: #475569;
+        }
+
+
+        .acaPlanBadge.paid {
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #dcfce7,
+                    #bbf7d0
+                );
+
+            color: #15803d;
+        }
+
+
+        /* =====================================================
+           LABELS
+           ===================================================== */
 
         .acaDashboardLabel {
+
             display: block;
-            margin: 13px 0 6px;
-            color: #343545;
-            font-size: 13px;
-            font-weight: 600;
+
+            margin: 14px 0 7px;
+
+            color: #263653;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            letter-spacing: .2px;
         }
+
+
+        /* =====================================================
+           INPUTS
+           ===================================================== */
 
         .acaDashboardInput {
+
             width: 100%;
+
             box-sizing: border-box;
-            padding: 11px 12px;
-            border: 1px solid #dfe0e8;
-            border-radius: 10px;
-            background: white;
-            color: #181927;
+
+            padding: 12px 13px;
+
+            border: 1px solid #d8e2ef;
+
+            border-radius: 12px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #ffffff,
+                    #f8fbff
+                );
+
+            color: #17243d;
+
             font-family: inherit;
+
             font-size: 13px;
+
             outline: none;
+
+            box-shadow:
+                inset 0 2px 5px rgba(30,64,175,.035),
+                0 2px 5px rgba(30,64,175,.025);
+
+            transition:
+                border-color .2s ease,
+                box-shadow .2s ease;
         }
+
 
         .acaDashboardInput:focus {
-            border-color: #5964ed;
+
+            border-color: #5b8def;
+
+            box-shadow:
+                0 0 0 3px rgba(59,130,246,.10),
+                inset 0 2px 5px rgba(30,64,175,.035);
         }
+
+
+        /* =====================================================
+           BUTTONS
+           ===================================================== */
 
         .acaDashboardButton {
-            border: none;
-            border-radius: 10px;
-            padding: 11px 16px;
+
+            border: 1px solid transparent;
+
+            border-radius: 12px;
+
+            padding: 12px 17px;
+
             margin-top: 15px;
-            background: #5964ed;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #2563eb,
+                    #4f46e5
+                );
+
             color: white;
+
             font-size: 13px;
-            font-weight: 600;
+
+            font-weight: 700;
+
             cursor: pointer;
+
+            box-shadow:
+                0 8px 18px rgba(37,99,235,.20),
+                inset 0 1px 0 rgba(255,255,255,.25);
+
+            transition: all .2s ease;
         }
+
 
         .acaDashboardButton:hover {
-            opacity: .92;
+
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 11px 23px rgba(37,99,235,.25),
+                inset 0 1px 0 rgba(255,255,255,.25);
         }
+
+
+        .acaDashboardButton:active {
+            transform: translateY(0);
+        }
+
 
         .acaDashboardButton.secondary {
-            background: #70717f;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #64748b,
+                    #475569
+                );
+
+            box-shadow:
+                0 7px 16px rgba(71,85,105,.16);
         }
+
 
         .acaDashboardButton.danger {
-            background: #d93025;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #ef4444,
+                    #dc2626
+                );
+
+            box-shadow:
+                0 8px 18px rgba(220,38,38,.18);
         }
 
-        .acaDashboardButton.success {
-            background: #188038;
+
+        /* =====================================================
+           PROFILE LOGOUT
+           ===================================================== */
+
+        #acaProfileLogout {
+
+            width: 100%;
+
+            margin-top: 20px;
+
+            padding: 13px 16px;
+
+            border-radius: 13px;
+
+            border: 1px solid #fecaca;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #fffafa,
+                    #fff1f2
+                );
+
+            color: #dc2626;
+
+            font-size: 13px;
+
+            font-weight: 800;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 7px 18px rgba(220,38,38,.07);
+
+            transition: all .2s ease;
         }
+
+
+        #acaProfileLogout:hover {
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #fee2e2,
+                    #fecaca
+                );
+
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 10px 22px rgba(220,38,38,.12);
+        }
+
+
+        /* =====================================================
+           SETTINGS ROW
+           ===================================================== */
 
         .acaSettingRow {
+
             display: flex;
+
             align-items: center;
+
             justify-content: space-between;
+
             gap: 15px;
-            padding: 15px 0;
-            border-bottom: 1px solid #e6e7ee;
+
+            padding: 16px 2px;
+
+            border-bottom: 1px solid #e4ebf4;
         }
+
 
         .acaSettingRow:last-child {
             border-bottom: none;
         }
 
+
         .acaSettingTitle {
-            color: #292a39;
+
+            color: #243451;
+
             font-size: 14px;
-            font-weight: 600;
+
+            font-weight: 700;
         }
+
 
         .acaSettingDescription {
+
             margin-top: 4px;
-            color: #777987;
+
+            color: #7a879b;
+
             font-size: 12px;
+
+            line-height: 1.4;
         }
+
+
+        /* =====================================================
+           CONNECT PANEL
+           ===================================================== */
+
+        .acaSettingAction {
+
+            flex-shrink: 0;
+
+            min-width: 82px;
+
+            padding: 9px 12px;
+
+            border-radius: 10px;
+
+            border: 1px solid #d7e3f4;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #ffffff,
+                    #eef5ff
+                );
+
+            color: #2563eb;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 5px 12px rgba(37,99,235,.07);
+
+            transition: all .2s ease;
+        }
+
+
+        .acaSettingAction:hover {
+
+            transform: translateY(-1px);
+
+            border-color: #93c5fd;
+
+            box-shadow:
+                0 7px 16px rgba(37,99,235,.11);
+        }
+
+
+        .acaUtilityPanel {
+
+            margin-top: 13px;
+
+            padding: 15px;
+
+            border-radius: 14px;
+
+            border: 1px solid #dbe7f7;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #f9fcff,
+                    #edf5ff
+                );
+
+            box-shadow:
+                inset 0 1px 0 #ffffff,
+                0 7px 16px rgba(37,99,235,.05);
+        }
+
+
+        .acaUtilityTitle {
+
+            font-size: 13px;
+
+            font-weight: 800;
+
+            color: #243451;
+
+            margin-bottom: 5px;
+        }
+
+
+        .acaUtilityText {
+
+            font-size: 12px;
+
+            color: #718096;
+
+            line-height: 1.55;
+        }
+
+
+        .acaConnectionStatus {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 7px;
+
+            margin-top: 10px;
+
+            padding: 7px 10px;
+
+            border-radius: 999px;
+
+            background: #ecfdf5;
+
+            color: #15803d;
+
+            font-size: 11px;
+
+            font-weight: 800;
+        }
+
+
+        .acaConnectionDot {
+
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: #22c55e;
+
+            box-shadow:
+                0 0 0 4px rgba(34,197,94,.10);
+        }
+
+
+        /* =====================================================
+           DANGER BOX
+           ===================================================== */
 
         .acaDangerBox {
-            background: #fff5f5;
-            border: 1px solid #ffd4d1;
-            border-radius: 12px;
-            padding: 16px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #fffafa,
+                    #fff1f2
+                );
+
+            border: 1px solid #fecaca;
+
+            border-radius: 16px;
+
+            padding: 18px;
+
+            box-shadow:
+                0 10px 24px rgba(220,38,38,.06);
         }
 
-        /* Announcement Banner */
+
+        /* =====================================================
+           BANNERS
+           ===================================================== */
+
         #acaCustomerAnnouncement {
+
             display: none;
-            background: #eef2ff;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #eef5ff,
+                    #e0e7ff
+                );
+
             border: 1px solid #c7d2fe;
-            border-radius: 12px;
+
+            border-radius: 14px;
+
             padding: 14px 18px;
+
             margin-bottom: 18px;
+
             color: #3730a3;
+
+            box-shadow:
+                0 8px 18px rgba(79,70,229,.07);
         }
+
 
         #acaCustomerAnnouncement strong {
+
             display: block;
+
             font-size: 15px;
+
             margin-bottom: 4px;
+
             color: #1e1b4b;
         }
 
+
         #acaCustomerAnnouncement p {
+
             margin: 0;
+
             font-size: 13px;
+
             color: #3730a3;
+
             line-height: 1.5;
         }
 
-        /* Maintenance Banner */
+
         #acaMaintenanceBanner {
+
             display: none;
-            background: #fffbeb;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #fffbeb,
+                    #fef3c7
+                );
+
             border: 1px solid #fde68a;
-            border-radius: 12px;
+
+            border-radius: 14px;
+
             padding: 14px 18px;
+
             margin-bottom: 18px;
+
             color: #92400e;
+
             font-size: 13px;
-            font-weight: 600;
+
+            font-weight: 700;
+
             line-height: 1.5;
         }
 
-        /* Customer Plan Badge */
-        .acaPlanBadge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
 
-        .acaPlanBadge.free {
-            background: #e2e8f0;
-            color: #475569;
-        }
-
-        .acaPlanBadge.paid {
-            background: #dcfce7;
-            color: #15803d;
-        }
+        /* =====================================================
+           RESPONSIVE
+           ===================================================== */
 
         @media (max-width: 700px) {
+
             #acaDashboardOverlay {
-                padding: 10px;
+                padding: 8px;
             }
+
 
             #acaDashboardPanel {
+
                 width: 100%;
-                max-height: 94vh;
+
+                max-height: 95vh;
+
                 flex-direction: column;
-                border-radius: 15px;
+
+                border-radius: 20px;
             }
 
+
             #acaDashboardSidebar {
+
                 width: 100%;
+
                 display: flex;
+
                 gap: 5px;
+
                 overflow-x: auto;
+
                 padding: 9px;
+
                 border-right: none;
-                border-bottom: 1px solid #e5e6ef;
+
+                border-bottom: 1px solid #dbe7f7;
+
+                box-shadow:
+                    0 4px 12px rgba(37,99,235,.05);
             }
+
 
             #acaDashboardSidebar h3 {
                 display: none;
             }
 
+
             .acaDashboardNav {
+
                 width: auto;
+
                 min-width: max-content;
+
                 white-space: nowrap;
+
                 margin: 0;
+
+                padding: 10px 12px;
             }
+
 
             #acaDashboardContent {
-                padding: 20px;
+
+                padding: 22px 18px;
             }
+
 
             .acaDashboardSection {
-                padding-right: 5px;
+
+                padding-right: 3px;
             }
+
+
+            .acaDashboardSection h2 {
+
+                font-size: 22px;
+
+                padding-right: 35px;
+            }
+
+
+            .acaSettingRow {
+                align-items: flex-start;
+            }
+
+
+            .acaSettingAction {
+                min-width: 72px;
+            }
+
         }
+
+
+        @media (max-width: 450px) {
+
+            #acaDashboardContent {
+                padding: 18px 14px;
+            }
+
+
+            .acaDashboardCard {
+                padding: 16px;
+            }
+
+
+            .acaDashboardSection h2 {
+                font-size: 20px;
+            }
+
+        }
+
     `;
 
+
     document.head.appendChild(style);
+
 }
 
 
@@ -493,19 +1237,24 @@ function createDashboard() {
         return;
     }
 
+
     if (!document.body) {
         return;
     }
+
 
     dashboardCreated = true;
 
     addStyles();
 
+
     const overlay =
         document.createElement("div");
 
+
     overlay.id =
         "acaDashboardOverlay";
+
 
     overlay.innerHTML = `
 
@@ -517,6 +1266,7 @@ function createDashboard() {
                     My Account
                 </h3>
 
+
                 <button
                     type="button"
                     class="acaDashboardNav active"
@@ -524,6 +1274,7 @@ function createDashboard() {
                 >
                     👤 Profile
                 </button>
+
 
                 <button
                     type="button"
@@ -533,6 +1284,7 @@ function createDashboard() {
                     ⚙️ Settings
                 </button>
 
+
                 <button
                     type="button"
                     class="acaDashboardNav"
@@ -540,6 +1292,7 @@ function createDashboard() {
                 >
                     🔒 Privacy
                 </button>
+
 
                 <button
                     type="button"
@@ -549,6 +1302,7 @@ function createDashboard() {
                     📄 Terms
                 </button>
 
+
                 <button
                     type="button"
                     class="acaDashboardNav"
@@ -557,6 +1311,7 @@ function createDashboard() {
                     ℹ️ About
                 </button>
 
+
                 <button
                     type="button"
                     class="acaDashboardNav"
@@ -564,6 +1319,7 @@ function createDashboard() {
                 >
                     💬 Support
                 </button>
+
 
                 <button
                     type="button"
@@ -586,14 +1342,22 @@ function createDashboard() {
                     ✕
                 </button>
 
-                <!-- System Notice Banners -->
+
                 <div id="acaMaintenanceBanner">
                     ⚠️ Scheduled Maintenance: Some features of the application may be temporarily limited.
                 </div>
 
+
                 <div id="acaCustomerAnnouncement">
-                    <strong id="acaCustomerAnnouncementTitle"></strong>
-                    <p id="acaCustomerAnnouncementMessage"></p>
+
+                    <strong
+                        id="acaCustomerAnnouncementTitle"
+                    ></strong>
+
+                    <p
+                        id="acaCustomerAnnouncementMessage"
+                    ></p>
+
                 </div>
 
 
@@ -606,22 +1370,43 @@ function createDashboard() {
                     class="acaDashboardSection active"
                 >
 
-                    <h2>Profile</h2>
+                    <h2>
+                        Profile
+                    </h2>
+
 
                     <div class="acaDashboardCard">
 
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                            <div id="acaProfileAvatar">
+                        <div
+                            style="
+                                display:flex;
+                                justify-content:space-between;
+                                align-items:flex-start;
+                                gap:15px;
+                            "
+                        >
+
+                            <div
+                                id="acaProfileAvatar"
+                            >
                                 AI
                             </div>
-                            <span id="acaPlanBadgeContainer" class="acaPlanBadge free">
+
+
+                            <span
+                                id="acaPlanBadgeContainer"
+                                class="acaPlanBadge free"
+                            >
                                 Free Plan
                             </span>
+
                         </div>
+
 
                         <label class="acaDashboardLabel">
                             Name
                         </label>
+
 
                         <input
                             id="acaProfileName"
@@ -630,9 +1415,11 @@ function createDashboard() {
                             placeholder="Enter your name"
                         >
 
+
                         <label class="acaDashboardLabel">
                             Email
                         </label>
+
 
                         <input
                             id="acaProfileEmail"
@@ -641,9 +1428,11 @@ function createDashboard() {
                             readonly
                         >
 
+
                         <label class="acaDashboardLabel">
                             User ID
                         </label>
+
 
                         <input
                             id="acaProfileUid"
@@ -652,9 +1441,11 @@ function createDashboard() {
                             readonly
                         >
 
+
                         <label class="acaDashboardLabel">
                             Current Tier / Plan
                         </label>
+
 
                         <input
                             id="acaProfilePlan"
@@ -664,12 +1455,21 @@ function createDashboard() {
                             readonly
                         >
 
+
                         <button
                             type="button"
                             id="acaSaveProfile"
                             class="acaDashboardButton"
                         >
                             Save Profile
+                        </button>
+
+
+                        <button
+                            type="button"
+                            id="acaProfileLogout"
+                        >
+                            🚪 Logout
                         </button>
 
                     </div>
@@ -686,9 +1486,14 @@ function createDashboard() {
                     class="acaDashboardSection"
                 >
 
-                    <h2>Settings</h2>
+                    <h2>
+                        Settings
+                    </h2>
+
 
                     <div class="acaDashboardCard">
+
+                        <!-- NOTIFICATIONS -->
 
                         <div class="acaSettingRow">
 
@@ -704,6 +1509,7 @@ function createDashboard() {
 
                             </div>
 
+
                             <input
                                 type="checkbox"
                                 id="acaNotifications"
@@ -711,6 +1517,8 @@ function createDashboard() {
 
                         </div>
 
+
+                        <!-- COMPACT MODE -->
 
                         <div class="acaSettingRow">
 
@@ -726,6 +1534,7 @@ function createDashboard() {
 
                             </div>
 
+
                             <input
                                 type="checkbox"
                                 id="acaCompactMode"
@@ -733,6 +1542,8 @@ function createDashboard() {
 
                         </div>
 
+
+                        <!-- LANGUAGE -->
 
                         <div class="acaSettingRow">
 
@@ -748,10 +1559,11 @@ function createDashboard() {
 
                             </div>
 
+
                             <select
                                 id="acaLanguage"
                                 class="acaDashboardInput"
-                                style="width:auto;"
+                                style="width:auto;min-width:120px;"
                             >
 
                                 <option value="English">
@@ -771,6 +1583,69 @@ function createDashboard() {
                         </div>
 
 
+                        <!-- CONNECT -->
+
+                        <div class="acaSettingRow">
+
+                            <div>
+
+                                <div class="acaSettingTitle">
+                                    🔗 Connect
+                                </div>
+
+                                <div class="acaSettingDescription">
+                                    View connected application services
+                                </div>
+
+                            </div>
+
+
+                            <button
+                                type="button"
+                                class="acaSettingAction"
+                                id="acaConnectButton"
+                            >
+                                Connected
+                            </button>
+
+                        </div>
+
+
+                        <!-- CONNECT INFORMATION -->
+
+                        <div
+                            id="acaConnectPanel"
+                            class="acaUtilityPanel"
+                            style="display:none;"
+                        >
+
+                            <div class="acaUtilityTitle">
+                                🔗 Connected Services
+                            </div>
+
+                            <div class="acaUtilityText">
+                                Your account is securely connected
+                                with the application's authentication
+                                and cloud services.
+                            </div>
+
+                            <div
+                                class="acaConnectionStatus"
+                            >
+
+                                <span
+                                    class="acaConnectionDot"
+                                ></span>
+
+                                Account Connected
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- PASSWORD -->
+
                         <div class="acaSettingRow">
 
                             <div>
@@ -785,6 +1660,7 @@ function createDashboard() {
 
                             </div>
 
+
                             <button
                                 type="button"
                                 id="acaResetPassword"
@@ -796,6 +1672,8 @@ function createDashboard() {
                         </div>
 
 
+                        <!-- USAGE -->
+
                         <div class="acaSettingRow">
 
                             <div>
@@ -804,7 +1682,10 @@ function createDashboard() {
                                     Account Usage Limits
                                 </div>
 
-                                <div class="acaSettingDescription" id="acaAccountLimitsDisplay">
+                                <div
+                                    class="acaSettingDescription"
+                                    id="acaAccountLimitsDisplay"
+                                >
                                     Content: - | Chat: - | Images: -
                                 </div>
 
@@ -812,6 +1693,8 @@ function createDashboard() {
 
                         </div>
 
+
+                        <!-- VERSION -->
 
                         <div class="acaSettingRow">
 
@@ -827,7 +1710,11 @@ function createDashboard() {
 
                             </div>
 
-                            <strong id="acaSettingsAppVersion">
+
+                            <strong
+                                id="acaSettingsAppVersion"
+                                style="color:#2563eb;"
+                            >
                                 ${APP_VERSION}
                             </strong>
 
@@ -847,7 +1734,10 @@ function createDashboard() {
                     class="acaDashboardSection"
                 >
 
-                    <h2>Privacy Policy</h2>
+                    <h2>
+                        Privacy Policy
+                    </h2>
+
 
                     <div class="acaDashboardCard">
 
@@ -885,7 +1775,10 @@ function createDashboard() {
                     class="acaDashboardSection"
                 >
 
-                    <h2>Terms & Conditions</h2>
+                    <h2>
+                        Terms & Conditions
+                    </h2>
+
 
                     <div class="acaDashboardCard">
 
@@ -918,7 +1811,10 @@ function createDashboard() {
                     class="acaDashboardSection"
                 >
 
-                    <h2>About</h2>
+                    <h2>
+                        About
+                    </h2>
+
 
                     <div class="acaDashboardCard">
 
@@ -936,7 +1832,9 @@ function createDashboard() {
 
                         <p>
                             Version:
-                            <strong id="acaAboutAppVersion">
+                            <strong
+                                id="acaAboutAppVersion"
+                            >
                                 ${APP_VERSION}
                             </strong>
                         </p>
@@ -955,7 +1853,10 @@ function createDashboard() {
                     class="acaDashboardSection"
                 >
 
-                    <h2>Support</h2>
+                    <h2>
+                        Support
+                    </h2>
+
 
                     <div class="acaDashboardCard">
 
@@ -963,9 +1864,11 @@ function createDashboard() {
                             Need help? Send us your question or issue.
                         </p>
 
+
                         <label class="acaDashboardLabel">
                             Subject
                         </label>
+
 
                         <input
                             id="acaSupportSubject"
@@ -974,16 +1877,22 @@ function createDashboard() {
                             placeholder="Enter subject"
                         >
 
+
                         <label class="acaDashboardLabel">
                             Message
                         </label>
 
+
                         <textarea
                             id="acaSupportMessage"
                             class="acaDashboardInput"
-                            style="min-height:120px;resize:vertical;"
+                            style="
+                                min-height:120px;
+                                resize:vertical;
+                            "
                             placeholder="Describe your issue..."
                         ></textarea>
+
 
                         <button
                             type="button"
@@ -1007,7 +1916,10 @@ function createDashboard() {
                     class="acaDashboardSection"
                 >
 
-                    <h2>Delete Account</h2>
+                    <h2>
+                        Delete Account
+                    </h2>
+
 
                     <div class="acaDangerBox">
 
@@ -1019,6 +1931,7 @@ function createDashboard() {
                         <p>
                             This action cannot be undone.
                         </p>
+
 
                         <button
                             type="button"
@@ -1038,22 +1951,24 @@ function createDashboard() {
 
     `;
 
+
     document.body.appendChild(overlay);
+
 
     applyPublicSettingsToUI();
 
 
     // ========================================================
-    // EXISTING PROFILE
+    // EXISTING PROFILE ICON
     // ========================================================
 
     const profile =
         document.querySelector(".profile");
 
+
     if (profile) {
 
-        profile.style.cursor =
-            "pointer";
+        profile.style.cursor = "pointer";
 
         profile.title =
             "Open Profile & Settings";
@@ -1072,6 +1987,7 @@ function createDashboard() {
             "click",
             openDashboard
         );
+
 
         profile.addEventListener(
             "keydown",
@@ -1099,9 +2015,7 @@ function createDashboard() {
     // ========================================================
 
     document
-        .getElementById(
-            "acaDashboardClose"
-        )
+        .getElementById("acaDashboardClose")
         .addEventListener(
             "click",
             closeDashboard
@@ -1150,16 +2064,47 @@ function createDashboard() {
 
 
     // ========================================================
-    // PROFILE
+    // PROFILE SAVE
     // ========================================================
 
     document
-        .getElementById(
-            "acaSaveProfile"
-        )
+        .getElementById("acaSaveProfile")
         .addEventListener(
             "click",
             saveProfile
+        );
+
+
+    // ========================================================
+    // PROFILE LOGOUT
+    // Uses existing auth.js logout logic.
+    // ========================================================
+
+    document
+        .getElementById("acaProfileLogout")
+        .addEventListener(
+            "click",
+            () => {
+
+                const existingLogout =
+                    document.getElementById(
+                        "logoutBtn"
+                    );
+
+
+                if (existingLogout) {
+
+                    existingLogout.click();
+
+                } else {
+
+                    console.warn(
+                        "Existing Firebase logout button not found."
+                    );
+
+                }
+
+            }
         );
 
 
@@ -1168,9 +2113,7 @@ function createDashboard() {
     // ========================================================
 
     document
-        .getElementById(
-            "acaResetPassword"
-        )
+        .getElementById("acaResetPassword")
         .addEventListener(
             "click",
             resetPassword
@@ -1182,9 +2125,7 @@ function createDashboard() {
     // ========================================================
 
     document
-        .getElementById(
-            "acaSendSupport"
-        )
+        .getElementById("acaSendSupport")
         .addEventListener(
             "click",
             sendSupport
@@ -1196,9 +2137,7 @@ function createDashboard() {
     // ========================================================
 
     document
-        .getElementById(
-            "acaDeleteAccount"
-        )
+        .getElementById("acaDeleteAccount")
         .addEventListener(
             "click",
             deleteAccount
@@ -1206,13 +2145,57 @@ function createDashboard() {
 
 
     // ========================================================
+    // CONNECT
+    // ========================================================
+
+    const connectButton =
+        document.getElementById(
+            "acaConnectButton"
+        );
+
+
+    const connectPanel =
+        document.getElementById(
+            "acaConnectPanel"
+        );
+
+
+    if (
+        connectButton &&
+        connectPanel
+    ) {
+
+        connectButton.addEventListener(
+            "click",
+            () => {
+
+                const isOpen =
+                    connectPanel.style.display !== "none";
+
+
+                connectPanel.style.display =
+                    isOpen
+                        ? "none"
+                        : "block";
+
+
+                connectButton.textContent =
+                    isOpen
+                        ? "Connected"
+                        : "Hide";
+
+            }
+        );
+
+    }
+
+
+    // ========================================================
     // SETTINGS
     // ========================================================
 
     document
-        .getElementById(
-            "acaNotifications"
-        )
+        .getElementById("acaNotifications")
         .addEventListener(
             "change",
             event => {
@@ -1227,9 +2210,7 @@ function createDashboard() {
 
 
     document
-        .getElementById(
-            "acaCompactMode"
-        )
+        .getElementById("acaCompactMode")
         .addEventListener(
             "change",
             event => {
@@ -1244,9 +2225,7 @@ function createDashboard() {
 
 
     document
-        .getElementById(
-            "acaLanguage"
-        )
+        .getElementById("acaLanguage")
         .addEventListener(
             "change",
             event => {
@@ -1266,7 +2245,7 @@ function createDashboard() {
 
 
 // ============================================================
-// READ ADMIN-CONTROLLED SETTINGS (READ-ONLY)
+// READ ADMIN-CONTROLLED SETTINGS
 // ============================================================
 
 async function fetchPublicSettings() {
@@ -1275,114 +2254,325 @@ async function fetchPublicSettings() {
         return;
     }
 
+
     try {
 
-        // 1. Ads Settings
-        const adsSnap = await getDoc(doc(db, "adminSettings", "ads"));
+        const adsSnap =
+            await getDoc(
+                doc(
+                    db,
+                    "adminSettings",
+                    "ads"
+                )
+            );
+
+
         if (adsSnap.exists()) {
-            const data = adsSnap.data();
+
+            const data =
+                adsSnap.data();
+
+
             activeAppSettings.ads = {
-                enabled: data.enabled !== false,
-                frequency: data.frequency || "medium",
-                duration: data.duration || "10",
-                placement: data.placement || "between-actions",
-                network: data.network || "none"
+
+                enabled:
+                    data.enabled !== false,
+
+                frequency:
+                    data.frequency || "medium",
+
+                duration:
+                    data.duration || "10",
+
+                placement:
+                    data.placement ||
+                    "between-actions",
+
+                network:
+                    data.network || "none"
+
             };
+
         }
 
-        // 2. Announcements
-        const announcementSnap = await getDoc(doc(db, "adminSettings", "announcement"));
+
+        const announcementSnap =
+            await getDoc(
+                doc(
+                    db,
+                    "adminSettings",
+                    "announcement"
+                )
+            );
+
+
         if (announcementSnap.exists()) {
-            const data = announcementSnap.data();
+
+            const data =
+                announcementSnap.data();
+
+
             activeAppSettings.announcement = {
-                enabled: data.enabled === true,
-                title: data.title || "",
-                message: data.message || ""
+
+                enabled:
+                    data.enabled === true,
+
+                title:
+                    data.title || "",
+
+                message:
+                    data.message || ""
+
             };
+
         }
 
-        // 3. Plans & Usage Limits
-        const plansSnap = await getDoc(doc(db, "adminSettings", "plans"));
+
+        const plansSnap =
+            await getDoc(
+                doc(
+                    db,
+                    "adminSettings",
+                    "plans"
+                )
+            );
+
+
         if (plansSnap.exists()) {
-            const data = plansSnap.data();
+
+            const data =
+                plansSnap.data();
+
+
             activeAppSettings.plans = {
-                freeContentLimit: data.freeContentLimit ?? 10,
-                freeChatLimit: data.freeChatLimit ?? 10,
-                freeImageLimit: data.freeImageLimit ?? 3,
-                paidNoAds: data.paidNoAds === true
+
+                freeContentLimit:
+                    data.freeContentLimit ?? 10,
+
+                freeChatLimit:
+                    data.freeChatLimit ?? 10,
+
+                freeImageLimit:
+                    data.freeImageLimit ?? 3,
+
+                paidNoAds:
+                    data.paidNoAds === true
+
             };
+
         }
 
-        // 4. App Settings & Version
-        const appSnap = await getDoc(doc(db, "adminSettings", "app"));
+
+        const appSnap =
+            await getDoc(
+                doc(
+                    db,
+                    "adminSettings",
+                    "app"
+                )
+            );
+
+
         if (appSnap.exists()) {
-            const data = appSnap.data();
+
+            const data =
+                appSnap.data();
+
+
             activeAppSettings.app = {
-                appVersion: data.appVersion || APP_VERSION,
-                maintenanceMode: data.maintenanceMode === true
+
+                appVersion:
+                    data.appVersion ||
+                    APP_VERSION,
+
+                maintenanceMode:
+                    data.maintenanceMode === true
+
             };
+
         }
+
 
         applyPublicSettingsToUI();
 
+
     } catch (error) {
 
-        console.warn("Public settings sync error:", error);
+        console.warn(
+            "Public settings sync error:",
+            error
+        );
 
     }
 
 }
 
+
+// ============================================================
+// APPLY PUBLIC SETTINGS
+// ============================================================
+
 function applyPublicSettingsToUI() {
 
-    // 1. Announcement Banner Update
-    const banner = document.getElementById("acaCustomerAnnouncement");
-    const titleEl = document.getElementById("acaCustomerAnnouncementTitle");
-    const msgEl = document.getElementById("acaCustomerAnnouncementMessage");
+    const banner =
+        document.getElementById(
+            "acaCustomerAnnouncement"
+        );
 
-    if (banner && titleEl && msgEl) {
-        if (activeAppSettings.announcement.enabled && activeAppSettings.announcement.message) {
-            titleEl.textContent = activeAppSettings.announcement.title || "Announcement";
-            msgEl.textContent = activeAppSettings.announcement.message;
-            banner.style.display = "block";
+
+    const titleEl =
+        document.getElementById(
+            "acaCustomerAnnouncementTitle"
+        );
+
+
+    const msgEl =
+        document.getElementById(
+            "acaCustomerAnnouncementMessage"
+        );
+
+
+    if (
+        banner &&
+        titleEl &&
+        msgEl
+    ) {
+
+        if (
+            activeAppSettings.announcement.enabled &&
+            activeAppSettings.announcement.message
+        ) {
+
+            titleEl.textContent =
+                activeAppSettings
+                    .announcement
+                    .title ||
+                "Announcement";
+
+
+            msgEl.textContent =
+                activeAppSettings
+                    .announcement
+                    .message;
+
+
+            banner.style.display =
+                "block";
+
         } else {
-            banner.style.display = "none";
+
+            banner.style.display =
+                "none";
+
         }
+
     }
 
-    // 2. Maintenance Mode Banner Update
-    const maintBanner = document.getElementById("acaMaintenanceBanner");
+
+    const maintBanner =
+        document.getElementById(
+            "acaMaintenanceBanner"
+        );
+
+
     if (maintBanner) {
-        maintBanner.style.display = activeAppSettings.app.maintenanceMode ? "block" : "none";
+
+        maintBanner.style.display =
+            activeAppSettings.app
+                .maintenanceMode
+                ? "block"
+                : "none";
+
     }
 
-    // 3. Version Numbers Sync
-    const currentVersion = activeAppSettings.app.appVersion || APP_VERSION;
-    const aboutVer = document.getElementById("acaAboutAppVersion");
-    const settingsVer = document.getElementById("acaSettingsAppVersion");
 
-    if (aboutVer) aboutVer.textContent = currentVersion;
-    if (settingsVer) settingsVer.textContent = currentVersion;
+    const currentVersion =
+        activeAppSettings.app.appVersion ||
+        APP_VERSION;
 
-    // 4. Usage Limits Display
-    const limitsDisplay = document.getElementById("acaAccountLimitsDisplay");
+
+    const aboutVer =
+        document.getElementById(
+            "acaAboutAppVersion"
+        );
+
+
+    const settingsVer =
+        document.getElementById(
+            "acaSettingsAppVersion"
+        );
+
+
+    if (aboutVer) {
+        aboutVer.textContent = currentVersion;
+    }
+
+
+    if (settingsVer) {
+        settingsVer.textContent = currentVersion;
+    }
+
+
+    const limitsDisplay =
+        document.getElementById(
+            "acaAccountLimitsDisplay"
+        );
+
+
     if (limitsDisplay) {
+
         if (userPlan.isPaid) {
-            limitsDisplay.textContent = "Unlimited Content & Chat (Paid Plan)";
+
+            limitsDisplay.textContent =
+                "Unlimited Content & Chat (Paid Plan)";
+
         } else {
-            limitsDisplay.textContent = `Content: ${activeAppSettings.plans.freeContentLimit} | Chat: ${activeAppSettings.plans.freeChatLimit} | Images: ${activeAppSettings.plans.freeImageLimit}`;
+
+            limitsDisplay.textContent =
+                `Content: ${activeAppSettings.plans.freeContentLimit} | Chat: ${activeAppSettings.plans.freeChatLimit} | Images: ${activeAppSettings.plans.freeImageLimit}`;
+
         }
+
     }
 
-    // 5. Plan Badges Display
-    const badge = document.getElementById("acaPlanBadgeContainer");
-    const planInput = document.getElementById("acaProfilePlan");
+
+    const badge =
+        document.getElementById(
+            "acaPlanBadgeContainer"
+        );
+
+
+    const planInput =
+        document.getElementById(
+            "acaProfilePlan"
+        );
+
+
     if (badge) {
-        badge.className = `acaPlanBadge ${userPlan.isPaid ? "paid" : "free"}`;
-        badge.textContent = userPlan.isPaid ? "Paid Plan" : "Free Plan";
+
+        badge.className =
+            `acaPlanBadge ${
+                userPlan.isPaid
+                    ? "paid"
+                    : "free"
+            }`;
+
+
+        badge.textContent =
+            userPlan.isPaid
+                ? "Paid Plan"
+                : "Free Plan";
+
     }
+
+
     if (planInput) {
-        planInput.value = userPlan.isPaid ? "Paid Plan" : "Free Plan";
+
+        planInput.value =
+            userPlan.isPaid
+                ? "Paid Plan"
+                : "Free Plan";
+
     }
 
 }
@@ -1394,39 +2584,86 @@ function applyPublicSettingsToUI() {
 
 function shouldShowAd() {
 
-    // Global toggle from adminSettings/ads
-    if (!activeAppSettings.ads.enabled) {
+    if (
+        !activeAppSettings.ads.enabled
+    ) {
+
         return false;
+
     }
 
-    // Paid users ad-free privilege from adminSettings/plans
-    if (userPlan.isPaid && activeAppSettings.plans.paidNoAds) {
+
+    if (
+        userPlan.isPaid &&
+        activeAppSettings.plans.paidNoAds
+    ) {
+
         return false;
+
     }
+
 
     return true;
 
 }
 
+
 function getAdConfig() {
 
     return {
-        enabled: shouldShowAd(),
-        duration: Number(activeAppSettings.ads.duration) || 10, // ~10 seconds
-        placement: activeAppSettings.ads.placement,
-        frequency: activeAppSettings.ads.frequency,
-        network: activeAppSettings.ads.network
+
+        enabled:
+            shouldShowAd(),
+
+        duration:
+            Number(
+                activeAppSettings
+                    .ads
+                    .duration
+            ) || 10,
+
+        placement:
+            activeAppSettings.ads.placement,
+
+        frequency:
+            activeAppSettings.ads.frequency,
+
+        network:
+            activeAppSettings.ads.network
+
     };
 
 }
 
+
 function getActiveLimits() {
 
     return {
-        isPaid: userPlan.isPaid,
-        contentLimit: userPlan.isPaid ? Infinity : activeAppSettings.plans.freeContentLimit,
-        chatLimit: userPlan.isPaid ? Infinity : activeAppSettings.plans.freeChatLimit,
-        imageLimit: userPlan.isPaid ? Infinity : activeAppSettings.plans.freeImageLimit
+
+        isPaid:
+            userPlan.isPaid,
+
+        contentLimit:
+            userPlan.isPaid
+                ? Infinity
+                : activeAppSettings
+                    .plans
+                    .freeContentLimit,
+
+        chatLimit:
+            userPlan.isPaid
+                ? Infinity
+                : activeAppSettings
+                    .plans
+                    .freeChatLimit,
+
+        imageLimit:
+            userPlan.isPaid
+                ? Infinity
+                : activeAppSettings
+                    .plans
+                    .freeImageLimit
+
     };
 
 }
@@ -1448,19 +2685,23 @@ async function openDashboard() {
 
     }
 
+
     const overlay =
         document.getElementById(
             "acaDashboardOverlay"
         );
 
+
     if (!overlay) {
         return;
     }
 
-    overlay.style.display =
-        "flex";
+
+    overlay.style.display = "flex";
+
 
     showSection("profile");
+
 
     await fetchPublicSettings();
 
@@ -1479,6 +2720,7 @@ function closeDashboard() {
         document.getElementById(
             "acaDashboardOverlay"
         );
+
 
     if (overlay) {
 
@@ -1599,15 +2841,18 @@ async function loadProfile() {
             "acaProfileName"
         );
 
+
     const emailInput =
         document.getElementById(
             "acaProfileEmail"
         );
 
+
     const uidInput =
         document.getElementById(
             "acaProfileUid"
         );
+
 
     const avatar =
         document.getElementById(
@@ -1631,7 +2876,6 @@ async function loadProfile() {
 
     try {
 
-        // Read user data and plan status from users/{uid}
         const userRef =
             doc(
                 db,
@@ -1664,9 +2908,18 @@ async function loadProfile() {
 
             }
 
-            // Sync user tier
-            userPlan.isPaid = Boolean(data?.isPaid === true || data?.plan === "paid");
-            userPlan.planType = userPlan.isPaid ? "paid" : "free";
+
+            userPlan.isPaid =
+                Boolean(
+                    data?.isPaid === true ||
+                    data?.plan === "paid"
+                );
+
+
+            userPlan.planType =
+                userPlan.isPaid
+                    ? "paid"
+                    : "free";
 
         }
 
@@ -1683,8 +2936,10 @@ async function loadProfile() {
     nameInput.value =
         name;
 
+
     emailInput.value =
         currentUser.email || "";
+
 
     uidInput.value =
         currentUser.uid;
@@ -1698,6 +2953,7 @@ async function loadProfile() {
         )
         .charAt(0)
         .toUpperCase();
+
 
     applyPublicSettingsToUI();
 
@@ -1749,7 +3005,8 @@ async function saveProfile() {
         await updateProfile(
             currentUser,
             {
-                displayName: name
+                displayName:
+                    name
             }
         );
 
@@ -1761,11 +3018,15 @@ async function saveProfile() {
                 currentUser.uid
             ),
             {
-                name: name,
+                name:
+                    name,
+
                 email:
                     currentUser.email || "",
+
                 updatedAt:
                     new Date()
+
             },
             {
                 merge: true
@@ -1779,6 +3040,7 @@ async function saveProfile() {
         alert(
             "Profile updated successfully."
         );
+
 
     } catch (error) {
 
@@ -1809,10 +3071,12 @@ function loadSettings() {
             "acaNotifications"
         );
 
+
     const compact =
         document.getElementById(
             "acaCompactMode"
         );
+
 
     const language =
         document.getElementById(
@@ -1883,6 +3147,7 @@ async function resetPassword() {
             "Password reset email sent to:\n" +
             currentUser.email
         );
+
 
     } catch (error) {
 
@@ -2014,6 +3279,7 @@ async function deleteSubcollection(
     let batch =
         writeBatch(db);
 
+
     let count = 0;
 
 
@@ -2024,6 +3290,7 @@ async function deleteSubcollection(
         batch.delete(
             item.ref
         );
+
 
         count++;
 
@@ -2122,6 +3389,7 @@ async function deleteAccount() {
 
         window.location.reload();
 
+
     } catch (error) {
 
         console.error(
@@ -2203,8 +3471,8 @@ async function startDashboard() {
                     );
 
 
-                    // Sequence: fetch remote settings first, then sync profile & UI
                     await fetchPublicSettings();
+
 
                     if (
                         dashboardCreated
@@ -2230,6 +3498,7 @@ async function startDashboard() {
             "AI Content Agent Dashboard loaded successfully."
         );
 
+
     } catch (error) {
 
         console.error(
@@ -2243,3 +3512,4 @@ async function startDashboard() {
 
 
 startDashboard();
+```
