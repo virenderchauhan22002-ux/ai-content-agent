@@ -42,8 +42,6 @@ let db = null;
 let currentUser = null;
 let dashboardCreated = false;
 
-
-// Customer-Side Read-Only Settings Store
 let activeAppSettings = {
 
     ads: {
@@ -98,9 +96,7 @@ function waitForFirebase() {
                 try {
 
                     app = getApp();
-
                     auth = getAuth(app);
-
                     db = getFirestore(app);
 
                     resolve();
@@ -110,7 +106,6 @@ function waitForFirebase() {
                 } catch (error) {
 
                     reject(error);
-
                     return;
 
                 }
@@ -173,6 +168,9 @@ function addStyles() {
             transition:
                 transform .2s ease,
                 box-shadow .2s ease;
+            pointer-events: auto !important;
+            position: relative;
+            z-index: 50;
         }
 
         .profile:hover {
@@ -181,8 +179,18 @@ function addStyles() {
 
 
         /* =====================================================
+           HIDE TOPBAR LOGOUT
+        ===================================================== */
+
+        #logoutBtn {
+            display: none !important;
+            visibility: hidden !important;
+        }
+
+
+        /* =====================================================
            OVERLAY
-           ===================================================== */
+        ===================================================== */
 
         #acaDashboardOverlay {
             position: fixed;
@@ -214,7 +222,7 @@ function addStyles() {
 
         /* =====================================================
            MAIN PANEL
-           ===================================================== */
+        ===================================================== */
 
         #acaDashboardPanel {
             width: min(1060px, 100%);
@@ -247,7 +255,7 @@ function addStyles() {
 
         /* =====================================================
            SIDEBAR
-           ===================================================== */
+        ===================================================== */
 
         #acaDashboardSidebar {
             width: 225px;
@@ -361,7 +369,7 @@ function addStyles() {
 
         /* =====================================================
            CONTENT
-           ===================================================== */
+        ===================================================== */
 
         #acaDashboardContent {
             position: relative;
@@ -427,7 +435,7 @@ function addStyles() {
 
         /* =====================================================
            SECTIONS
-           ===================================================== */
+        ===================================================== */
 
         .acaDashboardSection {
             display: none;
@@ -482,7 +490,7 @@ function addStyles() {
 
         /* =====================================================
            CARDS
-           ===================================================== */
+        ===================================================== */
 
         .acaDashboardCard {
 
@@ -522,7 +530,7 @@ function addStyles() {
 
         /* =====================================================
            PROFILE AVATAR
-           ===================================================== */
+        ===================================================== */
 
         #acaProfileAvatar {
 
@@ -561,7 +569,7 @@ function addStyles() {
 
         /* =====================================================
            PLAN BADGE
-           ===================================================== */
+        ===================================================== */
 
         .acaPlanBadge {
 
@@ -616,7 +624,7 @@ function addStyles() {
 
         /* =====================================================
            LABELS
-           ===================================================== */
+        ===================================================== */
 
         .acaDashboardLabel {
 
@@ -636,7 +644,7 @@ function addStyles() {
 
         /* =====================================================
            INPUTS
-           ===================================================== */
+        ===================================================== */
 
         .acaDashboardInput {
 
@@ -687,7 +695,7 @@ function addStyles() {
 
         /* =====================================================
            BUTTONS
-           ===================================================== */
+        ===================================================== */
 
         .acaDashboardButton {
 
@@ -767,7 +775,7 @@ function addStyles() {
 
         /* =====================================================
            PROFILE LOGOUT
-           ===================================================== */
+        ===================================================== */
 
         #acaProfileLogout {
 
@@ -821,7 +829,7 @@ function addStyles() {
 
         /* =====================================================
            SETTINGS ROW
-           ===================================================== */
+        ===================================================== */
 
         .acaSettingRow {
 
@@ -868,7 +876,7 @@ function addStyles() {
 
         /* =====================================================
            CONNECT PANEL
-           ===================================================== */
+        ===================================================== */
 
         .acaSettingAction {
 
@@ -1000,7 +1008,7 @@ function addStyles() {
 
         /* =====================================================
            DANGER BOX
-           ===================================================== */
+        ===================================================== */
 
         .acaDangerBox {
 
@@ -1024,7 +1032,7 @@ function addStyles() {
 
         /* =====================================================
            BANNERS
-           ===================================================== */
+        ===================================================== */
 
         #acaCustomerAnnouncement {
 
@@ -1107,7 +1115,7 @@ function addStyles() {
 
         /* =====================================================
            RESPONSIVE
-           ===================================================== */
+        ===================================================== */
 
         @media (max-width: 700px) {
 
@@ -1464,69 +1472,7 @@ function createDashboard() {
                         </button>
 
 
-                        <!-- CONNECT INSIDE PROFILE -->
-
-                        <div
-                            class="acaSettingRow"
-                            style="margin-top:18px;"
-                        >
-
-                            <div>
-
-                                <div class="acaSettingTitle">
-                                    🔗 Connect
-                                </div>
-
-                                <div class="acaSettingDescription">
-                                    View connected application services
-                                </div>
-
-                            </div>
-
-
-                            <button
-                                type="button"
-                                class="acaSettingAction"
-                                id="acaConnectButton"
-                            >
-                                Connected
-                            </button>
-
-                        </div>
-
-
-                        <div
-                            id="acaConnectPanel"
-                            class="acaUtilityPanel"
-                            style="display:none;"
-                        >
-
-                            <div class="acaUtilityTitle">
-                                🔗 Connected Services
-                            </div>
-
-                            <div class="acaUtilityText">
-                                Your account is securely connected
-                                with the application's authentication
-                                and cloud services.
-                            </div>
-
-                            <div
-                                class="acaConnectionStatus"
-                            >
-
-                                <span
-                                    class="acaConnectionDot"
-                                ></span>
-
-                                Account Connected
-
-                            </div>
-
-                        </div>
-
-
-                        <!-- LOGOUT -->
+                        <!-- LOGOUT ONLY INSIDE PROFILE -->
 
                         <button
                             type="button"
@@ -1642,6 +1588,65 @@ function createDashboard() {
                                 </option>
 
                             </select>
+
+                        </div>
+
+
+                        <!-- CONNECT -->
+
+                        <div class="acaSettingRow">
+
+                            <div>
+
+                                <div class="acaSettingTitle">
+                                    🔗 Connect
+                                </div>
+
+                                <div class="acaSettingDescription">
+                                    View connected application services
+                                </div>
+
+                            </div>
+
+
+                            <button
+                                type="button"
+                                class="acaSettingAction"
+                                id="acaConnectButton"
+                            >
+                                Connected
+                            </button>
+
+                        </div>
+
+
+                        <div
+                            id="acaConnectPanel"
+                            class="acaUtilityPanel"
+                            style="display:none;"
+                        >
+
+                            <div class="acaUtilityTitle">
+                                🔗 Connected Services
+                            </div>
+
+                            <div class="acaUtilityText">
+                                Your account is securely connected
+                                with the application's authentication
+                                and cloud services.
+                            </div>
+
+                            <div
+                                class="acaConnectionStatus"
+                            >
+
+                                <span
+                                    class="acaConnectionDot"
+                                ></span>
+
+                                Account Connected
+
+                            </div>
 
                         </div>
 
@@ -1961,8 +1966,52 @@ function createDashboard() {
 
 
     // ========================================================
-    // EXISTING PROFILE ICON
+    // PROFILE ICON
+    // Delegated click so dynamically rendered icon works.
     // ========================================================
+
+    document.addEventListener(
+        "click",
+        event => {
+
+            const profile =
+                event.target.closest(".profile");
+
+            if (!profile) {
+                return;
+            }
+
+            openDashboard();
+
+        }
+    );
+
+
+    document.addEventListener(
+        "keydown",
+        event => {
+
+            const profile =
+                event.target.closest?.(".profile");
+
+            if (!profile) {
+                return;
+            }
+
+            if (
+                event.key === "Enter" ||
+                event.key === " "
+            ) {
+
+                event.preventDefault();
+
+                openDashboard();
+
+            }
+
+        }
+    );
+
 
     const profile =
         document.querySelector(".profile");
@@ -1983,30 +2032,6 @@ function createDashboard() {
         profile.setAttribute(
             "tabindex",
             "0"
-        );
-
-        profile.addEventListener(
-            "click",
-            openDashboard
-        );
-
-
-        profile.addEventListener(
-            "keydown",
-            event => {
-
-                if (
-                    event.key === "Enter" ||
-                    event.key === " "
-                ) {
-
-                    event.preventDefault();
-
-                    openDashboard();
-
-                }
-
-            }
         );
 
     }
@@ -2079,7 +2104,7 @@ function createDashboard() {
 
     // ========================================================
     // PROFILE LOGOUT
-    // Uses existing auth.js logout logic.
+    // Existing auth.js logout logic preserved.
     // ========================================================
 
     document
@@ -2112,6 +2137,7 @@ function createDashboard() {
 
     // ========================================================
     // CONNECT
+    // SETTINGS ONLY
     // ========================================================
 
     const connectButton =
@@ -3512,5 +3538,10 @@ async function startDashboard() {
 
 }
 
+
+// ============================================================
+// START DASHBOARD
+// KEEP THIS AT THE VERY END
+// ============================================================
 
 startDashboard();
