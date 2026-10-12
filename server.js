@@ -28,45 +28,117 @@ function wait(ms) {
 
 
 // ===============================
+// ERROR MESSAGE HELPER
+// ===============================
+
+function getErrorMessage(error) {
+    if (!error) {
+        return "Unknown error";
+    }
+
+    if (typeof error.message === "string") {
+        return error.message;
+    }
+
+    if (typeof error === "string") {
+        return error;
+    }
+
+    try {
+        return JSON.stringify(error);
+    } catch {
+        return "Unknown error";
+    }
+}
+
+
+// ===============================
+// TEMPORARY GEMINI ERROR CHECK
+// ===============================
+
+function isTemporaryGeminiError(error) {
+    const message = getErrorMessage(error).toLowerCase();
+
+    const status =
+        error?.status ||
+        error?.code ||
+        error?.response?.status ||
+        "";
+
+    return (
+        String(status).includes("503") ||
+        String(status).toLowerCase().includes("unavailable") ||
+        message.includes("503") ||
+        message.includes("unavailable") ||
+        message.includes("high demand") ||
+        message.includes("overloaded") ||
+        message.includes("temporarily unavailable") ||
+        message.includes("service unavailable") ||
+        message.includes("resource exhausted") ||
+        message.includes("too many requests") ||
+        message.includes("429")
+    );
+}
+
+
+// ===============================
 // GEMINI TEXT GENERATOR
 // ===============================
 
 async function generateGeminiText(prompt, model) {
-    const maxRetries = 3;
+
+    const maxRetries = 2;
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
+
         try {
+
+            console.log(
+                `Gemini request: ${model} | attempt ${attempt}`
+            );
+
             const response = await ai.models.generateContent({
                 model: model,
                 contents: prompt
             });
 
-            return response.text || "";
+            const text = response?.text || "";
+
+            if (!text.trim()) {
+                throw new Error(
+                    `${model} returned an empty response.`
+                );
+            }
+
+            return text;
 
         } catch (error) {
+
+            const message = getErrorMessage(error);
+
             console.error(
                 `${model} attempt ${attempt} failed:`,
-                error.message
+                message
             );
 
-            const message = error.message || "";
+            const temporary =
+                isTemporaryGeminiError(error);
 
-            const isTemporaryError =
-                message.includes("503") ||
-                message.includes("UNAVAILABLE") ||
-                message.includes("high demand") ||
-                message.includes("overloaded");
+            // If it is not a temporary error,
+            // immediately move to the next fallback model.
+            if (!temporary) {
+                throw error;
+            }
 
-            if (!isTemporaryError || attempt === maxRetries) {
+            // Last retry for this model
+            if (attempt === maxRetries) {
                 throw error;
             }
 
             const delay =
                 attempt === 1
-                    ? 2000
-                    : attempt === 2
-                        ? 4000
-                        : 8000;
+                    ? 2500
+                    : 5000;
 
             console.log(
                 `Retrying ${model} in ${delay / 1000} seconds...`
@@ -76,35 +148,68 @@ async function generateGeminiText(prompt, model) {
         }
     }
 
-    throw new Error("Gemini request failed.");
+    throw new Error(
+        `${model} request failed.`
+    );
 }
 
 
 // ===============================
-// GEMINI WITH FALLBACK
+// GEMINI WITH MULTI-MODEL FALLBACK
 // ===============================
 
 async function generateWithFallback(prompt) {
-    try {
-        return await generateGeminiText(
-            prompt,
-            "gemini-3.8-flash"
-        );
 
-    } catch (primaryError) {
-        console.log(
-            "Gemini 3.8 unavailable after retries."
-        );
+    const models = [
+        "gemini-3.8-flash",
+        "gemini-3.7-flash",
+        "gemini-2.5-flash"
+    ];
 
-        console.log(
-            "Trying Gemini 3.7 fallback..."
-        );
+    let lastError = null;
 
-        return await generateGeminiText(
-            prompt,
-            "gemini-3.7-flash"
-        );
+    for (const model of models) {
+
+        try {
+
+            console.log(
+                `Trying Gemini model: ${model}`
+            );
+
+            const result =
+                await generateGeminiText(
+                    prompt,
+                    model
+                );
+
+            console.log(
+                `Gemini success: ${model}`
+            );
+
+            return result;
+
+        } catch (error) {
+
+            lastError = error;
+
+            console.error(
+                `${model} failed:`,
+                getErrorMessage(error)
+            );
+
+            console.log(
+                `Moving to next Gemini fallback model...`
+            );
+        }
     }
+
+    console.error(
+        "All Gemini fallback models failed."
+    );
+
+    throw new Error(
+        "AI service is temporarily busy. Please try again in a few seconds."
+    );
 }
 
 
@@ -113,7 +218,10 @@ async function generateWithFallback(prompt) {
 // ===============================
 
 app.get("/", (req, res) => {
-    res.sendFile(__dirname + "/index.html");
+
+    res.sendFile(
+        __dirname + "/index.html"
+    );
 });
 
 
@@ -122,12 +230,22 @@ app.get("/", (req, res) => {
 // ===============================
 
 app.post("/generate", async (req, res) => {
+
     try {
+
         const {
             topic,
             contentType,
             language
         } = req.body;
+
+        if (!topic || !String(topic).trim()) {
+
+            return res.status(400).json({
+                success: false,
+                error: "Please enter a topic."
+            });
+        }
 
         const prompt = `
 You are an expert content creator.
@@ -145,7 +263,8 @@ Requirements:
 - Give only the requested content.
 `;
 
-        const result = await generateWithFallback(prompt);
+        const result =
+            await generateWithFallback(prompt);
 
         res.json({
             success: true,
@@ -153,11 +272,16 @@ Requirements:
         });
 
     } catch (error) {
-        console.error("Generate Error:", error);
 
-        res.status(500).json({
+        console.error(
+            "Generate Error:",
+            getErrorMessage(error)
+        );
+
+        res.status(503).json({
             success: false,
-            error: error.message || "Failed to generate content."
+            error:
+                "AI service is temporarily busy. Please try again in a few seconds."
         });
     }
 });
@@ -168,14 +292,25 @@ Requirements:
 // ===============================
 
 app.post("/generate-ideas", async (req, res) => {
+
     try {
+
         const {
             topic,
             language,
             count
         } = req.body;
 
-        const ideaCount = count || 10;
+        if (!topic || !String(topic).trim()) {
+
+            return res.status(400).json({
+                success: false,
+                error: "Please enter a topic."
+            });
+        }
+
+        const ideaCount =
+            Number(count) || 10;
 
         const prompt = `
 Generate ${ideaCount} fresh and practical content ideas.
@@ -194,14 +329,22 @@ Rules:
 - Do not add unnecessary explanations.
 `;
 
-        const text = await generateWithFallback(prompt);
+        const text =
+            await generateWithFallback(prompt);
 
         const ideas = text
             .split("\n")
             .map(line =>
-                line.replace(/^\s*\d+[\.\)\-:]\s*/, "").trim()
+                line
+                    .replace(
+                        /^\s*(?:\d+[\.\)\-:]|\*+|\-)\s*/,
+                        ""
+                    )
+                    .trim()
             )
-            .filter(line => line.length > 0)
+            .filter(
+                line => line.length > 0
+            )
             .slice(0, ideaCount);
 
         res.json({
@@ -210,11 +353,16 @@ Rules:
         });
 
     } catch (error) {
-        console.error("Ideas Error:", error);
 
-        res.status(500).json({
+        console.error(
+            "Ideas Error:",
+            getErrorMessage(error)
+        );
+
+        res.status(503).json({
             success: false,
-            error: error.message || "Failed to generate ideas."
+            error:
+                "AI service is temporarily busy. Please try again in a few seconds."
         });
     }
 });
@@ -225,24 +373,32 @@ Rules:
 // ===============================
 
 app.post("/chat", async (req, res) => {
+
     try {
+
         const {
             messages,
             language
         } = req.body;
 
-        const recentMessages = Array.isArray(messages)
-            ? messages.slice(-20)
-            : [];
+        const recentMessages =
+            Array.isArray(messages)
+                ? messages.slice(-20)
+                : [];
 
-        const conversation = recentMessages
-            .map(message => {
-                const role = message.role || "user";
-                const content = message.content || "";
+        const conversation =
+            recentMessages
+                .map(message => {
 
-                return `${role.toUpperCase()}: ${content}`;
-            })
-            .join("\n");
+                    const role =
+                        message.role || "user";
+
+                    const content =
+                        message.content || "";
+
+                    return `${role.toUpperCase()}: ${content}`;
+                })
+                .join("\n");
 
         const prompt = `
 You are AI Content Agent, a helpful AI assistant.
@@ -261,7 +417,8 @@ Instructions:
 - Keep the answer clear and easy to understand.
 `;
 
-        const reply = await generateWithFallback(prompt);
+        const reply =
+            await generateWithFallback(prompt);
 
         res.json({
             success: true,
@@ -269,11 +426,16 @@ Instructions:
         });
 
     } catch (error) {
-        console.error("Chat Error:", error);
 
-        res.status(500).json({
+        console.error(
+            "Chat Error:",
+            getErrorMessage(error)
+        );
+
+        res.status(503).json({
             success: false,
-            error: error.message || "Failed to generate chat response."
+            error:
+                "AI service is temporarily busy. Please try again in a few seconds."
         });
     }
 });
@@ -284,7 +446,9 @@ Instructions:
 // ===============================
 
 app.post("/generate-image", async (req, res) => {
+
     try {
+
         const {
             prompt,
             imageType,
@@ -293,9 +457,11 @@ app.post("/generate-image", async (req, res) => {
         } = req.body;
 
         if (!process.env.HF_TOKEN) {
+
             return res.status(500).json({
                 success: false,
-                error: "HF_TOKEN is not configured on the server."
+                error:
+                    "HF_TOKEN is not configured on the server."
             });
         }
 
@@ -341,34 +507,53 @@ Style: ${style || "realistic"}
 Create a high-quality image suitable for social media content.
 `;
 
-        const image = await hf.textToImage({
-            model: "black-forest-labs/FLUX.1-schnell",
-            provider: "fal-ai",
-            inputs: finalPrompt,
-            parameters: {
-                width: width,
-                height: height,
-                num_inference_steps: 4
-            }
-        });
+        const image =
+            await hf.textToImage({
 
-        const arrayBuffer = await image.arrayBuffer();
+                model:
+                    "black-forest-labs/FLUX.1-schnell",
 
-        const buffer = Buffer.from(arrayBuffer);
+                provider:
+                    "fal-ai",
 
-        const imageBase64 = buffer.toString("base64");
+                inputs:
+                    finalPrompt,
+
+                parameters: {
+                    width: width,
+                    height: height,
+                    num_inference_steps: 4
+                }
+            });
+
+        const arrayBuffer =
+            await image.arrayBuffer();
+
+        const buffer =
+            Buffer.from(arrayBuffer);
+
+        const imageBase64 =
+            buffer.toString("base64");
 
         res.json({
             success: true,
-            image: "data:image/png;base64," + imageBase64
+            image:
+                "data:image/png;base64," +
+                imageBase64
         });
 
     } catch (error) {
-        console.error("Image Error:", error);
+
+        console.error(
+            "Image Error:",
+            getErrorMessage(error)
+        );
 
         res.status(500).json({
             success: false,
-            error: error.message || "Failed to generate image."
+            error:
+                getErrorMessage(error) ||
+                "Failed to generate image."
         });
     }
 });
@@ -378,18 +563,29 @@ Create a high-quality image suitable for social media content.
 // SERVER
 // ===============================
 
-const PORT = process.env.PORT || 3000;
+const PORT =
+    process.env.PORT || 3000;
 
-const server = app.listen(
-    PORT,
-    "0.0.0.0",
-    () => {
-        console.log(
-            "Server running on port " + PORT
+const server =
+    app.listen(
+        PORT,
+        "0.0.0.0",
+        () => {
+
+            console.log(
+                "Server running on port " +
+                PORT
+            );
+        }
+    );
+
+server.on(
+    "error",
+    (error) => {
+
+        console.error(
+            "Server Error:",
+            error
         );
     }
 );
-
-server.on("error", (error) => {
-    console.error("Server Error:", error);
-});
