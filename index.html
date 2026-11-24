@@ -297,25 +297,19 @@ body::before{
   transform:translateY(-1px);
 }
 
-.profile{
-  width:42px !important;
-  height:42px !important;
-  border-radius:14px !important;
-  background:
-    linear-gradient(
-      145deg,
-      #4eb5ff,
-      #1677ff
-    ) !important;
-  color:#fff !important;
-  display:flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  font-weight:800 !important;
-  box-shadow:
-    0 9px 18px rgba(22,119,255,.25),
-    inset 0 2px 2px rgba(255,255,255,.42) !important;
-  border:2px solid rgba(255,255,255,.82) !important;
+.profile {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  background: #f0f0f0 !important;
+  color: #333 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+  border: 1px solid #e5e5e5 !important;
 }
 
 /* =========================
@@ -395,7 +389,7 @@ body::before{
 }
 
 .hero::after{
-  content:"✦";
+  content:"Ã¢Å“Â¦";
   position:absolute;
   right:75px;
   top:52px;
@@ -918,6 +912,768 @@ body::before{
   }
 }
 </style>
+
+
+<style id="dashboard-redesign-v2">
+/* =========================================================
+   DASHBOARD REDESIGN (simple ChatGPT / Gemini style)
+   CSS only. Restyles the chat UI that chat.js builds:
+   #aiChatPanel > #aiChatSidebar + #aiChatMain
+   No existing id / class / handler is renamed or removed.
+========================================================= */
+
+:root{
+  --d-ink:#1f2430;
+  --d-text:#2b3142;
+  --d-muted:#8a91a8;
+  --d-line:#e6e8f0;
+  --d-soft:#f6f7fb;
+  --d-hover:#eceef6;
+}
+
+/* ---------- full screen shell ---------- */
+
+#appContent .dashboard{
+  width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+  gap:0 !important;
+}
+
+#appContent #universalChatSection{
+  width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+  padding:0 !important;
+}
+
+#appContent #aiChatMount{
+  margin:0 !important;
+}
+
+#appContent #aiChatPanel{
+  height:100vh !important;
+  height:100dvh !important;
+  min-height:0 !important;
+  margin:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  background:#fff !important;
+  font-family:Inter,"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+}
+
+/* ---------- SIDEBAR ---------- */
+
+#appContent #aiChatPanel #aiChatSidebar{
+  width:280px !important;
+  flex:0 0 280px !important;
+  padding:18px 14px 14px !important;
+  background:var(--d-soft) !important;
+  border-right:1px solid var(--d-line) !important;
+  overflow:hidden !important;
+  display:flex !important;
+  flex-direction:column !important;
+}
+
+/* brand */
+#aiChatPanel #aiChatSidebar .ai-chat-header{
+  display:flex !important;
+  justify-content:flex-start !important;
+  align-items:center;
+  gap:10px;
+  padding:4px 8px 16px !important;
+}
+
+#aiChatPanel #aiChatSidebar .ai-chat-header::before{
+  content:"";
+  flex:none;
+  width:34px;
+  height:34px;
+  background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2034%2034%27%3E%3Cdefs%3E%3ClinearGradient%20id%3D%27g%27%20x1%3D%270%27%20y1%3D%270%27%20x2%3D%271%27%20y2%3D%271%27%3E%3Cstop%20offset%3D%270%27%20stop-color%3D%27%232f7bff%27%2F%3E%3Cstop%20offset%3D%271%27%20stop-color%3D%27%237a4dff%27%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%2734%27%20height%3D%2734%27%20rx%3D%2710%27%20fill%3D%27url%28%23g%29%27%2F%3E%3Cpath%20d%3D%27M13%2010l12%207-12%207z%27%20fill%3D%27white%27%2F%3E%3C%2Fsvg%3E") center/contain no-repeat;
+}
+
+#aiChatPanel #aiChatSidebar .ai-chat-header-left{
+  display:block !important;
+  min-width:0;
+}
+
+#aiChatPanel #aiChatSidebar .ai-chat-title{
+  font-size:17px !important;
+  font-weight:700 !important;
+  letter-spacing:-.2px !important;
+  color:var(--d-ink) !important;
+  white-space:nowrap;
+}
+
+#aiChatPanel #aiChatSidebar .ai-chat-status{
+  display:none !important;
+}
+
+/* new chat (plain white) */
+#appContent #aiChatPanel #aiChatSidebar .ai-sidebar-new{
+  display:flex !important;
+  align-items:center;
+  gap:10px;
+  flex:none;
+  width:100% !important;
+  min-height:46px !important;
+  margin:0 0 6px !important;
+  padding:11px 14px !important;
+  border:1px solid #e1e4ee !important;
+  border-radius:12px !important;
+  background:#fff !important;
+  box-shadow:0 1px 2px rgba(20,30,70,.04) !important;
+  color:var(--d-ink) !important;
+  font-size:0 !important;
+  text-align:left;
+}
+
+#aiChatPanel #aiChatSidebar .ai-sidebar-new::before{
+  content:"";
+  flex:none;
+  width:20px;
+  height:20px;
+  background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27%231f2430%27%20stroke-width%3D%271.9%27%20stroke-linecap%3D%27round%27%3E%3Cpath%20d%3D%27M12%205v14M5%2012h14%27%2F%3E%3C%2Fsvg%3E") center/contain no-repeat;
+}
+
+#aiChatPanel #aiChatSidebar .ai-sidebar-new::after{
+  content:"New chat";
+  font-size:14.5px;
+  font-weight:600;
+  color:var(--d-ink);
+}
+
+#appContent #aiChatPanel #aiChatSidebar .ai-sidebar-new:hover{
+  background:#fff !important;
+  color:var(--d-ink) !important;
+  border-color:#cfd4e6 !important;
+}
+
+/* optional tools live in the composer now: hide the old sidebar tool list
+   (the buttons stay in the DOM, chat.js keeps its listeners on them) */
+#aiChatPanel #aiChatSidebar .ai-h-tools,
+#aiChatPanel #aiChatSidebar .ai-tool-option{
+  display:none !important;
+}
+
+/* nav items */
+.ai-nav{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  flex:none;
+  margin-top:8px;
+}
+
+#appContent #aiChatPanel #aiChatSidebar .ai-nav-item{
+  display:flex !important;
+  align-items:center;
+  gap:12px;
+  width:100% !important;
+  min-height:0 !important;
+  margin:0 !important;
+  padding:10px 12px !important;
+  border:0 !important;
+  border-radius:10px !important;
+  background:transparent !important;
+  color:var(--d-text) !important;
+  font-family:inherit;
+  font-size:14.5px !important;
+  font-weight:500 !important;
+  text-align:left;
+  cursor:pointer;
+}
+
+#appContent #aiChatPanel #aiChatSidebar .ai-nav-item:hover{
+  background:var(--d-hover) !important;
+  color:var(--d-text) !important;
+}
+
+.ai-nav-item svg,
+.ai-tools-item svg,
+.ai-tools-btn svg{
+  width:20px;
+  height:20px;
+  flex:none;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.ai-nav-item svg{
+  color:#5a6178;
+}
+
+/* history */
+#aiChatPanel #aiChatSidebar .ai-h-history{
+  flex:none;
+  margin:22px 0 6px !important;
+  padding:0 12px !important;
+  font-size:11.5px !important;
+  font-weight:700 !important;
+  letter-spacing:.08em !important;
+  color:var(--d-muted) !important;
+  text-transform:uppercase;
+}
+
+#aiChatPanel #aiChatSidebar #aiChatHistoryList{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  padding-bottom:6px;
+}
+
+.ai-hist-group{
+  padding:12px 12px 4px;
+  font-size:12px;
+  color:#9aa1b6;
+}
+
+.ai-hist-group:first-child{
+  padding-top:2px;
+}
+
+#appContent #aiChatPanel #aiChatSidebar .ai-hist-item{
+  display:block !important;
+  width:100% !important;
+  min-height:0 !important;
+  margin:0 !important;
+  padding:9px 12px !important;
+  border:0 !important;
+  border-radius:10px !important;
+  background:transparent !important;
+  color:#3a4156 !important;
+  font-family:inherit;
+  font-size:14px !important;
+  font-weight:400 !important;
+  text-align:left;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  cursor:pointer;
+}
+
+#appContent #aiChatPanel #aiChatSidebar .ai-hist-item:hover{
+  background:var(--d-hover) !important;
+}
+
+.ai-hist-empty{
+  padding:6px 12px;
+  font-size:13px;
+  color:#9aa1b6;
+}
+
+/* profile */
+#aiChatPanel #aiChatSidebar #aiChatSidebarProfile{
+  flex:none;
+  margin-top:0 !important;
+  padding:12px 8px 2px !important;
+  border-top:1px solid var(--d-line) !important;
+  gap:10px;
+}
+
+#aiChatPanel #aiChatSidebar #aiChatSidebarProfile .profile{
+  background:#dfe5ff !important;
+  color:#2f56d9 !important;
+  border:0 !important;
+  font-weight:700 !important;
+}
+
+#aiChatSidebarUserName{
+  font-size:14px;
+  font-weight:700;
+  color:var(--d-ink);
+}
+
+.ai-sidebar-account-label{
+  font-size:12px;
+  color:var(--d-muted);
+}
+
+/* ---------- MAIN ---------- */
+
+#appContent #aiChatPanel #aiChatMain{
+  position:relative;
+  background:#fff !important;
+}
+
+#appContent #aiChatPanel #aiChatMain #aiChatMessages{
+  background:#fff !important;
+  padding:clamp(24px,5vh,56px) clamp(16px,5vw,64px) 16px !important;
+  font-size:15px !important;
+}
+
+/* welcome */
+#aiChatPanel #aiChatMain .ai-chat-welcome{
+  width:100%;
+  max-width:900px;
+  margin:auto !important;
+  padding:0 !important;
+  text-align:center;
+}
+
+.ai-hello{
+  font-size:clamp(32px,4.6vw,46px);
+  font-weight:700;
+  letter-spacing:-1px;
+  line-height:1.15;
+  background:linear-gradient(90deg,#2f7bff,#8a4dff);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  -webkit-text-fill-color:transparent;
+  margin-bottom:6px;
+}
+
+.ai-sub{
+  font-size:clamp(20px,2.6vw,30px);
+  font-weight:500;
+  letter-spacing:-.4px;
+  color:#6b7390;
+  margin-bottom:36px;
+}
+
+.ai-cards{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:14px;
+}
+
+.ai-card{
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  width:200px;
+  height:128px;
+  padding:16px;
+  border:1px solid #e4e7f1;
+  border-radius:16px;
+  background:#fafbff;
+  font-family:inherit;
+  font-size:14px;
+  line-height:1.4;
+  color:var(--d-text);
+  text-align:left;
+  cursor:pointer;
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+}
+
+.ai-card:hover{
+  transform:translateY(-2px);
+  border-color:#d3d8ea;
+  box-shadow:0 10px 24px rgba(40,60,130,.10);
+}
+
+.ai-card:focus-visible,
+.ai-nav-item:focus-visible,
+.ai-hist-item:focus-visible,
+.ai-tools-btn:focus-visible,
+.ai-tools-item:focus-visible,
+#aiSidebarToggle:focus-visible{
+  outline:2px solid #3b6cff;
+  outline-offset:2px;
+}
+
+.ai-card-ic{
+  width:34px;
+  height:34px;
+  border-radius:10px;
+  display:grid;
+  place-items:center;
+}
+
+.ai-card-ic svg{
+  width:19px;
+  height:19px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.9;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.ai-c-blue{background:#e3ecff;color:#2f5ee6;}
+.ai-c-purple{background:#e9e3ff;color:#7448e8;}
+.ai-c-green{background:#dcf5e8;color:#16a066;}
+.ai-c-amber{background:#fff0d9;color:#d98a12;}
+
+/* bubbles */
+#aiChatPanel .ai-chat-message.user .ai-chat-bubble{
+  background:#f1f2f8 !important;
+  color:var(--d-ink) !important;
+  border-radius:18px 18px 6px 18px !important;
+}
+
+#aiChatPanel .ai-chat-message.assistant .ai-chat-bubble{
+  background:#fff !important;
+  border:1px solid var(--d-line) !important;
+  border-radius:18px 18px 18px 6px !important;
+}
+
+/* ---------- COMPOSER ---------- */
+
+#appContent #aiChatPanel #aiChatMain .ai-chat-input-area{
+  padding:6px clamp(14px,5vw,64px) 22px !important;
+  background:transparent !important;
+  border-top:0 !important;
+}
+
+#aiChatPanel .ai-chat-input-row{
+  position:relative;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) auto;
+  grid-template-areas:"input input" "tools send";
+  align-items:center;
+  gap:6px 12px !important;
+  box-sizing:border-box;
+  width:min(760px,100%);
+  margin:0 auto;
+  padding:16px 18px 14px 22px;
+  border:1px solid #dfe3ef;
+  border-radius:28px;
+  background:#fff;
+  box-shadow:0 8px 30px rgba(40,60,130,.10);
+}
+
+#aiChatPanel #aiChatMain #aiChatInput{
+  grid-area:input;
+  width:100%;
+  min-height:44px !important;
+  padding:4px 0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  font-size:16px !important;
+  line-height:1.5 !important;
+}
+
+#aiChatPanel #aiChatMain #aiChatInput:focus{
+  border:0 !important;
+  background:transparent !important;
+}
+
+#aiChatPanel #aiChatSend{
+  grid-area:send;
+  display:grid !important;
+  place-items:center;
+  width:42px !important;
+  height:42px !important;
+  border-radius:50% !important;
+  background:linear-gradient(135deg,#2f7bff,#6a4dff) !important;
+}
+
+/* Tools pill + menu */
+.ai-tools-wrap{
+  grid-area:tools;
+  justify-self:start;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+.ai-tools-btn,
+.ai-tools-clear{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  height:36px;
+  padding:0 14px;
+  border:1px solid #e1e4ee;
+  border-radius:999px;
+  background:#fff;
+  font-family:inherit;
+  font-size:13.5px;
+  color:#3a4156;
+  cursor:pointer;
+}
+
+.ai-tools-btn svg{
+  width:16px;
+  height:16px;
+}
+
+.ai-tools-btn:hover,
+.ai-tools-clear:hover,
+.ai-tools-btn[aria-expanded="true"],
+.ai-tools-btn.has-tool{
+  background:#f1f2f8;
+}
+
+.ai-tools-clear{
+  width:36px;
+  padding:0;
+  justify-content:center;
+  font-size:16px;
+  line-height:1;
+}
+
+.ai-tools-clear[hidden]{
+  display:none;
+}
+
+.ai-tools-menu{
+  position:absolute;
+  left:14px;
+  bottom:calc(100% + 10px);
+  z-index:30;
+  display:none;
+  width:min(290px,calc(100% - 28px));
+  padding:8px;
+  border:1px solid #e1e4ee;
+  border-radius:16px;
+  background:#fff;
+  box-shadow:0 14px 40px rgba(30,40,90,.16);
+}
+
+.ai-tools-menu.open{
+  display:block;
+}
+
+.ai-tools-title{
+  padding:8px 10px 6px;
+  font-size:11.5px;
+  font-weight:700;
+  letter-spacing:.08em;
+  color:var(--d-muted);
+  text-transform:uppercase;
+}
+
+.ai-tools-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  width:100%;
+  padding:10px;
+  border:0;
+  border-radius:10px;
+  background:transparent;
+  font-family:inherit;
+  font-size:14.5px;
+  color:var(--d-text);
+  text-align:left;
+  cursor:pointer;
+}
+
+.ai-tools-item svg{
+  color:#5a6178;
+}
+
+.ai-tools-item small{
+  display:block;
+  margin-top:1px;
+  font-size:12px;
+  color:var(--d-muted);
+}
+
+.ai-tools-item:hover,
+.ai-tools-item.on{
+  background:#f1f2f8;
+}
+
+/* note under composer replaces the keyboard hint */
+#aiChatPanel .ai-chat-hint{
+  margin-top:10px !important;
+  padding:0 !important;
+  font-size:0 !important;
+  text-align:center;
+}
+
+#aiChatPanel .ai-chat-hint::after{
+  content:"AI can make mistakes. Please check important information.";
+  font-size:12px;
+  color:#9aa1b6;
+}
+
+/* toast */
+#aiToast{
+  position:fixed;
+  left:50%;
+  top:22px;
+  z-index:10050;
+  transform:translate(-50%,-10px);
+  padding:10px 18px;
+  border-radius:999px;
+  background:#1f2430;
+  color:#fff;
+  font:500 13.5px Inter,"Segoe UI",system-ui,Arial,sans-serif;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .2s ease,transform .2s ease;
+}
+
+#aiToast.show{
+  opacity:1;
+  transform:translate(-50%,0);
+}
+
+/* mobile drawer controls (hidden on desktop) */
+#aiSidebarToggle,
+.ai-sidebar-backdrop{
+  display:none;
+}
+
+/* ---------- RESPONSIVE ---------- */
+
+@media(max-width:820px){
+
+  #appContent #aiChatPanel #aiChatSidebar{
+    position:fixed !important;
+    top:0;
+    left:0;
+    bottom:0;
+    z-index:10010;
+    width:min(300px,86vw) !important;
+    flex-basis:auto !important;
+    transform:translateX(-104%);
+    transition:transform .25s ease;
+    box-shadow:none;
+  }
+
+  #appContent #aiChatPanel.ai-sidebar-open #aiChatSidebar{
+    transform:none;
+    box-shadow:0 0 40px rgba(20,30,70,.25);
+  }
+
+  .ai-sidebar-backdrop{
+    position:fixed;
+    inset:0;
+    z-index:10005;
+    background:rgba(20,25,50,.35);
+  }
+
+  #aiChatPanel.ai-sidebar-open .ai-sidebar-backdrop{
+    display:block;
+  }
+
+  #aiSidebarToggle{
+    position:absolute;
+    top:10px;
+    left:12px;
+    z-index:5;
+    display:grid;
+    place-items:center;
+    width:40px;
+    height:40px;
+    border:1px solid #e1e4ee;
+    border-radius:12px;
+    background:#fff;
+    color:var(--d-ink);
+    cursor:pointer;
+  }
+
+  #aiSidebarToggle svg{
+    width:20px;
+    height:20px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:2;
+    stroke-linecap:round;
+  }
+
+  #appContent #aiChatPanel #aiChatMain #aiChatMessages{
+    padding-top:64px !important;
+  }
+
+  .ai-card{
+    width:calc(50% - 7px);
+    height:auto;
+    min-height:104px;
+    gap:12px;
+  }
+
+  #aiChatPanel .ai-chat-input-row{
+    padding:12px 14px 12px 16px;
+    border-radius:24px;
+  }
+
+  #aiChatPanel #aiChatMain #aiChatInput{
+    font-size:15px !important;
+  }
+}
+
+@media(max-width:380px){
+
+  .ai-card{
+    width:100%;
+    min-height:0;
+  }
+}
+
+/* markdown inside assistant replies (rendered by chat.js) */
+.ai-chat-bubble p{margin:0 0 10px}
+.ai-chat-bubble p:last-child,
+.ai-chat-bubble > :last-child{margin-bottom:0}
+
+.ai-chat-bubble .ai-md-h{margin:14px 0 6px;font-weight:700;line-height:1.3;color:var(--d-ink)}
+.ai-chat-bubble .ai-md-h:first-child{margin-top:0}
+.ai-chat-bubble .ai-md-h1{font-size:1.25em}
+.ai-chat-bubble .ai-md-h2{font-size:1.15em}
+.ai-chat-bubble .ai-md-h3{font-size:1.06em}
+.ai-chat-bubble .ai-md-h4,
+.ai-chat-bubble .ai-md-h5,
+.ai-chat-bubble .ai-md-h6{font-size:1em}
+
+.ai-chat-bubble ul,
+.ai-chat-bubble ol{margin:6px 0 10px;padding-left:22px}
+.ai-chat-bubble li{margin:3px 0}
+.ai-chat-bubble li.ai-md-l1{margin-left:18px}
+.ai-chat-bubble li.ai-md-l2{margin-left:36px}
+
+.ai-chat-bubble strong{font-weight:700}
+
+.ai-chat-bubble code{
+  padding:2px 6px;
+  border-radius:6px;
+  background:#f1f2f8;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:.9em;
+}
+
+.ai-chat-bubble pre.ai-md-code{
+  margin:8px 0 10px;
+  padding:12px 14px;
+  border:1px solid var(--d-line);
+  border-radius:10px;
+  background:#f6f7fb;
+  overflow-x:auto;
+  white-space:pre;
+  word-break:normal;
+  line-height:1.5;
+}
+
+.ai-chat-bubble pre.ai-md-code code{
+  padding:0;
+  background:none;
+  font-size:.88em;
+}
+
+.ai-chat-bubble blockquote{
+  margin:8px 0;
+  padding:2px 0 2px 12px;
+  border-left:3px solid #d3d8ea;
+  color:#5a6178;
+}
+
+.ai-chat-bubble hr{
+  margin:12px 0;
+  border:0;
+  border-top:1px solid var(--d-line);
+}
+
+.ai-chat-bubble a{color:#2f56d9;text-decoration:underline}
+
+.ai-chat-bubble .ai-md-table{margin:8px 0 10px;overflow-x:auto}
+.ai-chat-bubble table{border-collapse:collapse;font-size:.95em}
+.ai-chat-bubble th,
+.ai-chat-bubble td{padding:6px 10px;border:1px solid var(--d-line);text-align:left;vertical-align:top}
+.ai-chat-bubble th{background:#f6f7fb;font-weight:600}
+</style>
+
 </head>
 
 <body>
@@ -942,7 +1698,25 @@ LOGIN / REGISTER SCREEN
       Login to continue creating smarter content with AI.
     </p>
 
-    <form id="authForm">
+    <div id="authChoiceScreen" style="text-align:center;">
+      <button type="button" id="googleSignInButton" style="width:100%;padding:14px;margin:12px 0;border:1px solid #ccc;border-radius:10px;background:white;color:#222;font-weight:600;cursor:pointer;">
+        Continue with Google
+      </button>
+      <button type="button" id="continueWithEmailButton" style="width:100%;padding:14px;margin:8px 0;border:0;border-radius:10px;background:#2563eb;color:white;font-weight:600;cursor:pointer;">
+        Continue with Email
+      </button>
+      <div id="authChoiceMessage" style="display:none;color:#dc2626;margin-top:12px;"></div>
+    </div>
+    <button type="button" id="emailBackButton" style="display:none;margin-bottom:12px;border:0;background:transparent;color:#2563eb;cursor:pointer;">
+      Back to sign-in options
+    </button>
+    <form id="authForm" style="display:none;">
+
+      <div class="auth-field" id="authFullNameField" style="display:none;">
+        <label for="authFullName">Full Name</label>
+        <input type="text" id="authFullName" placeholder="Enter your full name"
+          autocomplete="name" minlength="2" maxlength="80">
+      </div>
 
       <div class="auth-field">
 
@@ -977,11 +1751,23 @@ LOGIN / REGISTER SCREEN
 
       </div>
 
+      <div class="auth-field" id="authConfirmPasswordField" style="display:none;">
+        <label for="authConfirmPassword">Confirm Password</label>
+        <input type="password" id="authConfirmPassword" placeholder="Re-enter your password"
+          autocomplete="new-password" minlength="8" maxlength="128">
+      </div>
+
+      <div class="auth-field" id="authOtpField" style="display:none;">
+        <label for="authOtp">Email Verification Code</label>
+        <input type="text" id="authOtp" placeholder="Enter 6-digit code"
+          inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}">
+      </div>
+
       <button
         type="submit"
         id="authButton"
       >
-        🔐 Login
+        Ã°Å¸â€Â Login
       </button>
 
       <div id="authMessage"></div>
@@ -993,7 +1779,7 @@ LOGIN / REGISTER SCREEN
           type="button"
           id="switchAuthMode"
         >
-          Create Account
+          Sign up with Email
         </button>
       </div>
 
@@ -1017,60 +1803,15 @@ MAIN APP
 
   <header class="topbar">
 
-    <div>
-
-      <h1>
-        AI Content Agent
-      </h1>
-
-      <p>
-        Create smarter content with AI
-      </p>
-
-    </div>
+    
 
     <div class="topbar-right">
-
-      <div
-        id="backendStatus"
-        title="Checking AI backend connection..."
-        style="
-          display:inline-flex;
-          align-items:center;
-          gap:6px;
-          padding:7px 10px;
-          border-radius:10px;
-          background:rgba(255,255,255,0.15);
-          border:1px solid rgba(255,255,255,0.25);
-          color:white;
-          font-size:11px;
-          font-weight:600;
-          white-space:nowrap;
-        "
-      >
-
-        <span
-          id="backendStatusDot"
-          style="
-            width:8px;
-            height:8px;
-            border-radius:50%;
-            background:#f1c40f;
-            display:inline-block;
-          "
-        ></span>
-
-        <span id="backendStatusText">
-          Connecting...
-        </span>
-
-      </div>
 
       <button
         id="logoutBtn"
         type="button"
       >
-        🚪 Logout
+        Ã°Å¸Å¡Âª Logout
       </button>
 
       <div
@@ -1113,27 +1854,27 @@ MAIN APP
       <select id="contentType">
 
         <option value="Instagram Reel">
-          🎬 Instagram Reel
+          Ã°Å¸Å½Â¬ Instagram Reel
         </option>
 
         <option value="Instagram Post">
-          📱 Instagram Post
+          Ã°Å¸â€œÂ± Instagram Post
         </option>
 
         <option value="YouTube Video">
-          ▶️ YouTube Video
+          Ã¢â€“Â¶Ã¯Â¸Â YouTube Video
         </option>
 
         <option value="LinkedIn Post">
-          💼 LinkedIn Post
+          Ã°Å¸â€™Â¼ LinkedIn Post
         </option>
 
         <option value="Caption">
-          📝 Caption
+          Ã°Å¸â€œÂ Caption
         </option>
 
         <option value="Ad Copy">
-          🎯 Ad Copy
+          Ã°Å¸Å½Â¯ Ad Copy
         </option>
 
       </select>
@@ -1145,25 +1886,29 @@ MAIN APP
       <select id="language">
 
         <option value="Hindi">
-          🇮🇳 Hindi
+          Ã°Å¸â€¡Â®Ã°Å¸â€¡Â³ Hindi
         </option>
 
         <option value="English">
-          🇬🇧 English
+          Ã°Å¸â€¡Â¬Ã°Å¸â€¡Â§ English
         </option>
 
         <option value="Hinglish">
-          🔄 Hinglish
+          Ã°Å¸â€â€ž Hinglish
         </option>
 
       </select>
 
       <button id="generateBtn">
-        ✨ Generate Content
+        Ã¢Å“Â¨ Generate Content
       </button>
 
     </section>
 
+
+    <section id="universalChatSection" class="universal-chat-section">
+        <div id="aiChatMount"></div>
+    </section>
 
     <!-- =========================
     TOOLS
@@ -1180,7 +1925,7 @@ MAIN APP
       >
 
         <span>
-          💡
+          Ã°Å¸â€™Â¡
         </span>
 
         <h3>
@@ -1203,7 +1948,7 @@ MAIN APP
       >
 
         <span>
-          🖼️
+          Ã°Å¸â€“Â¼Ã¯Â¸Â
         </span>
 
         <h3>
@@ -1226,7 +1971,7 @@ MAIN APP
       >
 
         <span>
-          🎬
+          Ã°Å¸Å½Â¬
         </span>
 
         <h3>
@@ -1249,7 +1994,7 @@ MAIN APP
       >
 
         <span>
-          🪝
+          Ã°Å¸ÂªÂ
         </span>
 
         <h3>
@@ -1272,7 +2017,7 @@ MAIN APP
       >
 
         <span>
-          📝
+          Ã°Å¸â€œÂ
         </span>
 
         <h3>
@@ -1295,7 +2040,7 @@ MAIN APP
       >
 
         <span>
-          #️⃣
+          #Ã¯Â¸ÂÃ¢Æ’Â£
         </span>
 
         <h3>
@@ -1318,7 +2063,7 @@ MAIN APP
       >
 
         <span>
-          📢
+          Ã°Å¸â€œÂ¢
         </span>
 
         <h3>
@@ -1365,7 +2110,7 @@ MAIN APP
         <div>
 
           <span class="ideas-icon">
-            💡
+            Ã°Å¸â€™Â¡
           </span>
 
           <h2>
@@ -1393,15 +2138,15 @@ MAIN APP
         <select id="ideasLanguage">
 
           <option value="Hindi">
-            🇮🇳 Hindi
+            Ã°Å¸â€¡Â®Ã°Å¸â€¡Â³ Hindi
           </option>
 
           <option value="English">
-            🇬🇧 English
+            Ã°Å¸â€¡Â¬Ã°Å¸â€¡Â§ English
           </option>
 
           <option value="Hinglish">
-            🔄 Hinglish
+            Ã°Å¸â€â€ž Hinglish
           </option>
 
         </select>
@@ -1428,7 +2173,7 @@ MAIN APP
 
 
         <button id="generateIdeasBtn">
-          💡 Generate Ideas
+          Ã°Å¸â€™Â¡ Generate Ideas
         </button>
 
       </div>
@@ -1453,7 +2198,7 @@ MAIN APP
       <div class="image-header">
 
         <span class="image-icon">
-          🖼️
+          Ã°Å¸â€“Â¼Ã¯Â¸Â
         </span>
 
         <div>
@@ -1497,23 +2242,23 @@ MAIN APP
           <select id="imageType">
 
             <option value="Instagram Post">
-              📱 Instagram Post
+              Ã°Å¸â€œÂ± Instagram Post
             </option>
 
             <option value="Instagram Story">
-              📲 Instagram Story
+              Ã°Å¸â€œÂ² Instagram Story
             </option>
 
             <option value="YouTube Thumbnail">
-              ▶️ YouTube Thumbnail
+              Ã¢â€“Â¶Ã¯Â¸Â YouTube Thumbnail
             </option>
 
             <option value="Poster">
-              🖼️ Poster
+              Ã°Å¸â€“Â¼Ã¯Â¸Â Poster
             </option>
 
             <option value="Square Post">
-              ⬜ Square Post
+              Ã¢Â¬Å“ Square Post
             </option>
 
           </select>
@@ -1530,27 +2275,27 @@ MAIN APP
           <select id="imageStyle">
 
             <option value="Modern Premium">
-              ✨ Modern Premium
+              Ã¢Å“Â¨ Modern Premium
             </option>
 
             <option value="Clean Minimal">
-              🧼 Clean Minimal
+              Ã°Å¸Â§Â¼ Clean Minimal
             </option>
 
             <option value="Professional">
-              💼 Professional
+              Ã°Å¸â€™Â¼ Professional
             </option>
 
             <option value="Realistic">
-              📸 Realistic
+              Ã°Å¸â€œÂ¸ Realistic
             </option>
 
             <option value="Cinematic">
-              🎬 Cinematic
+              Ã°Å¸Å½Â¬ Cinematic
             </option>
 
             <option value="Creative">
-              🎨 Creative
+              Ã°Å¸Å½Â¨ Creative
             </option>
 
           </select>
@@ -1583,7 +2328,7 @@ MAIN APP
           id="generateImageBtn"
           class="image-generate-btn"
         >
-          🖼️ Generate Image
+          Ã°Å¸â€“Â¼Ã¯Â¸Â Generate Image
         </button>
 
       </div>
@@ -1597,7 +2342,7 @@ MAIN APP
         <div class="image-placeholder">
 
           <span>
-            🖼️
+            Ã°Å¸â€“Â¼Ã¯Â¸Â
           </span>
 
           <p>
@@ -1629,7 +2374,7 @@ EXISTING AI JAVASCRIPT
 
 
 <!-- AI CHAT -->
-<script src="chat.js"></script>
+<script src="chat.js?v=20261124-1"></script>
 
 
 <!-- DASHBOARD / PROFILE / SETTINGS -->
@@ -1854,5 +2599,550 @@ document.addEventListener(
 
 </script>
 
+
+
+<!-- =========================
+DASHBOARD REDESIGN (additive)
+Adds: sidebar nav, composer Tools menu, welcome cards, mobile drawer.
+It never replaces an existing handler: tool choices are forwarded by
+clicking the original (now hidden) sidebar tool buttons from chat.js.
+========================= -->
+
+<script>
+(function () {
+  "use strict";
+
+  var DEFAULT_PLACEHOLDER = "Message AI Content Agent...";
+
+  var ICON = {
+    site: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 9h18"/><circle cx="6.5" cy="6.5" r=".6"/><circle cx="9" cy="6.5" r=".6"/></svg>',
+    explore: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>',
+    layers: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg>',
+    plug: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 2v5M15 2v5M7 7h10v4a5 5 0 0 1-10 0z"/><path d="M12 16v6"/></svg>',
+    image: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 9"/></svg>',
+    bulb: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>',
+    doc: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M9 12h6M9 16h6"/></svg>',
+    code: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></svg>',
+    play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg>',
+    wrench: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4l-2.4 2.4-2.1-.6-.6-2.1z"/></svg>',
+    chevron: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>',
+    menu: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>'
+  };
+
+  var NAV = [
+    { key: "website", label: "Website Builder", icon: "site" },
+    { key: "explore", label: "Explore", icon: "explore" },
+    { key: "creations", label: "My Creations", icon: "layers" },
+    { key: "integrations", label: "Integrations", icon: "plug" }
+  ];
+
+  var TOOLS = [
+    { key: "image", label: "Image Generation", sub: "Create images from text", icon: "image" },
+    { key: "ideas", label: "Content Ideas", sub: "Get fresh ideas on a topic", icon: "bulb" },
+    { key: "script", label: "Script & Caption", sub: "Reels, captions and hooks", icon: "doc" },
+    { key: "code", label: "Code", sub: "Write, fix and explain code", icon: "code" }
+  ];
+
+  var CARDS = [
+    { tool: "script", tone: "blue", icon: "play", text: "Create a video script from your idea" },
+    { tool: "image", tone: "purple", icon: "image", text: "Generate an image for a post or poster" },
+    { tool: "script", tone: "green", icon: "doc", text: "Write a caption or hook" },
+    { tool: "ideas", tone: "amber", icon: "bulb", text: "Get fresh content ideas" }
+  ];
+
+  var PLACEHOLDERS = {
+    code: "Describe the code you need..."
+  };
+
+  function $(id) { return document.getElementById(id); }
+
+  /* ---------- toast ---------- */
+
+  var toastTimer = null;
+
+  function toast(message) {
+    var el = $("aiToast");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "aiToast";
+      el.setAttribute("role", "status");
+      document.body.appendChild(el);
+    }
+    el.textContent = message;
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.classList.remove("show"); }, 2000);
+  }
+
+  /* ---------- tool selection (forwards to chat.js buttons) ---------- */
+
+  function currentTool() {
+    var input = $("aiChatInput");
+    return input ? (input.dataset.aiTool || "") : "";
+  }
+
+  function selectTool(key) {
+    var input = $("aiChatInput");
+    if (!input) return;
+
+    if (key === "code") {
+      input.dataset.aiTool = "code";
+      input.placeholder = PLACEHOLDERS.code;
+    } else {
+      var original = document.querySelector('#aiChatSidebar [data-ai-tool="' + key + '"]');
+      if (original) original.click();
+    }
+
+    refreshToolsUI();
+    input.focus();
+  }
+
+  function clearTool() {
+    var input = $("aiChatInput");
+    if (!input) return;
+
+    var general = document.querySelector('#aiChatSidebar [data-ai-tool="chat"]');
+    if (general) general.click();
+    input.dataset.aiTool = "chat";
+    input.placeholder = DEFAULT_PLACEHOLDER;
+
+    refreshToolsUI();
+    input.focus();
+  }
+
+  function refreshToolsUI() {
+    var tool = currentTool();
+    var meta = null;
+    TOOLS.forEach(function (t) { if (t.key === tool) meta = t; });
+
+    var btn = $("aiToolsBtn");
+    var clear = $("aiToolsClear");
+    if (btn) {
+      btn.querySelector(".ai-tools-label").textContent = meta ? meta.label : "Tools";
+      btn.classList.toggle("has-tool", !!meta);
+    }
+    if (clear) clear.hidden = !meta;
+
+    var items = document.querySelectorAll(".ai-tools-item");
+    for (var i = 0; i < items.length; i++) {
+      items[i].classList.toggle("on", !!meta && items[i].getAttribute("data-tool-key") === meta.key);
+    }
+  }
+
+  function closeMenu() {
+    var menu = $("aiToolsMenu");
+    var btn = $("aiToolsBtn");
+    if (menu) menu.classList.remove("open");
+    if (btn) btn.setAttribute("aria-expanded", "false");
+  }
+
+  /* ---------- sidebar ---------- */
+
+  function enhanceSidebar(panel, sidebar) {
+    // tag the two headings by their text so CSS can target them safely
+    var heads = sidebar.querySelectorAll(".ai-sidebar-heading");
+    for (var i = 0; i < heads.length; i++) {
+      var t = (heads[i].textContent || "").trim().toLowerCase();
+      if (t === "tools") heads[i].classList.add("ai-h-tools");
+      if (t === "chat history") heads[i].classList.add("ai-h-history");
+    }
+
+    // nav items under New chat
+    var newBtn = $("aiChatSidebarNew");
+    var nav = document.createElement("nav");
+    nav.className = "ai-nav";
+    nav.setAttribute("aria-label", "Workspace");
+
+    NAV.forEach(function (n) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "ai-nav-item";
+      b.setAttribute("data-nav", n.key);
+      b.innerHTML = ICON[n.icon] + "<span>" + n.label + "</span>";
+      b.addEventListener("click", function () {
+        closeDrawer();
+        if (n.key === "website") {
+          document.dispatchEvent(new CustomEvent("ai:open-website-builder"));
+          return;
+        }
+        toast(n.label + " is coming soon");
+      });
+      nav.appendChild(b);
+    });
+
+    if (newBtn && newBtn.parentNode === sidebar) {
+      newBtn.insertAdjacentElement("afterend", nav);
+      newBtn.addEventListener("click", closeDrawer);
+    } else {
+      sidebar.insertBefore(nav, sidebar.children[1] || null);
+    }
+  }
+
+  /* ---------- composer: Tools menu ---------- */
+
+  function enhanceComposer(main) {
+    var row = main.querySelector(".ai-chat-input-row");
+    var input = $("aiChatInput");
+    if (!row || !input) return;
+
+    input.placeholder = DEFAULT_PLACEHOLDER;
+
+    var wrap = document.createElement("div");
+    wrap.className = "ai-tools-wrap";
+
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.id = "aiToolsBtn";
+    btn.className = "ai-tools-btn";
+    btn.setAttribute("aria-haspopup", "true");
+    btn.setAttribute("aria-expanded", "false");
+    btn.innerHTML = ICON.wrench + '<span class="ai-tools-label">Tools</span>' + ICON.chevron;
+
+    var clear = document.createElement("button");
+    clear.type = "button";
+    clear.id = "aiToolsClear";
+    clear.className = "ai-tools-clear";
+    clear.setAttribute("aria-label", "Clear selected tool");
+    clear.title = "Clear tool";
+    clear.hidden = true;
+    clear.textContent = "Ã—";
+
+    wrap.appendChild(btn);
+    wrap.appendChild(clear);
+
+    var menu = document.createElement("div");
+    menu.id = "aiToolsMenu";
+    menu.className = "ai-tools-menu";
+    menu.setAttribute("role", "menu");
+    menu.innerHTML = '<div class="ai-tools-title">Optional tools</div>';
+
+    TOOLS.forEach(function (t) {
+      var item = document.createElement("button");
+      item.type = "button";
+      item.className = "ai-tools-item";
+      item.setAttribute("role", "menuitem");
+      item.setAttribute("data-tool-key", t.key);
+      item.innerHTML = ICON[t.icon] + "<div>" + t.label.replace("&", "&amp;") + "<small>" + t.sub + "</small></div>";
+      item.addEventListener("click", function () {
+        closeMenu();
+        selectTool(t.key);
+      });
+      menu.appendChild(item);
+    });
+
+    row.appendChild(wrap);
+    row.appendChild(menu);
+
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var open = menu.classList.toggle("open");
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+
+    clear.addEventListener("click", clearTool);
+
+    document.addEventListener("click", function (e) {
+      if (!menu.contains(e.target) && e.target !== btn) closeMenu();
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") closeMenu();
+    });
+
+    refreshToolsUI();
+  }
+
+  /* ---------- mobile drawer ---------- */
+
+  function closeDrawer() {
+    var panel = $("aiChatPanel");
+    if (panel) panel.classList.remove("ai-sidebar-open");
+  }
+
+  function enhanceDrawer(panel, main) {
+    var toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.id = "aiSidebarToggle";
+    toggle.setAttribute("aria-label", "Open menu");
+    toggle.innerHTML = ICON.menu;
+    toggle.addEventListener("click", function () {
+      panel.classList.toggle("ai-sidebar-open");
+    });
+    main.appendChild(toggle);
+
+    var backdrop = document.createElement("div");
+    backdrop.className = "ai-sidebar-backdrop";
+    backdrop.addEventListener("click", closeDrawer);
+    panel.appendChild(backdrop);
+  }
+
+  /* ---------- welcome screen ---------- */
+
+  function displayName() {
+    var el = $("aiChatSidebarUserName");
+    var raw = el ? (el.textContent || "").trim() : "";
+    if (!raw || raw.toLowerCase() === "user") return "";
+    if (raw.indexOf("@") > -1) raw = raw.split("@")[0];
+    return raw.split(/\s+/)[0];
+  }
+
+  function helloText() {
+    var n = displayName();
+    return n ? "Hello, " + n : "Hello";
+  }
+
+  function decorateWelcome() {
+    var welcome = document.querySelector("#aiChatMessages .ai-chat-welcome");
+    if (!welcome || welcome.getAttribute("data-ai-done")) return;
+    welcome.setAttribute("data-ai-done", "1");
+
+    var html = '<div class="ai-hello">' + helloText() + '</div>' +
+      '<div class="ai-sub">What do you want to create today?</div>' +
+      '<div class="ai-cards"></div>';
+    welcome.innerHTML = html;
+
+    var cards = welcome.querySelector(".ai-cards");
+    CARDS.forEach(function (c) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "ai-card";
+      b.innerHTML = '<span class="ai-card-ic ai-c-' + c.tone + '">' + ICON[c.icon] + '</span><span>' + c.text + '</span>';
+      b.addEventListener("click", function () { selectTool(c.tool); });
+      cards.appendChild(b);
+    });
+  }
+
+  function watchUserName() {
+    var el = $("aiChatSidebarUserName");
+    if (!el || el.getAttribute("data-ai-watched")) return;
+    el.setAttribute("data-ai-watched", "1");
+    new MutationObserver(function () {
+      var hello = document.querySelector(".ai-hello");
+      if (hello) hello.textContent = helloText();
+    }).observe(el, { childList: true, characterData: true, subtree: true });
+  }
+
+  /* ---------- boot ---------- */
+
+  function run() {
+    var panel = $("aiChatPanel");
+    var sidebar = $("aiChatSidebar");
+    var main = $("aiChatMain");
+    if (!panel || !sidebar || !main || !$("aiChatInput")) return;
+
+    if (!panel.getAttribute("data-ai-enhanced")) {
+      panel.setAttribute("data-ai-enhanced", "1");
+      enhanceSidebar(panel, sidebar);
+      enhanceComposer(main);
+      enhanceDrawer(panel, main);
+    }
+
+    watchUserName();
+    decorateWelcome();
+  }
+
+  function start() {
+    var mount = $("aiChatMount");
+    if (!mount) return;
+    new MutationObserver(run).observe(mount, { childList: true, subtree: true });
+    run();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", start);
+  } else {
+    start();
+  }
+})();
+</script>
+
+<!-- =========================
+SIDEBAR CHAT HISTORY (read only)
+Lists the user's saved chats (users/{uid}/chatHistory, written by
+history.js). Clicking an item opens the existing History panel.
+========================= -->
+
+<script type="module">
+import { getApps, getApp, initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAF9-LEij0O7caT5I74f2UtfGDdc78JGqQ",
+    authDomain: "ai-content-agent-a9820.firebaseapp.com",
+    projectId: "ai-content-agent-a9820",
+    storageBucket: "ai-content-agent-a9820.firebasestorage.app",
+    messagingSenderId: "833284009437",
+    appId: "1:833284009437:web:91859542fb1f87ccdb9a34"
+};
+
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+let refreshTimer = null;
+
+function listEl() {
+    return document.getElementById("aiChatHistoryList");
+}
+
+function titleOf(messages) {
+    const first = (messages || []).find((m) => m && m.role === "user" && m.content);
+    const text = first ? String(first.content).replace(/\s+/g, " ").trim() : "";
+    if (!text) return "New conversation";
+    return text.length > 40 ? text.slice(0, 40).trimEnd() + "â€¦" : text;
+}
+
+function groupOf(iso) {
+    const d = new Date(iso);
+    if (isNaN(d)) return "Earlier";
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const days = Math.floor((startOfToday - d) / 86400000);
+    if (d >= startOfToday) return "Today";
+    if (days < 1) return "Yesterday";
+    if (days < 7) return "Previous 7 days";
+    return "Earlier";
+}
+
+function openHistoryPanel() {
+    const launcher = document.getElementById("historyLauncher");
+    if (!launcher) return;
+
+    const panel = document.getElementById("historyPanel");
+    const chatTab = () => document.getElementById("chatHistoryTab");
+
+    if (!panel || panel.style.display !== "flex") {
+        launcher.click();
+        setTimeout(() => { const t = chatTab(); if (t) t.click(); }, 60);
+    } else {
+        const t = chatTab();
+        if (t) t.click();
+    }
+}
+
+function renderMessage(list, text) {
+    list.innerHTML = "";
+    const div = document.createElement("div");
+    div.className = "ai-hist-empty";
+    div.textContent = text;
+    list.appendChild(div);
+}
+
+async function loadSidebarHistory() {
+    const list = listEl();
+    if (!list) return;
+
+    if (!currentUser) {
+        list.innerHTML = "";
+        return;
+    }
+
+    try {
+        const q = query(
+            collection(db, "users", currentUser.uid, "chatHistory"),
+            orderBy("createdAt", "desc"),
+            limit(30)
+        );
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+            renderMessage(list, "No chats yet");
+            return;
+        }
+
+        list.innerHTML = "";
+        let lastGroup = "";
+
+        snap.docs.forEach((d) => {
+            const data = d.data() || {};
+            const group = groupOf(data.createdAt);
+
+            if (group !== lastGroup) {
+                const label = document.createElement("div");
+                label.className = "ai-hist-group";
+                label.textContent = group;
+                list.appendChild(label);
+                lastGroup = group;
+            }
+
+            const savedTitle = String(data.title || titleOf(data.messages));
+            const item = document.createElement("button");
+            item.type = "button";
+            item.className = "ai-hist-item";
+            item.title = savedTitle;
+            item.textContent = savedTitle;
+            item.addEventListener("click", () => {
+                const panel = document.getElementById("aiChatPanel");
+                if (panel) panel.classList.remove("ai-sidebar-open");
+
+                window.dispatchEvent(new CustomEvent("ai-content-agent:open-chat", {
+                    detail: {
+                        id: d.id,
+                        title: titleOf(data.messages),
+                        messages: Array.isArray(data.messages) ? data.messages : []
+                    }
+                }));
+            });
+            list.appendChild(item);
+        });
+    } catch (error) {
+        console.error("Sidebar history load error:", error);
+        renderMessage(list, "History could not be loaded");
+    }
+}
+
+function scheduleRefresh(delay) {
+    clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(loadSidebarHistory, delay);
+}
+
+onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    // the chat panel is created by chat.js after DOMContentLoaded
+    waitForList(() => loadSidebarHistory());
+});
+
+function waitForList(cb) {
+    if (listEl()) { cb(); return; }
+    const mount = document.getElementById("aiChatMount");
+    if (!mount) return;
+    const obs = new MutationObserver(() => {
+        if (listEl()) {
+            obs.disconnect();
+            cb();
+            watchMessages();
+        }
+    });
+    obs.observe(mount, { childList: true, subtree: true });
+}
+
+let watching = false;
+
+function watchMessages() {
+    if (watching) return;
+    const box = document.getElementById("aiChatMessages");
+    if (!box) return;
+    watching = true;
+
+    // history.js saves a chat right after the AI replies; refresh shortly after
+    new MutationObserver((records) => {
+        for (const r of records) {
+            for (const n of r.addedNodes) {
+                if (n.nodeType === 1 && n.classList && n.classList.contains("assistant") && n.id !== "aiChatTypingMessage") {
+                    scheduleRefresh(2500);
+                    return;
+                }
+            }
+        }
+    }).observe(box, { childList: true });
+}
+
+waitForList(watchMessages);
+</script>
+
+
+<script src="website-builder-client.js"></script>
 </body>
 </html>
