@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, query, orderBy, limit, updateDoc } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAF9-LEij0O7caT5I74f2UtfGDdc78JGqQ",
@@ -103,8 +103,8 @@ function setToolsVisibility() {
 onAuthStateChanged(auth, (user) => {
 
     currentUser = user;
-
     setToolsVisibility();
+    loadSidebarChatHistory();
 
     if (
         user &&
@@ -167,6 +167,7 @@ async function saveContent(data) {
 
 
         refreshIfOpen();
+    loadSidebarChatHistory();
 
 
     } catch (e) {
@@ -185,70 +186,82 @@ async function saveContent(data) {
    SAVE CHAT HISTORY
 ========================================================= */
 
-async function saveChat(
-    messages,
-    reply
-) {
+async function saveChat(messages, existingId = null) {
+    if (!currentUser || !Array.isArray(messages) || !messages.length) return null;
 
-    if (
-        !currentUser ||
-        !Array.isArray(messages) ||
-        !messages.length
-    ) {
+    const allMessages = messages
+        .filter(m => m && (m.role === "user" || m.role === "assistant"))
+        .map(m => ({ role: m.role, content: String(m.content ?? "") }));
 
-        return;
-
-    }
-
-
-    const allMessages = [
-        ...messages
-    ];
-
-
-    if (reply) {
-
-        allMessages.push({
-            role: "assistant",
-            content: String(reply)
-        });
-
-    }
-
+    if (!allMessages.length) return null;
 
     try {
+        let savedId = existingId;
 
-        await addDoc(
-            collection(
-                db,
-                "users",
-                currentUser.uid,
-                "chatHistory"
-            ),
-            {
-                messages:
-                    allMessages,
-
-                createdAt:
-                    new Date().toISOString()
-            }
-        );
-
+        if (existingId) {
+            await updateDoc(
+                doc(db, "users", currentUser.uid, "chatHistory", existingId),
+                {
+                    messages: allMessages,
+                    updatedAt: new Date().toISOString()
+                }
+            );
+        } else {
+            const savedRef = await addDoc(
+                collection(db, "users", currentUser.uid, "chatHistory"),
+                {
+                    messages: allMessages,
+                    title: String(allMessages.find(m => m.role === "user")?.content || "AI Chat").substring(0, 100),
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                }
+            );
+            savedId = savedRef.id;
+        }
 
         refreshIfOpen();
-
-
+        loadSidebarChatHistory();
+        return savedId;
     } catch (e) {
-
-        console.error(
-            "Chat history save error:",
-            e
-        );
-
+        console.error("Chat history save error:", e);
+        return null;
     }
-
 }
 
+window.saveAIChatHistory = saveChat;
+
+window.renameAIChatHistory = async function (id, newTitle) {
+    if (!currentUser || !id || typeof newTitle !== "string") return false;
+    const title = newTitle.trim().substring(0, 100);
+    if (!title) return false;
+
+    try {
+        await updateDoc(
+            doc(db, "users", currentUser.uid, "chatHistory", id),
+            { title, updatedAt: new Date().toISOString() }
+        );
+        await loadSidebarChatHistory();
+        return true;
+    } catch (error) {
+        console.error("Rename chat error:", error);
+        alert("Chat rename nahi ho paya.");
+        return false;
+    }
+};
+
+window.deleteAIChatHistory = async function (id) {
+    if (!currentUser || !id) return false;
+
+    try {
+        await deleteDoc(doc(db, "users", currentUser.uid, "chatHistory", id));
+        loadSidebarChatHistory();
+        return true;
+    } catch (error) {
+        console.error("Menu delete chat error:", error);
+        alert("Chat delete nahi ho paya.");
+        return false;
+    }
+};
 
 /* =========================================================
    FETCH INTERCEPTOR
@@ -346,42 +359,6 @@ window.fetch = async function (...args) {
 
         }
 
-
-        /* AI CHAT */
-
-        if (
-            currentUser &&
-            path.includes("/chat")
-        ) {
-
-            response
-                .clone()
-                .json()
-                .then((data) => {
-
-                    if (
-                        data?.success &&
-                        data.reply
-                    ) {
-
-                        saveChat(
-                            body.messages || [],
-                            data.reply
-                        );
-
-                    }
-
-                })
-                .catch((e) => {
-
-                    console.error(
-                        "Chat history error:",
-                        e
-                    );
-
-                });
-
-        }
 
     } catch (e) {
 
@@ -805,14 +782,7 @@ function createHistoryUI() {
     `;
 
 
-    document.body.appendChild(
-        launcher
-    );
-
-
-    document.body.appendChild(
-        panel
-    );
+    // Floating History popup disabled. Chat history is displayed in the main sidebar.
 
 
     /* OPEN */
@@ -939,6 +909,83 @@ function setActiveTab() {
 /* =========================================================
    LOAD HISTORY
 ========================================================= */
+// SIDEBAR CHAT HISTORY
+let sidebarLoadSeq = 0;
+async function loadSidebarChatHistory() {
+    const seq = ++sidebarLoadSeq;
+ const list = document.getElementById("aiChatHistoryList");
+    if (!list) return;
+
+    if (!currentUser) {
+        list.textContent = "Please login to see your chats.";
+        return;
+    }
+
+        if (!list.children.length) list.textContent = "Loading chats...";
+
+    try {
+        const q = query(
+            collection(db, "users", currentUser.uid, "chatHistory"),
+            orderBy("createdAt", "desc"),
+            limit(100)
+        );
+
+                const snap = await getDocs(q);
+        if (seq !== sidebarLoadSeq) return; // a newer refresh exists; drop this stale result
+        list.replaceChildren();
+
+        if (snap.empty) {
+            list.textContent = "No previous chats yet.";
+            return;
+        }
+
+        snap.docs.forEach((snapDoc) => {
+            const data = snapDoc.data() || {};
+            const messages = Array.isArray(data.messages) ? data.messages : [];
+            const firstUser = messages.find(m => m?.role === "user");
+            const title = String(data.title || firstUser?.content || "AI Chat");
+
+            const row = document.createElement("div");
+            row.style.cssText = "display:flex;align-items:center;gap:5px;margin:5px 0;";
+
+            const openButton = document.createElement("button");
+            openButton.type = "button";
+            openButton.className = "ai-sidebar-history-item";
+            openButton.textContent = title.substring(0, 65);
+            openButton.title = title;
+            openButton.style.cssText = "flex:1;min-width:0;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
+
+            openButton.addEventListener("click", () => {
+                window.dispatchEvent(new CustomEvent("ai-content-agent:open-chat", {
+                    detail: { id: snapDoc.id, title, messages }
+                }));
+            });
+
+            const deleteButton = document.createElement("button");
+            deleteButton.type = "button";
+            deleteButton.textContent = "×";
+            deleteButton.title = "Delete chat";
+            deleteButton.style.cssText = "flex:0 0 auto;width:auto;margin:0;";
+
+            deleteButton.addEventListener("click", async () => {
+                if (!confirm("Delete this saved chat?")) return;
+
+                await deleteHistory("chatHistory", snapDoc.id);
+                await loadSidebarChatHistory();
+            });
+
+            row.append(openButton, deleteButton);
+            list.appendChild(row);
+        });
+
+    } catch (error) {
+                if (seq !== sidebarLoadSeq) return;
+        console.error("Sidebar chat history error:", error);
+        list.textContent = "Could not load chat history.";
+    }
+}
+
+window.addEventListener("ai-chat-sidebar-ready", loadSidebarChatHistory);
 
 async function loadHistory() {
 
@@ -1262,9 +1309,7 @@ function renderHistoryCard(
             );
 
 
-        const title =
-            firstUser?.content ||
-            "AI Chat";
+        const title = String(data.title || firstUser?.content || "AI Chat");
 
 
         const preview =
@@ -1737,11 +1782,9 @@ function refreshIfOpen() {
 ========================================================= */
 
 function start() {
-
     createHistoryUI();
-
-
     setToolsVisibility();
+    loadSidebarChatHistory();
 
 
     console.log(

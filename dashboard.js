@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 // AI CONTENT AGENT
 // DASHBOARD / PROFILE / SETTINGS / CUSTOMER PORTAL
 // FINAL PREMIUM 3D UI
@@ -2982,6 +2982,12 @@ async function loadProfile() {
         .charAt(0)
         .toUpperCase();
 
+
+    
+    const sidebarUserName = document.getElementById("aiChatSidebarUserName");
+    if (sidebarUserName) {
+        sidebarUserName.textContent = name || currentUser.email || "User";
+    }
 
     applyPublicSettingsToUI();
 

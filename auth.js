@@ -13,8 +13,10 @@ import {
     getAuth,
     onAuthStateChanged,
     signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
+    signInWithCustomToken,
     sendPasswordResetEmail,
+    GoogleAuthProvider,
+    signInWithPopup,
     signOut
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 
@@ -410,7 +412,7 @@ function updateAuthMode() {
                     type="button"
                     id="switchAuthMode"
                 >
-                    Create Account
+                    Sign up with Email
                 </button>
                 `;
 
@@ -421,7 +423,7 @@ function updateAuthMode() {
         if (authTitle) {
 
             authTitle.textContent =
-                "Create Your Account";
+                "Sign Up";
 
         }
 
@@ -437,7 +439,7 @@ function updateAuthMode() {
         if (authButton) {
 
             authButton.textContent =
-                "🚀 Create Account";
+                "Sign Up";
 
         }
 
@@ -480,6 +482,7 @@ function updateAuthMode() {
                 isLoginMode =
                     !isLoginMode;
 
+                resetRegistrationPhase();
                 updateAuthMode();
 
             }
@@ -664,255 +667,376 @@ async function ensureUserDocument(user) {
 
 
 // ==========================================
+const authChoiceScreen = document.getElementById("authChoiceScreen");
+const googleSignInButton = document.getElementById("googleSignInButton");
+const continueWithEmailButton = document.getElementById("continueWithEmailButton");
+const emailBackButton = document.getElementById("emailBackButton");
+const authChoiceMessage = document.getElementById("authChoiceMessage");
+
+if (continueWithEmailButton) {
+    continueWithEmailButton.addEventListener("click", () => {
+        authChoiceScreen.style.display = "none";
+        authForm.style.display = "block";
+        emailBackButton.style.display = "inline-block";
+        authChoiceMessage.style.display = "none";
+        clearAuthMessage();
+        authEmail.focus();
+    });
+}
+
+if (emailBackButton) {
+    emailBackButton.addEventListener("click", () => {
+        authForm.style.display = "none";
+        emailBackButton.style.display = "none";
+        authChoiceScreen.style.display = "block";
+        clearAuthMessage();
+    });
+}
+
+if (googleSignInButton) {
+    googleSignInButton.addEventListener("click", async () => {
+        authChoiceMessage.textContent = "";
+        authChoiceMessage.style.display = "none";
+        googleSignInButton.disabled = true;
+        googleSignInButton.textContent = "Connecting to Google...";
+
+        try {
+            const provider = new GoogleAuthProvider();
+            provider.setCustomParameters({ prompt: "select_account" });
+
+            const credential = await signInWithPopup(auth, provider);
+            await ensureUserDocument(credential.user);
+        } catch (error) {
+            console.error("Google sign-in error:", error);
+
+            const messages = {
+                "auth/popup-closed-by-user": "Google sign-in was cancelled. Please try again.",
+                "auth/popup-blocked": "Your browser blocked the Google sign-in popup. Allow popups and retry.",
+                "auth/unauthorized-domain": "This website domain is not authorized in Firebase Authentication.",
+                "auth/account-exists-with-different-credential": "An account already exists with this email. Sign in using your existing method."
+            };
+
+            authChoiceMessage.textContent =
+                messages[error.code] || "Google sign-in failed. Please try again.";
+            authChoiceMessage.style.display = "block";
+        } finally {
+            googleSignInButton.disabled = false;
+            googleSignInButton.textContent = "Continue with Google";
+        }
+    });
+}
+// ==========================================
+// REGISTRATION FIELDS + OTP HELPERS
+// ==========================================
+
+let registrationPhase = "details";
+let verifiedRegistrationToken = "";
+
+function makeAuthField(id, labelText, type, placeholder, autoComplete) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "auth-field";
+    wrapper.id = id + "Field";
+
+    const label = document.createElement("label");
+    label.htmlFor = id;
+    label.textContent = labelText;
+
+    const input = document.createElement("input");
+    input.type = type;
+    input.id = id;
+    input.placeholder = placeholder;
+    input.autocomplete = autoComplete || "off";
+
+    wrapper.append(label, input);
+    return { wrapper, input };
+}
+
+const fullNameControl = {
+    wrapper: document.getElementById("authFullNameField"),
+    input: document.getElementById("authFullName")
+};
+
+const confirmPasswordControl = makeAuthField(
+    "authConfirmPassword",
+    "Confirm Password",
+    "password",
+    "Re-enter your password",
+    "new-password"
+);
+
+const otpControl = makeAuthField(
+    "authRegistrationOtp",
+    "Email Verification Code",
+    "text",
+    "Enter 6-digit code",
+    "one-time-code"
+);
+
+otpControl.input.inputMode = "numeric";
+otpControl.input.maxLength = 6;
+otpControl.input.pattern = "[0-9]{6}";
+
+const emailField = authEmail
+    ? authEmail.closest(".auth-field")
+    : null;
+
+const passwordField = authPassword
+    ? authPassword.closest(".auth-field")
+    : null;
+
+
+if (passwordField) {
+    passwordField.after(confirmPasswordControl.wrapper);
+    confirmPasswordControl.wrapper.after(otpControl.wrapper);
+}
+
+function resetRegistrationPhase() {
+    registrationPhase = "details";
+    verifiedRegistrationToken = "";
+
+    fullNameControl.wrapper.style.display =
+        isLoginMode ? "none" : "block";
+
+    confirmPasswordControl.wrapper.style.display =
+        isLoginMode ? "none" : "block";
+
+    otpControl.wrapper.style.display = "none";
+
+    fullNameControl.input.required = !isLoginMode;
+    confirmPasswordControl.input.required = !isLoginMode;
+    otpControl.input.required = false;
+
+    if (authPassword) {
+        authPassword.minLength = isLoginMode ? 6 : 8;
+        authPassword.autocomplete =
+            isLoginMode ? "current-password" : "new-password";
+    }
+
+    if (authButton) {
+        authButton.textContent =
+            isLoginMode ? "Login" : "Sign Up";
+    }
+}
+
+// The site is hosted on Firebase Hosting, but the OTP API lives on the Render
+// backend. Use Render everywhere except when testing locally.
+const AUTH_API_BASE_URL =
+    ["localhost", "127.0.0.1"].includes(window.location.hostname)
+        ? ""
+        : "https://ai-content-agent-3hb3.onrender.com";
+
+async function callAuthApi(endpoint, payload) {
+    const response = await fetch(AUTH_API_BASE_URL + endpoint, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+        throw new Error(
+            result.message ||
+            result.error ||
+            "Request failed. Please try again."
+        );
+    }
+
+    return result;
+}
+
+resetRegistrationPhase();
 // LOGIN / REGISTER FORM
 // ==========================================
 
 if (authForm) {
+    authForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        clearAuthMessage();
 
-    authForm.addEventListener(
-        "submit",
-        async (event) => {
+        const email = authEmail.value.trim().toLowerCase();
+        const password = authPassword.value;
 
-            event.preventDefault();
+        if (!email) {
+            showAuthMessage("Please enter your email.");
+            return;
+        }
 
-            clearAuthMessage();
+        if (!password) {
+            showAuthMessage("Please enter your password.");
+            return;
+        }
 
-
-            const email =
-                authEmail.value.trim();
-
-
-            const password =
-                authPassword.value;
-
-
-            // ==============================
-            // VALIDATION
-            // ==============================
-
-            if (!email) {
-
-                showAuthMessage(
-                    "Please enter your email."
-                );
-
-                return;
-
-            }
-
-
-            if (!password) {
-
-                showAuthMessage(
-                    "Please enter your password."
-                );
-
-                return;
-
-            }
-
-
+        if (isLoginMode) {
             if (password.length < 6) {
-
-                showAuthMessage(
-                    "Password must be at least 6 characters."
-                );
-
+                showAuthMessage("Please enter a valid password.");
                 return;
-
+            }
+        } else {
+            if (password.length < 8) {
+                showAuthMessage("Password must be at least 8 characters.");
+                return;
             }
 
+            if (registrationPhase === "details") {
+                const fullName = fullNameControl.input.value.trim();
+                const confirmPassword = confirmPasswordControl.input.value;
 
-            // ==============================
-            // BUTTON LOADING
-            // ==============================
+                if (!fullName) {
+                    showAuthMessage("Please enter your full name.");
+                    fullNameControl.input.focus();
+                    return;
+                }
 
-            if (authButton) {
+                if (fullName.length < 2 || fullName.length > 100) {
+                    showAuthMessage("Full name must be between 2 and 100 characters.");
+                    return;
+                }
 
-                authButton.disabled =
-                    true;
+                if (password !== confirmPassword) {
+                    showAuthMessage("Passwords do not match.");
+                    confirmPasswordControl.input.focus();
+                    return;
+                }
+            } else {
+                const otp = otpControl.input.value.trim();
 
-                authButton.dataset.originalText =
-                    authButton.textContent;
+                if (!/^[0-9]{6}$/.test(otp)) {
+                    showAuthMessage("Please enter the 6-digit verification code.");
+                    otpControl.input.focus();
+                    return;
+                }
+            }
+        }
 
-                authButton.textContent =
-                    isLoginMode
-                        ? "Logging in..."
-                        : "Creating account...";
+        if (authButton) {
+            authButton.disabled = true;
+            authButton.dataset.originalText = authButton.textContent;
+            authButton.textContent = isLoginMode
+                ? "Logging in..."
+                : registrationPhase === "details"
+                    ? "Sending verification code..."
+                    : "Verifying code...";
+        }
 
+        try {
+            // Existing users: email + password only. No OTP on login.
+            if (isLoginMode) {
+                const credential = await signInWithEmailAndPassword(
+                    auth,
+                    email,
+                    password
+                );
+
+                await ensureUserDocument(credential.user);
+                authForm.reset();
+                return;
             }
 
-
-            try {
-
-                // ==========================
-                // LOGIN
-                // ==========================
-
-                if (isLoginMode) {
-
-                    const credential =
-                        await signInWithEmailAndPassword(
-                            auth,
-                            email,
-                            password
-                        );
-
-
-                    await ensureUserDocument(
-                        credential.user
-                    );
-
-                }
-
-
-                // ==========================
-                // REGISTER
-                // ==========================
-
-                else {
-
-                    const credential =
-                        await createUserWithEmailAndPassword(
-                            auth,
-                            email,
-                            password
-                        );
-
-
-                    await ensureUserDocument(
-                        credential.user
-                    );
-
-                }
-
-
-                if (authForm) {
-
-                    authForm.reset();
-
-                }
-
-
-            } catch (error) {
-
-                console.error(
-                    "Firebase Auth Error:",
-                    error
-                );
-
-
-                let message =
-                    "Something went wrong. Please try again.";
-
-
-                switch (error.code) {
-
-                    case "auth/invalid-email":
-
-                        message =
-                            "Please enter a valid email address.";
-
-                        break;
-
-
-                    case "auth/user-not-found":
-
-                        message =
-                            "No account found with this email.";
-
-                        break;
-
-
-                    case "auth/wrong-password":
-
-                    case "auth/invalid-credential":
-
-                        message =
-                            "Incorrect email or password.";
-
-                        break;
-
-
-                    case "auth/email-already-in-use":
-
-                        message =
-                            "An account already exists with this email.";
-
-                        break;
-
-
-                    case "auth/weak-password":
-
-                        message =
-                            "Password should be at least 6 characters.";
-
-                        break;
-
-
-                    case "auth/too-many-requests":
-
-                        message =
-                            "Too many attempts. Please try again later.";
-
-                        break;
-
-
-                    case "auth/network-request-failed":
-
-                        message =
-                            "Network error. Please check your internet connection.";
-
-                        break;
-
-
-                    case "auth/api-key-not-valid":
-
-                    case "auth/api-key-not-valid.-please-pass-a-valid-api-key.":
-
-                        message =
-                            "Firebase configuration/API key is invalid.";
-
-                        break;
-
-
-                    default:
-
-                        message =
-                            error.message ||
-                            message;
-
-                }
-
-
-                showAuthMessage(
-                    message
-                );
-
-
-            } finally {
+            // Registration step 1: send email OTP.
+            if (registrationPhase === "details") {
+                await callAuthApi("/api/auth/send-otp", {
+                    name: fullNameControl.input.value.trim(),
+                    email
+                });
+
+                registrationPhase = "otp";
+                otpControl.wrapper.style.display = "block";
+                otpControl.input.required = true;
+                otpControl.input.value = "";
+
+                fullNameControl.input.readOnly = true;
+                authEmail.readOnly = true;
+                authPassword.readOnly = true;
+                confirmPasswordControl.input.readOnly = true;
 
                 if (authButton) {
-
-                    authButton.disabled =
-                        false;
-
-
-                    authButton.textContent =
-                        authButton.dataset.originalText ||
-                        (
-                            isLoginMode
-                                ? "🔐 Login"
-                                : "🚀 Create Account"
-                        );
-
+                    authButton.textContent = "Verify OTP";
                 }
 
+                showAuthMessage(
+                    "Verification code sent to your email. It expires in 5 minutes.",
+                    "success"
+                );
+
+                otpControl.input.focus();
+                return;
             }
 
-        }
-    );
+            // Registration step 2: verify OTP.
+            if (!verifiedRegistrationToken) {
+                const verification = await callAuthApi(
+                    "/api/auth/verify-otp",
+                    {
+                        email,
+                        otp: otpControl.input.value.trim()
+                    }
+                );
 
+                verifiedRegistrationToken =
+                    verification.registrationToken ||
+                    verification.token ||
+                    "";
+
+                if (!verifiedRegistrationToken) {
+                    throw new Error(
+                        "OTP verification response did not contain a registration token."
+                    );
+                }
+            }
+
+            // Registration step 3: create Firebase account after OTP verification.
+            const completed = await callAuthApi(
+                "/api/auth/complete-registration",
+                {
+                    name: fullNameControl.input.value.trim(),
+                    email,
+                    password,
+                    registrationToken: verifiedRegistrationToken
+                }
+            );
+
+            if (!completed.customToken) {
+                throw new Error(
+                    "Registration response did not contain a Firebase sign-in token."
+                );
+            }
+
+            const credential = await signInWithCustomToken(
+                auth,
+                completed.customToken
+            );
+
+            await ensureUserDocument(credential.user);
+
+            authForm.reset();
+            registrationPhase = "details";
+            verifiedRegistrationToken = "";
+
+        } catch (error) {
+            console.error("Authentication error:", error);
+
+            const message = error.message ||
+                "Something went wrong. Please try again.";
+
+            showAuthMessage(message);
+
+        } finally {
+            if (authButton) {
+                authButton.disabled = false;
+
+                if (isLoginMode) {
+                    authButton.textContent = "Login";
+                } else if (registrationPhase === "otp") {
+                    authButton.textContent = "Verify OTP";
+                } else {
+                    authButton.textContent = "Sign Up";
+                }
+            }
+        }
+    });
 }
 
 

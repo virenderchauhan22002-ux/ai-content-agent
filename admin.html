@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Content Agent — Admin</title>
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<div id="loading" class="loading">Checking admin access...</div>
+
+<div id="app" class="hidden">
+  <header class="topbar">
+    <div>
+      <h1>👑 Admin Panel</h1>
+      <p>AI Content Agent management</p>
+    </div>
+    <div class="top-actions">
+      <span id="adminEmail"></span>
+      <button id="refreshBtn">↻ Refresh</button>
+      <button id="logoutBtn" class="danger">Logout</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <button class="nav active" data-section="overview">📊 Overview</button>
+      <button class="nav" data-section="users">👥 Users</button>
+      <button class="nav" data-section="content">📝 Content Activity</button>
+      <button class="nav" data-section="chat">💬 AI Chat Activity</button>
+      <button class="nav" data-section="images">🖼️ Image Usage</button>
+      <button class="nav" data-section="ads">📢 Ads Management</button>
+      <button class="nav" data-section="announcement">📣 Announcement</button>
+      <button class="nav" data-section="plans">💰 Plans & Limits</button>
+      <button class="nav" data-section="settings">⚙️ App Settings</button>
+      <button class="nav" data-section="security">🔐 Admin Security</button>
+    </aside>
+
+    <main class="content">
+      <section id="overview" class="section active">
+        <h2>Overview</h2>
+        <div class="cards">
+          <div class="card"><span>Total Users</span><strong id="totalUsers">0</strong></div>
+          <div class="card"><span>Total Content</span><strong id="totalContent">0</strong></div>
+          <div class="card"><span>Total Chats</span><strong id="totalChats">0</strong></div>
+          <div class="card"><span>Image Usage</span><strong id="totalImages">N/A</strong></div>
+        </div>
+        <div class="panel"><h3>Admin status</h3><p id="statusText">Admin verified.</p></div>
+      </section>
+
+      <section id="users" class="section">
+        <h2>Users</h2>
+        <div class="panel table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>UID</th><th>Role</th></tr></thead><tbody id="usersTable"></tbody></table></div>
+      </section>
+
+      <section id="content" class="section">
+        <h2>Content Activity</h2>
+        <div class="cards"><div class="card"><span>Total generated content</span><strong id="contentCount">0</strong></div><div class="card"><span>Users with content</span><strong id="contentUsers">0</strong></div></div>
+      </section>
+
+      <section id="chat" class="section">
+        <h2>AI Chat Activity</h2>
+        <div class="cards"><div class="card"><span>Total chats</span><strong id="chatCount">0</strong></div><div class="card"><span>Users with chats</span><strong id="chatUsers">0</strong></div></div>
+      </section>
+
+      <section id="images" class="section">
+        <h2>Image Usage</h2>
+        <div class="panel"><p>Image analytics are not stored yet.</p><strong id="imageUsage">Not tracked</strong></div>
+      </section>
+
+      <section id="ads" class="section">
+        <h2>Ads Management</h2>
+        <div class="notice">Ads are NOT displayed inside the admin panel. This page only controls ad settings for the user app.</div>
+        <div class="panel form-grid">
+          <label>Ads enabled <input id="adsEnabled" type="checkbox"></label>
+          <label>Frequency
+            <select id="adFrequency"><option>Every 5 minutes</option><option>Every 10 minutes</option><option>Every 15 minutes</option><option>Every 30 minutes</option></select>
+          </label>
+          <label>Duration <input id="adDuration" value="10 seconds" readonly></label>
+          <label>Placement
+            <select id="adPlacement"><option>Dashboard</option><option>Content Generator</option><option>AI Chat</option><option>Between features</option></select>
+          </label>
+          <label>Ad Network
+            <select id="adNetwork"><option>Not Connected</option><option>Future Ad Network</option></select>
+          </label>
+        </div>
+        <button id="saveAds" class="primary">Save Ads Settings</button>
+      </section>
+
+      <section id="announcement" class="section">
+        <h2>Announcement</h2>
+        <div class="panel">
+          <label>Announcement enabled <input id="announcementEnabled" type="checkbox"></label>
+          <textarea id="announcementText" placeholder="Write an announcement..."></textarea>
+          <button id="saveAnnouncement" class="primary">Save Announcement</button>
+        </div>
+      </section>
+
+      <section id="plans" class="section">
+        <h2>Plans & Limits</h2>
+        <div class="panel form-grid">
+          <label>Free content limit <input id="freeContentLimit" type="number" min="0"></label>
+          <label>Free chat limit <input id="freeChatLimit" type="number" min="0"></label>
+          <label>Free image limit <input id="freeImageLimit" type="number" min="0"></label>
+          <label>Paid users ads <select id="paidAds"><option value="false">No ads</option><option value="true">Ads enabled</option></select></label>
+        </div>
+        <button id="savePlans" class="primary">Save Plans</button>
+      </section>
+
+      <section id="settings" class="section">
+        <h2>App Settings</h2>
+        <div class="panel form-grid">
+          <label>App version <input id="appVersion" value="1.0.0"></label>
+          <label>Maintenance mode <input id="maintenanceMode" type="checkbox"></label>
+        </div>
+        <button id="saveSettings" class="primary">Save App Settings</button>
+      </section>
+
+      <section id="security" class="section">
+        <h2>Admin Security</h2>
+        <div class="panel">
+          <p><b>Admin email:</b> <span id="securityEmail"></span></p>
+          <p><b>Admin UID:</b> <span id="securityUid"></span></p>
+          <p><b>Authorization:</b> <code>admins/{uid}</code> with <code>role = "admin"</code></p>
+          <p class="muted">This panel is separate from the normal user dashboard.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script type="module" src="admin.js"></script>
+</body>
+</html>

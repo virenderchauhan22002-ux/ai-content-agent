@@ -1,0 +1,2440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Content Agent</title>
+
+<link rel="stylesheet" href="style.css">
+
+<style>
+/* =========================
+   AUTH
+========================= */
+#authScreen{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:linear-gradient(135deg,#5657ed,#7475ff);
+}
+
+.auth-card{
+  width:100%;
+  max-width:430px;
+  background:#fff;
+  border-radius:22px;
+  padding:32px;
+  box-shadow:0 20px 50px rgba(20,25,80,.20);
+}
+
+.auth-logo{
+  width:58px;
+  height:58px;
+  margin:0 auto 18px;
+  border-radius:17px;
+  background:linear-gradient(135deg,#5b5cf0,#7778ff);
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:25px;
+  font-weight:bold;
+}
+
+.auth-card h2{
+  text-align:center;
+  font-size:23px;
+  color:#17182b;
+  margin-bottom:8px;
+}
+
+.auth-card>p{
+  text-align:center;
+  color:#73758a;
+  font-size:13px;
+  line-height:1.5;
+  margin-bottom:24px;
+}
+
+.auth-field{
+  margin-bottom:15px;
+}
+
+.auth-field label{
+  display:block;
+  margin-bottom:7px;
+  font-size:13px;
+  font-weight:600;
+  color:#17182b;
+}
+
+.auth-field input{
+  width:100%;
+  padding:13px;
+  border:1px solid #e9eaf3;
+  border-radius:12px;
+  background:#fafaff;
+  font-family:inherit;
+  font-size:14px;
+  outline:none;
+  box-sizing:border-box;
+}
+
+.auth-field input:focus{
+  border-color:#5b5cf0;
+}
+
+#authButton{
+  width:100%;
+  border:none;
+  background:linear-gradient(135deg,#5b5cf0,#7778ff);
+  color:#fff;
+  padding:13px;
+  border-radius:12px;
+  font-weight:600;
+  font-size:14px;
+  cursor:pointer;
+  margin-top:4px;
+}
+
+#authButton:disabled{
+  cursor:not-allowed;
+  opacity:.7;
+}
+
+#authMessage{
+  display:none;
+  margin-top:13px;
+  padding:10px 12px;
+  border-radius:10px;
+  background:#fff5f5;
+  font-size:13px;
+  line-height:1.4;
+  text-align:center;
+}
+
+#authToggle{
+  margin-top:20px;
+  text-align:center;
+  color:#73758a;
+  font-size:13px;
+}
+
+#authToggle button{
+  border:none;
+  background:none;
+  color:#5b5cf0;
+  font-weight:600;
+  cursor:pointer;
+  padding:0;
+  font-size:13px;
+}
+
+#appContent{
+  display:none;
+}
+
+/* =========================
+   FINAL LIGHT 3D DESIGN
+========================= */
+
+:root{
+  --d-bg:#eef7ff;
+  --d-bg2:#f8fbff;
+  --d-blue:#1677ff;
+  --d-blue2:#5bb8ff;
+  --d-navy:#102c57;
+  --d-text:#17304f;
+  --d-muted:#74859d;
+  --d-line:rgba(102,151,207,.18);
+  --d-shadow:
+    0 24px 55px rgba(57,113,174,.14),
+    0 8px 20px rgba(48,103,166,.08);
+  --d-soft-shadow:
+    0 16px 34px rgba(67,126,190,.12),
+    inset 0 1px 0 rgba(255,255,255,.9);
+}
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  background:
+    linear-gradient(
+      145deg,
+      #eaf5ff 0%,
+      #f8fbff 46%,
+      #edf7ff 100%
+    ) !important;
+  color:var(--d-text);
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:-15%;
+  pointer-events:none;
+  z-index:-1;
+  background:
+    radial-gradient(
+      circle at 12% 12%,
+      rgba(91,184,255,.16),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 88% 22%,
+      rgba(22,119,255,.10),
+      transparent 25%
+    ),
+    radial-gradient(
+      circle at 50% 100%,
+      rgba(104,203,255,.12),
+      transparent 30%
+    );
+}
+
+.app{
+  min-height:100vh;
+  background:transparent !important;
+}
+
+/* =========================
+   TOP BAR
+========================= */
+
+.topbar{
+  position:sticky !important;
+  top:12px;
+  z-index:30;
+  width:min(1180px,calc(100% - 28px));
+  margin:12px auto 0 !important;
+  padding:18px 22px !important;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  border:1px solid rgba(255,255,255,.8) !important;
+  border-radius:24px !important;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,.93),
+      rgba(239,248,255,.88)
+    ) !important;
+  box-shadow:
+    0 20px 45px rgba(57,111,170,.14),
+    inset 0 1px 0 #fff !important;
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+
+.topbar::after{
+  content:"";
+  position:absolute;
+  right:16%;
+  top:-18px;
+  width:130px;
+  height:70px;
+  border-radius:50%;
+  background:rgba(91,184,255,.16);
+  filter:blur(24px);
+  pointer-events:none;
+}
+
+.topbar h1{
+  position:relative;
+  z-index:1;
+  color:var(--d-navy) !important;
+  font-weight:800 !important;
+  letter-spacing:-.5px !important;
+  margin:0;
+}
+
+.topbar p{
+  position:relative;
+  z-index:1;
+  color:#7890ab !important;
+  margin:4px 0 0;
+}
+
+.topbar-right{
+  position:relative;
+  z-index:2;
+  display:flex;
+  align-items:center;
+  gap:8px !important;
+}
+
+#backendStatus{
+  color:#31506f !important;
+  background:rgba(255,255,255,.72) !important;
+  border:1px solid rgba(111,157,205,.20) !important;
+  box-shadow:0 6px 16px rgba(60,113,170,.08) !important;
+}
+
+#backendStatusText{
+  color:#31506f !important;
+}
+
+#logoutBtn{
+  display:none;
+  border:1px solid rgba(80,133,190,.18) !important;
+  background:rgba(255,255,255,.78) !important;
+  color:#28517d !important;
+  box-shadow:0 7px 18px rgba(58,111,171,.08) !important;
+  padding:9px 12px;
+  border-radius:10px;
+  font-size:12px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+#logoutBtn:hover{
+  background:#fff !important;
+  transform:translateY(-1px);
+}
+
+.profile {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  background: #f0f0f0 !important;
+  color: #333 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+  border: 1px solid #e5e5e5 !important;
+}
+
+/* =========================
+   DASHBOARD
+========================= */
+
+.dashboard{
+  width:min(1180px,calc(100% - 28px)) !important;
+  margin:24px auto 60px !important;
+  padding:0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+  gap:22px !important;
+}
+
+.hero,
+.tools,
+.result-box,
+.ideas-box,
+.image-box{
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.88) !important;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.96),
+      rgba(244,250,255,.91)
+    ) !important;
+  box-shadow:var(--d-shadow) !important;
+  border-radius:30px !important;
+}
+
+/* =========================
+   HERO
+========================= */
+
+.hero{
+  padding:34px !important;
+  min-height:350px;
+  background:
+    radial-gradient(
+      circle at 88% 18%,
+      rgba(91,184,255,.20),
+      transparent 24%
+    ),
+    radial-gradient(
+      circle at 9% 100%,
+      rgba(22,119,255,.08),
+      transparent 30%
+    ),
+    linear-gradient(
+      145deg,
+      #fff,
+      #edf7ff
+    ) !important;
+}
+
+.hero::before{
+  content:"";
+  position:absolute;
+  right:-55px;
+  top:-65px;
+  width:230px;
+  height:230px;
+  border-radius:50%;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(93,190,255,.34),
+      rgba(22,119,255,.06)
+    );
+  box-shadow:
+    inset -12px -14px 24px rgba(28,105,178,.10),
+    inset 12px 12px 20px rgba(255,255,255,.8);
+  pointer-events:none;
+}
+
+.hero::after{
+  content:"âœ¦";
+  position:absolute;
+  right:75px;
+  top:52px;
+  font-size:52px;
+  color:rgba(22,119,255,.13);
+  transform:rotate(12deg);
+  pointer-events:none;
+}
+
+.hero>*{
+  position:relative;
+  z-index:1;
+}
+
+.hero h2{
+  font-size:clamp(28px,4vw,43px) !important;
+  line-height:1.05 !important;
+  letter-spacing:-1.5px !important;
+  color:var(--d-navy) !important;
+  margin:0 0 8px !important;
+  font-weight:850 !important;
+}
+
+.hero p{
+  color:var(--d-muted) !important;
+  max-width:610px !important;
+  margin:0 0 22px !important;
+  font-size:14px !important;
+}
+
+.hero textarea,
+.hero select,
+.ideas-controls input,
+.ideas-controls select,
+.image-controls textarea,
+.image-controls select{
+  border:1px solid var(--d-line) !important;
+  background:rgba(255,255,255,.84) !important;
+  color:#24415f !important;
+  box-shadow:
+    inset 0 2px 5px rgba(74,123,174,.04),
+    0 5px 14px rgba(66,120,179,.05) !important;
+  border-radius:15px !important;
+  outline:none !important;
+}
+
+.hero textarea{
+  width:100%;
+  min-height:112px !important;
+  resize:vertical !important;
+  padding:16px !important;
+  box-sizing:border-box;
+}
+
+.hero label,
+.image-field label{
+  color:#506a87 !important;
+  font-weight:700 !important;
+}
+
+.hero select{
+  min-height:48px !important;
+  padding:0 14px !important;
+}
+
+.hero textarea:focus,
+.hero select:focus,
+.ideas-controls input:focus,
+.ideas-controls select:focus,
+.image-controls textarea:focus,
+.image-controls select:focus{
+  border-color:rgba(22,119,255,.45) !important;
+  box-shadow:
+    0 0 0 4px rgba(22,119,255,.08),
+    0 8px 20px rgba(56,121,186,.08) !important;
+}
+
+#generateBtn,
+#generateIdeasBtn,
+.image-generate-btn{
+  border:0 !important;
+  border-radius:16px !important;
+  background:
+    linear-gradient(
+      145deg,
+      #58bcff,
+      #1677ff
+    ) !important;
+  color:#fff !important;
+  font-weight:800 !important;
+  box-shadow:
+    0 13px 25px rgba(22,119,255,.25),
+    inset 0 2px 2px rgba(255,255,255,.35) !important;
+  transition:.2s ease !important;
+  cursor:pointer;
+}
+
+#generateBtn:hover,
+#generateIdeasBtn:hover,
+.image-generate-btn:hover{
+  transform:translateY(-2px) !important;
+  box-shadow:
+    0 17px 28px rgba(22,119,255,.30),
+    inset 0 2px 2px rgba(255,255,255,.4) !important;
+}
+
+#generateBtn:active,
+#generateIdeasBtn:active,
+.image-generate-btn:active{
+  transform:translateY(0) !important;
+}
+
+/* =========================
+   TOOLS
+========================= */
+
+.tools{
+  padding:24px !important;
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:16px !important;
+  background:
+    linear-gradient(
+      145deg,
+      #f9fcff,
+      #edf7ff
+    ) !important;
+}
+
+.tool-card{
+  position:relative;
+  min-height:155px !important;
+  padding:20px !important;
+  border:1px solid rgba(255,255,255,.9) !important;
+  border-radius:23px !important;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.98),
+      rgba(239,247,255,.92)
+    ) !important;
+  box-shadow:var(--d-soft-shadow) !important;
+  transition:
+    transform .22s ease,
+    box-shadow .22s ease,
+    border-color .22s ease !important;
+  overflow:hidden !important;
+  box-sizing:border-box;
+  cursor:pointer;
+}
+
+.tool-card::after{
+  content:"";
+  position:absolute;
+  pointer-events:none;
+  width:85px;
+  height:85px;
+  border-radius:50%;
+  background:rgba(91,184,255,.08);
+  right:-28px;
+  bottom:-28px;
+}
+
+.tool-card:hover{
+  transform:translateY(-5px) !important;
+  box-shadow:
+    0 20px 34px rgba(51,113,177,.16),
+    inset 0 1px 0 #fff !important;
+}
+
+.tool-card.active-card{
+  border-color:rgba(22,119,255,.5) !important;
+  box-shadow:0 14px 28px rgba(22,119,255,.18), inset 0 0 0 1px rgba(22,119,255,.3) !important;
+  background:linear-gradient(145deg,#ffffff,#e8f4ff) !important;
+}
+
+.tool-card span{
+  position:relative;
+  z-index:1;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:54px !important;
+  height:54px !important;
+  border-radius:17px !important;
+  background:
+    linear-gradient(
+      145deg,
+      #fff,
+      #e5f4ff
+    ) !important;
+  box-shadow:
+    0 9px 18px rgba(58,118,181,.13),
+    inset 0 2px 2px rgba(255,255,255,.95) !important;
+  font-size:27px !important;
+  margin-bottom:13px !important;
+}
+
+.tool-card h3{
+  position:relative;
+  z-index:1;
+  color:#183657 !important;
+  font-weight:800 !important;
+  margin:0 0 5px !important;
+}
+
+.tool-card p{
+  position:relative;
+  z-index:1;
+  color:#7b8da3 !important;
+  font-size:12px !important;
+  line-height:1.45 !important;
+  margin:0 !important;
+}
+
+/* =========================
+   COMPACT EXPANDABLE BEHAVIOR
+========================= */
+
+.compact-hidden{
+  display:none !important;
+}
+
+.compact-visible{
+  display:block !important;
+  animation:panelFadeIn .28s ease;
+}
+
+@keyframes panelFadeIn{
+  from{
+    opacity:0;
+    transform:translateY(10px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+/* =========================
+   RESULT
+========================= */
+
+.result-box,
+.ideas-box,
+.image-box{
+  padding:27px !important;
+}
+
+.result-box{
+  min-height:180px !important;
+}
+
+.result-box h2,
+.ideas-box h2,
+.image-box h2{
+  color:var(--d-navy) !important;
+  font-weight:850 !important;
+  letter-spacing:-.4px !important;
+}
+
+#result,
+#ideasResult,
+.image-result{
+  border-radius:20px !important;
+  background:
+    linear-gradient(
+      145deg,
+      #f7fbff,
+      #edf7ff
+    ) !important;
+  border:1px dashed rgba(92,145,198,.22) !important;
+  color:#70849b !important;
+  box-shadow:
+    inset 0 2px 8px rgba(74,125,178,.04) !important;
+}
+
+.ideas-box,
+.image-box{
+  scroll-margin-top:100px;
+}
+
+/* =========================
+   IDEAS / IMAGE
+========================= */
+
+.ideas-header,
+.image-header{
+  position:relative;
+  z-index:1;
+}
+
+.ideas-icon,
+.image-icon{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:58px !important;
+  height:58px !important;
+  border-radius:18px !important;
+  background:
+    linear-gradient(
+      145deg,
+      #fff,
+      #e5f4ff
+    ) !important;
+  box-shadow:
+    0 10px 20px rgba(58,118,181,.12),
+    inset 0 2px 2px #fff !important;
+  font-size:27px !important;
+}
+
+.ideas-controls,
+.image-controls{
+  position:relative;
+  z-index:1;
+  gap:12px !important;
+}
+
+.ideas-controls input,
+.ideas-controls select,
+.image-controls select{
+  min-height:48px !important;
+  padding:0 14px !important;
+  box-sizing:border-box;
+}
+
+.ideas-controls button{
+  min-height:48px !important;
+  padding:0 18px !important;
+}
+
+.image-controls textarea{
+  padding:15px !important;
+  min-height:120px !important;
+  box-sizing:border-box;
+  width:100%;
+}
+
+.image-result{
+  min-height:220px !important;
+}
+
+.image-placeholder{
+  opacity:.85;
+}
+
+.hero,
+.tools,
+.result-box,
+.ideas-box,
+.image-box{
+  transform:translateZ(0);
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media(max-width:900px){
+
+  .tools{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+
+  .hero{
+    padding:28px !important;
+  }
+
+  .dashboard{
+    gap:18px !important;
+  }
+}
+
+@media(max-width:600px){
+
+  .topbar{
+    top:7px;
+    width:calc(100% - 16px);
+    margin-top:7px !important;
+    padding:14px !important;
+    border-radius:20px !important;
+  }
+
+  .topbar h1{
+    font-size:18px !important;
+  }
+
+  .topbar p{
+    font-size:10px !important;
+  }
+
+  .profile{
+    width:38px !important;
+    height:38px !important;
+    border-radius:12px !important;
+  }
+
+  .dashboard{
+    width:calc(100% - 16px) !important;
+    margin-top:17px !important;
+  }
+
+  .hero{
+    padding:22px !important;
+    border-radius:24px !important;
+    min-height:0;
+  }
+
+  .hero h2{
+    font-size:29px !important;
+  }
+
+  .hero::before{
+    width:170px;
+    height:170px;
+    right:-70px;
+    top:-50px;
+  }
+
+  .tools{
+    padding:15px !important;
+    gap:12px !important;
+    border-radius:24px !important;
+  }
+
+  .tool-card{
+    min-height:140px !important;
+    padding:16px !important;
+    border-radius:19px !important;
+  }
+
+  .tool-card span{
+    width:46px !important;
+    height:46px !important;
+    font-size:23px !important;
+  }
+
+  .result-box,
+  .ideas-box,
+  .image-box{
+    padding:20px !important;
+    border-radius:24px !important;
+  }
+
+  .ideas-controls,
+  .image-controls{
+    display:flex !important;
+    flex-direction:column !important;
+  }
+
+  .ideas-controls>*,
+  .image-controls>*{
+    width:100% !important;
+  }
+
+  .image-field.full{
+    width:100% !important;
+  }
+
+  .topbar-right{
+    gap:5px !important;
+  }
+
+  #backendStatus{
+    font-size:10px !important;
+    padding:6px 8px !important;
+  }
+
+  .topbar-right #logoutBtn{
+    padding:7px 8px !important;
+  }
+}
+
+@media(max-width:500px){
+
+  #authScreen{
+    padding:16px;
+  }
+
+  .auth-card{
+    padding:24px 20px;
+    border-radius:19px;
+  }
+
+  .auth-card h2{
+    font-size:21px;
+  }
+
+  .topbar-right{
+    gap:6px;
+  }
+
+  #logoutBtn{
+    padding:8px 9px;
+    font-size:11px;
+  }
+}
+
+@media(max-width:430px){
+
+  .topbar>div:first-child{
+    min-width:0;
+  }
+
+  .topbar-right{
+    flex-shrink:0;
+  }
+
+  .tools{
+    grid-template-columns:1fr !important;
+  }
+
+  .hero select{
+    width:100% !important;
+  }
+
+  .hero textarea{
+    min-height:100px !important;
+  }
+}
+</style>
+
+<style id="reference-ui-redesign">
+/* =========================================================
+   REFERENCE UI REDESIGN v2  (CSS only, additive)
+   Restyles the real chat dashboard built by chat.js:
+   #aiChatPanel > #aiChatSidebar + #aiChatMain
+========================================================= */
+
+:root{
+  --r-blue:#1f6bff;
+  --r-purple:#6d4bff;
+  --r-ink:#0d1433;
+  --r-text:#1b2547;
+  --r-muted:#5d6a8c;
+  --r-line:rgba(130,140,230,.22);
+}
+
+/* ---------- full-screen app shell ---------- */
+
+#appContent .dashboard{
+  width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+  gap:0 !important;
+}
+
+#appContent #universalChatSection{
+  width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+  padding:0 !important;
+}
+
+#appContent #aiChatMount{
+  margin:0 !important;
+}
+
+#appContent #aiChatPanel{
+  height:100vh !important;
+  height:100dvh !important;
+  min-height:0 !important;
+  margin:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  background:#f7f8ff !important;
+  font-family:Inter,"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+}
+
+/* ---------- SIDEBAR ---------- */
+
+#appContent #aiChatPanel #aiChatSidebar{
+  width:274px !important;
+  flex:0 0 274px !important;
+  padding:28px 20px 18px !important;
+  background:linear-gradient(180deg,rgba(255,255,255,.97),rgba(249,248,255,.97)) !important;
+  border-right:1px solid var(--r-line) !important;
+}
+
+/* brand: "AI Content" dark + "Agent" blue, no logo, no tagline */
+#aiChatPanel #aiChatSidebar .ai-chat-header{
+  display:block !important;
+  padding:0 6px 6px !important;
+}
+
+#aiChatPanel #aiChatSidebar .ai-chat-header-left{
+  display:block !important;
+}
+
+#aiChatPanel #aiChatSidebar .ai-chat-title{
+  font-size:0 !important;
+  line-height:1.02 !important;
+  letter-spacing:-.5px !important;
+  font-weight:800 !important;
+}
+
+#aiChatPanel #aiChatSidebar .ai-chat-title::before{
+  content:"AI Content";
+  display:block;
+  font-size:27px;
+  color:var(--r-ink);
+}
+
+#aiChatPanel #aiChatSidebar .ai-chat-title::after{
+  content:"Agent";
+  display:block;
+  font-size:27px;
+  color:var(--r-blue);
+}
+
+#aiChatPanel #aiChatSidebar .ai-chat-status{
+  display:none !important;
+}
+
+/* New Chat */
+#aiChatPanel #aiChatSidebar .ai-sidebar-new{
+  display:flex !important;
+  align-items:center;
+  gap:14px;
+  min-height:64px !important;
+  margin:34px 0 14px !important;
+  padding:0 24px 0 18px !important;
+  border-radius:16px !important;
+  font-size:0 !important;
+  color:#fff !important;
+  background:
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-width%3D%272.4%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%205v14M5%2012h14%27%2F%3E%3C%2Fsvg%3E") right 18px center/22px no-repeat,
+    linear-gradient(90deg,#1f78ff,#5b6bf5) !important;
+  box-shadow:0 12px 26px rgba(50,100,255,.28) !important;
+}
+
+#aiChatPanel #aiChatSidebar .ai-sidebar-new::before{
+  content:"";
+  flex:none;
+  width:28px;
+  height:28px;
+  background:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-width%3D%271.8%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M21%2011.5a8.4%208.4%200%200%201-9%208.4%208.6%208.6%200%200%201-3.7-.8L3%2021l1.9-5A8.4%208.4%200%201%201%2021%2011.5z%27%2F%3E%3C%2Fsvg%3E") center/contain no-repeat;
+}
+
+#aiChatPanel #aiChatSidebar .ai-sidebar-new::after{
+  content:"New Chat";
+  font-size:19px;
+  font-weight:500;
+  color:#fff;
+}
+
+#aiChatPanel #aiChatSidebar .ai-sidebar-new:hover{
+  filter:brightness(1.06);
+  color:#fff !important;
+  background:
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-width%3D%272.4%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%205v14M5%2012h14%27%2F%3E%3C%2Fsvg%3E") right 18px center/22px no-repeat,
+    linear-gradient(90deg,#1f78ff,#5b6bf5) !important;
+}
+
+/* section headings */
+#aiChatPanel #aiChatSidebar .ai-sidebar-heading{
+  margin:20px 0 6px !important;
+  padding-left:12px !important;
+  font-size:11px !important;
+  font-weight:700 !important;
+  letter-spacing:.09em !important;
+  color:#8a94b3 !important;
+}
+
+/* tool rows: icon in a soft circle + label */
+#aiChatPanel #aiChatSidebar .ai-tool-option{
+  --ico-dark:none;
+  --ico-white:none;
+  display:flex !important;
+  align-items:center;
+  gap:16px;
+  min-height:60px !important;
+  margin-bottom:6px !important;
+  padding:8px 12px !important;
+  border-radius:16px !important;
+  font-size:19px !important;
+  font-weight:500 !important;
+  color:var(--r-text) !important;
+  background:transparent !important;
+}
+
+#aiChatPanel #aiChatSidebar .ai-tool-option::before{
+  content:"";
+  flex:none;
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  background:var(--ico-dark) center/24px no-repeat,#f1f2fb;
+  box-shadow:0 3px 8px rgba(80,90,160,.10);
+}
+
+#aiChatPanel #aiChatSidebar .ai-tool-option[data-ai-tool="chat"]{--ico-dark:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27%231b2547%27%20stroke-width%3D%271.8%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M21%2011.5a8.4%208.4%200%200%201-9%208.4%208.6%208.6%200%200%201-3.7-.8L3%2021l1.9-5A8.4%208.4%200%201%201%2021%2011.5z%27%2F%3E%3C%2Fsvg%3E");--ico-white:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-width%3D%271.8%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M21%2011.5a8.4%208.4%200%200%201-9%208.4%208.6%208.6%200%200%201-3.7-.8L3%2021l1.9-5A8.4%208.4%200%201%201%2021%2011.5z%27%2F%3E%3C%2Fsvg%3E");}
+#aiChatPanel #aiChatSidebar .ai-tool-option[data-ai-tool="ideas"]{--ico-dark:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27%231b2547%27%20stroke-width%3D%271.8%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M9%2018h6M10%2021h4M12%203a6%206%200%200%200-3.5%2010.9c.6.5%201%201.2%201%202.1h5c0-.9.4-1.6%201-2.1A6%206%200%200%200%2012%203z%27%2F%3E%3C%2Fsvg%3E");--ico-white:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-width%3D%271.8%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M9%2018h6M10%2021h4M12%203a6%206%200%200%200-3.5%2010.9c.6.5%201%201.2%201%202.1h5c0-.9.4-1.6%201-2.1A6%206%200%200%200%2012%203z%27%2F%3E%3C%2Fsvg%3E");}
+#aiChatPanel #aiChatSidebar .ai-tool-option[data-ai-tool="image"]{--ico-dark:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27%231b2547%27%20stroke-width%3D%271.8%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%273%27%20y%3D%274%27%20width%3D%2718%27%20height%3D%2716%27%20rx%3D%273%27%2F%3E%3Ccircle%20cx%3D%279%27%20cy%3D%2710%27%20r%3D%271.6%27%2F%3E%3Cpath%20d%3D%27M21%2016l-5-5-8%209%27%2F%3E%3C%2Fsvg%3E");--ico-white:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-width%3D%271.8%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%273%27%20y%3D%274%27%20width%3D%2718%27%20height%3D%2716%27%20rx%3D%273%27%2F%3E%3Ccircle%20cx%3D%279%27%20cy%3D%2710%27%20r%3D%271.6%27%2F%3E%3Cpath%20d%3D%27M21%2016l-5-5-8%209%27%2F%3E%3C%2Fsvg%3E");}
+#aiChatPanel #aiChatSidebar .ai-tool-option[data-ai-tool="script"]{--ico-dark:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27%231b2547%27%20stroke-width%3D%271.8%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M6%203h8l4%204v14H6z%27%2F%3E%3Cpath%20d%3D%27M9%2012h6M9%2016h6%27%2F%3E%3C%2Fsvg%3E");--ico-white:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-width%3D%271.8%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M6%203h8l4%204v14H6z%27%2F%3E%3Cpath%20d%3D%27M9%2012h6M9%2016h6%27%2F%3E%3C%2Fsvg%3E");}
+
+#aiChatPanel #aiChatSidebar .ai-tool-option:hover{
+  background:rgba(109,75,255,.07) !important;
+  color:var(--r-text) !important;
+}
+
+#aiChatPanel #aiChatSidebar .ai-tool-option.active{
+  background:linear-gradient(90deg,#1f78ff,#5b6bf5) !important;
+  color:#fff !important;
+  box-shadow:0 10px 24px rgba(50,100,255,.26) !important;
+}
+
+#aiChatPanel #aiChatSidebar .ai-tool-option.active::before{
+  background:var(--ico-white) center/24px no-repeat,rgba(255,255,255,.22);
+  box-shadow:none;
+}
+
+/* profile + version line */
+#aiChatPanel #aiChatSidebar #aiChatSidebarProfile{
+  border-top:1px solid var(--r-line) !important;
+  padding:16px 6px 10px !important;
+  gap:10px;
+}
+
+#aiChatPanel #aiChatSidebar::after{
+  content:"v1.0.0";
+  display:block;
+  margin-top:4px;
+  padding:10px 8px 0;
+  font-size:14px;
+  color:var(--r-muted);
+  background:linear-gradient(var(--r-line),var(--r-line)) right 66% / calc(100% - 58px) 1px no-repeat;
+}
+
+/* ---------- MAIN AREA ---------- */
+
+#appContent #aiChatPanel #aiChatMain{
+  background:
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201600%20900%22%20preserveAspectRatio%3D%22xMidYMid%20slice%22%3E%0A%3Cdefs%3E%0A%3ClinearGradient%20id%3D%22a%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%238fbaff%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23dbe7ff%22%2F%3E%3C%2FlinearGradient%3E%0A%3ClinearGradient%20id%3D%22b%22%20x1%3D%221%22%20y1%3D%221%22%20x2%3D%220%22%20y2%3D%220%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23a392ff%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23e3d9ff%22%2F%3E%3C%2FlinearGradient%3E%0A%3C%2Fdefs%3E%0A%3Cpath%20d%3D%22M0%200H840C720%2090%20570%20120%20440%20230C300%20345%20150%20330%200%20440Z%22%20fill%3D%22url%28%23a%29%22%20opacity%3D%22.30%22%2F%3E%0A%3Cpath%20d%3D%22M0%200H520C420%2080%20300%20110%20180%20200C100%20260%2040%20285%200%20305Z%22%20fill%3D%22%236f9fff%22%20opacity%3D%22.12%22%2F%3E%0A%3Cpath%20d%3D%22M1600%20320C1480%20420%201400%20520%201250%20640C1130%20735%20980%20790%20860%20900H1600Z%22%20fill%3D%22url%28%23b%29%22%20opacity%3D%22.26%22%2F%3E%0A%3Cpath%20d%3D%22M1600%20560C1500%20640%201420%20720%201330%20790C1280%20835%201220%20870%201180%20900H1600Z%22%20fill%3D%22%238f7bff%22%20opacity%3D%22.14%22%2F%3E%0A%3C%2Fsvg%3E") center/cover no-repeat,
+    linear-gradient(180deg,#fbfcff,#f6f5ff) !important;
+}
+
+#appContent #aiChatPanel #aiChatMain #aiChatMessages{
+  background:transparent !important;
+  padding:clamp(20px,4vh,48px) clamp(16px,4vw,56px) 12px !important;
+}
+
+/* welcome (no illustration) */
+#aiChatPanel #aiChatMain .ai-chat-welcome{
+  max-width:980px;
+  width:100%;
+  margin:auto;
+  padding:0 !important;
+  text-align:center;
+}
+
+#aiChatPanel #aiChatMain .ai-chat-welcome-icon{
+  display:none !important;
+}
+
+#aiChatPanel #aiChatMain .ai-chat-welcome .ai-chat-welcome-title{
+  margin:0 0 12px !important;
+  font-size:0 !important;
+  line-height:1.04 !important;
+  letter-spacing:-1.5px !important;
+  font-weight:800 !important;
+}
+
+#aiChatPanel #aiChatMain .ai-chat-welcome .ai-chat-welcome-title::before{
+  content:"Welcome to";
+  display:block;
+  font-size:clamp(32px,4vw,56px);
+  color:var(--r-ink);
+}
+
+#aiChatPanel #aiChatMain .ai-chat-welcome .ai-chat-welcome-title::after{
+  content:"AI Content Agent";
+  display:block;
+  font-size:clamp(40px,6vw,82px);
+  background:linear-gradient(90deg,#1677ff 6%,#7b3df0 94%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  -webkit-text-fill-color:transparent;
+}
+
+#aiChatPanel #aiChatMain .ai-chat-welcome .ai-chat-welcome-text{
+  margin:0 !important;
+  font-size:0 !important;
+}
+
+#aiChatPanel #aiChatMain .ai-chat-welcome .ai-chat-welcome-text::after{
+  content:"Turn your ideas into amazing content with the power of AI";
+  display:block;
+  font-size:clamp(15px,1.9vw,26px);
+  font-weight:500;
+  line-height:1.4;
+  color:#68739a;
+}
+
+/* quick action chips (added by the small script in index.html) */
+.ai-quick-actions{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:16px;
+  margin:46px 0 8px;
+}
+
+.ai-quick-chip{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:9px 30px 9px 10px;
+  border:1px solid var(--r-line);
+  border-radius:999px;
+  background:rgba(255,255,255,.62);
+  box-shadow:0 6px 18px rgba(110,100,230,.08);
+  font-family:inherit;
+  font-size:18px;
+  font-weight:500;
+  color:var(--r-ink);
+  cursor:pointer;
+  transition:transform .2s ease,box-shadow .2s ease;
+}
+
+.ai-quick-chip:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 26px rgba(110,100,230,.16);
+}
+
+.ai-quick-chip:focus-visible{
+  outline:2px solid var(--r-blue);
+  outline-offset:2px;
+}
+
+.ai-chip-icon{
+  flex:none;
+  width:52px;
+  height:52px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+}
+
+.ai-chip-icon svg{
+  width:26px;
+  height:26px;
+  display:block;
+}
+
+.ai-chip-blue{background:#e6eeff;color:#1f4fe0;}
+.ai-chip-green{background:#dcf5e8;color:#16a066;}
+.ai-chip-purple{background:#eee6ff;color:#7a3df0;}
+
+/* conversation bubbles */
+#aiChatPanel .ai-chat-message.user .ai-chat-bubble{
+  background:linear-gradient(135deg,#1f78ff,#5b6bf5) !important;
+  border-radius:20px 20px 6px 20px !important;
+}
+
+#aiChatPanel .ai-chat-message.assistant .ai-chat-bubble{
+  background:rgba(255,255,255,.94) !important;
+  border:1px solid var(--r-line) !important;
+  border-radius:20px 20px 20px 6px !important;
+  box-shadow:0 6px 18px rgba(110,100,230,.08);
+}
+
+/* ---------- COMPOSER ---------- */
+
+#appContent #aiChatPanel #aiChatMain .ai-chat-input-area{
+  padding:6px clamp(14px,4vw,64px) 26px !important;
+  background:transparent !important;
+  border-top:0 !important;
+}
+
+#aiChatPanel .ai-chat-input-row{
+  width:min(1290px,100%);
+  margin:0 auto;
+  align-items:center !important;
+  gap:12px !important;
+  box-sizing:border-box;
+  padding:12px;
+  border:1px solid rgba(190,195,240,.5);
+  border-radius:44px;
+  background:rgba(255,255,255,.94);
+  box-shadow:0 18px 44px rgba(110,100,230,.16);
+}
+
+#aiChatPanel #aiChatMain #aiChatInput{
+  min-height:52px !important;
+  padding:15px 24px !important;
+  border:0 !important;
+  border-radius:28px !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  font-size:17px !important;
+}
+
+#aiChatPanel #aiChatMain #aiChatInput:focus{
+  border:0 !important;
+  background:transparent !important;
+}
+
+#aiChatPanel #aiChatSend{
+  display:grid !important;
+  place-items:center;
+  width:60px !important;
+  height:60px !important;
+  border-radius:50% !important;
+  background:linear-gradient(145deg,#2a8bff,#1f66f0) !important;
+  box-shadow:0 12px 24px rgba(40,110,255,.34);
+}
+
+#aiChatPanel .ai-chat-hint{
+  display:none !important;
+}
+
+/* ---------- RESPONSIVE ---------- */
+
+@media(max-width:900px){
+
+  #appContent #aiChatPanel #aiChatSidebar{
+    width:210px !important;
+    flex-basis:210px !important;
+    padding:18px 10px 12px !important;
+  }
+
+  #aiChatPanel #aiChatSidebar .ai-chat-title::before,
+  #aiChatPanel #aiChatSidebar .ai-chat-title::after{
+    font-size:21px;
+  }
+
+  #aiChatPanel #aiChatSidebar .ai-sidebar-new{
+    margin-top:20px !important;
+    min-height:54px !important;
+  }
+
+  #aiChatPanel #aiChatSidebar .ai-tool-option{
+    font-size:15px !important;
+    gap:10px;
+    min-height:52px !important;
+    padding:6px 8px !important;
+  }
+
+  #aiChatPanel #aiChatSidebar .ai-tool-option::before{
+    width:36px;
+    height:36px;
+    background-size:20px;
+  }
+}
+
+@media(max-width:650px){
+
+  #appContent #aiChatPanel #aiChatSidebar{
+    width:150px !important;
+    flex-basis:150px !important;
+    padding:14px 8px 10px !important;
+  }
+
+  #aiChatPanel #aiChatSidebar .ai-chat-title::before,
+  #aiChatPanel #aiChatSidebar .ai-chat-title::after{
+    font-size:17px;
+  }
+
+  #aiChatPanel #aiChatSidebar .ai-sidebar-new{
+    min-height:46px !important;
+    margin:14px 0 8px !important;
+    padding:0 34px 0 12px !important;
+    gap:8px;
+    background:
+      url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2024%2024%27%20fill%3D%27none%27%20stroke%3D%27white%27%20stroke-width%3D%272.4%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M12%205v14M5%2012h14%27%2F%3E%3C%2Fsvg%3E") right 10px center/16px no-repeat,
+      linear-gradient(90deg,#1f78ff,#5b6bf5) !important;
+  }
+
+  #aiChatPanel #aiChatSidebar .ai-sidebar-new::before{
+    width:20px;
+    height:20px;
+  }
+
+  #aiChatPanel #aiChatSidebar .ai-sidebar-new::after{
+    font-size:14px;
+  }
+
+  #aiChatPanel #aiChatSidebar .ai-tool-option{
+    font-size:12px !important;
+    gap:8px;
+    min-height:44px !important;
+    padding:4px 6px !important;
+    border-radius:12px !important;
+  }
+
+  #aiChatPanel #aiChatSidebar .ai-tool-option::before{
+    width:30px;
+    height:30px;
+    background-size:16px;
+  }
+
+  #aiChatPanel #aiChatSidebar::after{
+    font-size:11px;
+  }
+
+  .ai-quick-actions{
+    gap:8px;
+    margin-top:22px;
+  }
+
+  .ai-quick-chip{
+    flex:1 1 100%;
+    padding:7px 14px 7px 7px;
+    gap:10px;
+    font-size:14px;
+  }
+
+  .ai-chip-icon{
+    width:38px;
+    height:38px;
+  }
+
+  .ai-chip-icon svg{
+    width:20px;
+    height:20px;
+  }
+
+  #aiChatPanel .ai-chat-input-row{
+    padding:8px;
+    gap:8px !important;
+    border-radius:32px;
+  }
+
+  #aiChatPanel #aiChatMain #aiChatInput{
+    min-height:44px !important;
+    padding:11px 10px !important;
+    font-size:14px !important;
+  }
+
+  #aiChatPanel #aiChatSend{
+    width:46px !important;
+    height:46px !important;
+  }
+}
+
+@media(max-width:380px){
+
+  #appContent #aiChatPanel #aiChatSidebar{
+    width:128px !important;
+    flex-basis:128px !important;
+  }
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- =========================
+LOGIN / REGISTER SCREEN
+========================= -->
+
+<section id="authScreen">
+
+  <div class="auth-card">
+
+    <div class="auth-logo">
+      AI
+    </div>
+
+    <h2 id="authTitle">
+      Welcome Back
+    </h2>
+
+    <p id="authSubtitle">
+      Login to continue creating smarter content with AI.
+    </p>
+
+    <div id="authChoiceScreen" style="text-align:center;">
+      <button type="button" id="googleSignInButton" style="width:100%;padding:14px;margin:12px 0;border:1px solid #ccc;border-radius:10px;background:white;color:#222;font-weight:600;cursor:pointer;">
+        Continue with Google
+      </button>
+      <button type="button" id="continueWithEmailButton" style="width:100%;padding:14px;margin:8px 0;border:0;border-radius:10px;background:#2563eb;color:white;font-weight:600;cursor:pointer;">
+        Continue with Email
+      </button>
+      <div id="authChoiceMessage" style="display:none;color:#dc2626;margin-top:12px;"></div>
+    </div>
+    <button type="button" id="emailBackButton" style="display:none;margin-bottom:12px;border:0;background:transparent;color:#2563eb;cursor:pointer;">
+      Back to sign-in options
+    </button>
+    <form id="authForm" style="display:none;">
+
+      <div class="auth-field" id="authFullNameField" style="display:none;">
+        <label for="authFullName">Full Name</label>
+        <input type="text" id="authFullName" placeholder="Enter your full name"
+          autocomplete="name" minlength="2" maxlength="80">
+      </div>
+
+      <div class="auth-field">
+
+        <label for="authEmail">
+          Email Address
+        </label>
+
+        <input
+          type="email"
+          id="authEmail"
+          placeholder="Enter your email"
+          autocomplete="email"
+          required
+        >
+
+      </div>
+
+      <div class="auth-field">
+
+        <label for="authPassword">
+          Password
+        </label>
+
+        <input
+          type="password"
+          id="authPassword"
+          placeholder="Enter your password"
+          autocomplete="current-password"
+          minlength="6"
+          required
+        >
+
+      </div>
+
+      <div class="auth-field" id="authConfirmPasswordField" style="display:none;">
+        <label for="authConfirmPassword">Confirm Password</label>
+        <input type="password" id="authConfirmPassword" placeholder="Re-enter your password"
+          autocomplete="new-password" minlength="8" maxlength="128">
+      </div>
+
+      <div class="auth-field" id="authOtpField" style="display:none;">
+        <label for="authOtp">Email Verification Code</label>
+        <input type="text" id="authOtp" placeholder="Enter 6-digit code"
+          inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}">
+      </div>
+
+      <button
+        type="submit"
+        id="authButton"
+      >
+        ðŸ” Login
+      </button>
+
+      <div id="authMessage"></div>
+
+      <div id="authToggle">
+        Don't have an account?
+
+        <button
+          type="button"
+          id="switchAuthMode"
+        >
+          Sign up with Email
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+
+</section>
+
+
+<!-- =========================
+MAIN APP
+========================= -->
+
+<div
+  class="app"
+  id="appContent"
+>
+
+  <!-- TOP BAR -->
+
+  <header class="topbar">
+
+    
+
+    <div class="topbar-right">
+
+      <button
+        id="logoutBtn"
+        type="button"
+      >
+        ðŸšª Logout
+      </button>
+
+      <div
+        class="profile"
+        title="Logged-in user"
+      >
+        AI
+      </div>
+
+    </div>
+
+  </header>
+
+
+  <main class="dashboard">
+
+    <!-- =========================
+    MAIN GENERATOR
+    ========================= -->
+
+    <section class="hero">
+
+      <h2>
+        What do you want to create?
+      </h2>
+
+      <p>
+        Generate ideas, scripts, captions, hooks and more.
+      </p>
+
+      <textarea
+        id="topicInput"
+        placeholder="Example: Instagram reel about LIC savings..."
+      ></textarea>
+
+      <label for="contentType">
+        Content Type
+      </label>
+
+      <select id="contentType">
+
+        <option value="Instagram Reel">
+          ðŸŽ¬ Instagram Reel
+        </option>
+
+        <option value="Instagram Post">
+          ðŸ“± Instagram Post
+        </option>
+
+        <option value="YouTube Video">
+          â–¶ï¸ YouTube Video
+        </option>
+
+        <option value="LinkedIn Post">
+          ðŸ’¼ LinkedIn Post
+        </option>
+
+        <option value="Caption">
+          ðŸ“ Caption
+        </option>
+
+        <option value="Ad Copy">
+          ðŸŽ¯ Ad Copy
+        </option>
+
+      </select>
+
+      <label for="language">
+        Language
+      </label>
+
+      <select id="language">
+
+        <option value="Hindi">
+          ðŸ‡®ðŸ‡³ Hindi
+        </option>
+
+        <option value="English">
+          ðŸ‡¬ðŸ‡§ English
+        </option>
+
+        <option value="Hinglish">
+          ðŸ”„ Hinglish
+        </option>
+
+      </select>
+
+      <button id="generateBtn">
+        âœ¨ Generate Content
+      </button>
+
+    </section>
+
+
+    <section id="universalChatSection" class="universal-chat-section">
+        <div id="aiChatMount"></div>
+    </section>
+
+    <!-- =========================
+    TOOLS
+    ========================= -->
+
+    <section class="tools">
+
+      <div
+        class="tool-card"
+        id="contentIdeasCard"
+        role="button"
+        tabindex="0"
+        title="Open Content Ideas"
+      >
+
+        <span>
+          ðŸ’¡
+        </span>
+
+        <h3>
+          Content Ideas
+        </h3>
+
+        <p>
+          Generate fresh content ideas.
+        </p>
+
+      </div>
+
+
+      <div
+        class="tool-card"
+        id="imageGeneratorCard"
+        role="button"
+        tabindex="0"
+        title="Open AI Image Generator"
+      >
+
+        <span>
+          ðŸ–¼ï¸
+        </span>
+
+        <h3>
+          AI Image
+        </h3>
+
+        <p>
+          Create images for posts, stories and thumbnails.
+        </p>
+
+      </div>
+
+
+      <div
+        class="tool-card"
+        id="scriptsCard"
+        role="button"
+        tabindex="0"
+        title="Open Scripts"
+      >
+
+        <span>
+          ðŸŽ¬
+        </span>
+
+        <h3>
+          Scripts
+        </h3>
+
+        <p>
+          Create short-form video scripts.
+        </p>
+
+      </div>
+
+
+      <div
+        class="tool-card"
+        id="hooksCard"
+        role="button"
+        tabindex="0"
+        title="Open Hooks"
+      >
+
+        <span>
+          ðŸª
+        </span>
+
+        <h3>
+          Hooks
+        </h3>
+
+        <p>
+          Create attention-grabbing hooks.
+        </p>
+
+      </div>
+
+
+      <div
+        class="tool-card"
+        id="captionsCard"
+        role="button"
+        tabindex="0"
+        title="Open Captions"
+      >
+
+        <span>
+          ðŸ“
+        </span>
+
+        <h3>
+          Captions
+        </h3>
+
+        <p>
+          Generate social media captions.
+        </p>
+
+      </div>
+
+
+      <div
+        class="tool-card"
+        id="hashtagsCard"
+        role="button"
+        tabindex="0"
+        title="Open Hashtags"
+      >
+
+        <span>
+          #ï¸âƒ£
+        </span>
+
+        <h3>
+          Hashtags
+        </h3>
+
+        <p>
+          Find relevant hashtags.
+        </p>
+
+      </div>
+
+
+      <div
+        class="tool-card"
+        id="ctaCard"
+        role="button"
+        tabindex="0"
+        title="Open CTA"
+      >
+
+        <span>
+          ðŸ“¢
+        </span>
+
+        <h3>
+          CTA
+        </h3>
+
+        <p>
+          Create strong calls to action.
+        </p>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+    AI RESULT
+    ========================= -->
+
+    <section class="result-box compact-hidden" id="mainResultSection">
+
+      <h2>
+        AI Result
+      </h2>
+
+      <div id="result">
+        Your generated content will appear here.
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+    CONTENT IDEAS
+    ========================= -->
+
+    <section
+      class="ideas-box compact-hidden"
+      id="contentIdeasSection"
+    >
+
+      <div class="ideas-header">
+
+        <div>
+
+          <span class="ideas-icon">
+            ðŸ’¡
+          </span>
+
+          <h2>
+            Content Ideas
+          </h2>
+
+          <p>
+            Generate fresh ideas for your next
+            post, reel or video.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="ideas-controls">
+
+        <input
+          type="text"
+          id="ideasTopic"
+          placeholder="Example: LIC savings, digital skills, YouTube growth..."
+        >
+
+        <select id="ideasLanguage">
+
+          <option value="Hindi">
+            ðŸ‡®ðŸ‡³ Hindi
+          </option>
+
+          <option value="English">
+            ðŸ‡¬ðŸ‡§ English
+          </option>
+
+          <option value="Hinglish">
+            ðŸ”„ Hinglish
+          </option>
+
+        </select>
+
+
+        <select id="ideasCount">
+
+          <option value="5">
+            5 Ideas
+          </option>
+
+          <option
+            value="10"
+            selected
+          >
+            10 Ideas
+          </option>
+
+          <option value="15">
+            15 Ideas
+          </option>
+
+        </select>
+
+
+        <button id="generateIdeasBtn">
+          ðŸ’¡ Generate Ideas
+        </button>
+
+      </div>
+
+
+      <div id="ideasResult">
+        Your content ideas will appear here.
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+    AI IMAGE GENERATOR
+    ========================= -->
+
+    <section
+      class="image-box compact-hidden"
+      id="imageGeneratorSection"
+    >
+
+      <div class="image-header">
+
+        <span class="image-icon">
+          ðŸ–¼ï¸
+        </span>
+
+        <div>
+
+          <h2>
+            AI Image Generator
+          </h2>
+
+          <p>
+            Create visuals for Instagram,
+            YouTube, posters and social media.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="image-controls">
+
+        <div class="image-field full">
+
+          <label for="imagePrompt">
+            What image do you want?
+          </label>
+
+          <textarea
+            id="imagePrompt"
+            placeholder="Example: A premium LIC savings awareness poster with a happy Indian family, professional blue theme, clean modern design..."
+          ></textarea>
+
+        </div>
+
+
+        <div class="image-field">
+
+          <label for="imageType">
+            Image Type
+          </label>
+
+          <select id="imageType">
+
+            <option value="Instagram Post">
+              ðŸ“± Instagram Post
+            </option>
+
+            <option value="Instagram Story">
+              ðŸ“² Instagram Story
+            </option>
+
+            <option value="YouTube Thumbnail">
+              â–¶ï¸ YouTube Thumbnail
+            </option>
+
+            <option value="Poster">
+              ðŸ–¼ï¸ Poster
+            </option>
+
+            <option value="Square Post">
+              â¬œ Square Post
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="image-field">
+
+          <label for="imageStyle">
+            Visual Style
+          </label>
+
+          <select id="imageStyle">
+
+            <option value="Modern Premium">
+              âœ¨ Modern Premium
+            </option>
+
+            <option value="Clean Minimal">
+              ðŸ§¼ Clean Minimal
+            </option>
+
+            <option value="Professional">
+              ðŸ’¼ Professional
+            </option>
+
+            <option value="Realistic">
+              ðŸ“¸ Realistic
+            </option>
+
+            <option value="Cinematic">
+              ðŸŽ¬ Cinematic
+            </option>
+
+            <option value="Creative">
+              ðŸŽ¨ Creative
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="image-field">
+
+          <label for="imageSize">
+            Quality
+          </label>
+
+          <select id="imageSize">
+
+            <option value="1K">
+              1K
+            </option>
+
+            <option value="2K">
+              2K
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <button
+          id="generateImageBtn"
+          class="image-generate-btn"
+        >
+          ðŸ–¼ï¸ Generate Image
+        </button>
+
+      </div>
+
+
+      <div
+        id="imageResult"
+        class="image-result"
+      >
+
+        <div class="image-placeholder">
+
+          <span>
+            ðŸ–¼ï¸
+          </span>
+
+          <p>
+            Your generated image will appear here.
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+</div>
+
+
+<!-- =========================
+EXISTING AI JAVASCRIPT
+========================= -->
+
+<!-- HISTORY -->
+<script
+  type="module"
+  src="history.js"
+></script>
+
+<script src="script.js"></script>
+
+
+<!-- AI CHAT -->
+<script src="chat.js?v=20261120-2"></script>
+
+
+<!-- DASHBOARD / PROFILE / SETTINGS -->
+<script
+  type="module"
+  src="dashboard.js"
+></script>
+
+
+<!-- =========================
+COMPACT CARD ACCORDION CONTROLLER
+========================= -->
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const resultSection = document.getElementById("mainResultSection");
+  const ideasSection = document.getElementById("contentIdeasSection");
+  const imageSection = document.getElementById("imageGeneratorSection");
+  const contentTypeSelect = document.getElementById("contentType");
+  const generateBtn = document.getElementById("generateBtn");
+
+  const cards = [
+    { id: "contentIdeasCard", section: ideasSection },
+    { id: "imageGeneratorCard", section: imageSection },
+    { id: "scriptsCard", section: resultSection, contentType: "Instagram Reel" },
+    { id: "hooksCard", section: resultSection, contentType: "Instagram Post" },
+    { id: "captionsCard", section: resultSection, contentType: "Caption" },
+    { id: "hashtagsCard", section: resultSection, contentType: "Instagram Post" },
+    { id: "ctaCard", section: resultSection, contentType: "Ad Copy" }
+  ];
+
+  const allSections = [resultSection, ideasSection, imageSection];
+  const allCardEls = cards.map(c => document.getElementById(c.id)).filter(Boolean);
+
+  function openOnlySection(targetSection, activeCardEl) {
+    allSections.forEach(sec => {
+      if (sec) {
+        sec.classList.remove("compact-visible");
+        sec.classList.add("compact-hidden");
+      }
+    });
+
+    allCardEls.forEach(card => card.classList.remove("active-card"));
+
+    if (targetSection) {
+      targetSection.classList.remove("compact-hidden");
+      targetSection.classList.add("compact-visible");
+      if (activeCardEl) activeCardEl.classList.add("active-card");
+
+      setTimeout(() => {
+        targetSection.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      }, 50);
+    }
+  }
+
+  cards.forEach(item => {
+    const cardEl = document.getElementById(item.id);
+    if (!cardEl) return;
+
+    function handleAction() {
+      if (item.contentType && contentTypeSelect) {
+        contentTypeSelect.value = item.contentType;
+      }
+
+      const isAlreadyOpen = item.section && item.section.classList.contains("compact-visible") && cardEl.classList.contains("active-card");
+
+      if (isAlreadyOpen) {
+        item.section.classList.remove("compact-visible");
+        item.section.classList.add("compact-hidden");
+        cardEl.classList.remove("active-card");
+      } else {
+        openOnlySection(item.section, cardEl);
+      }
+    }
+
+    cardEl.addEventListener("click", handleAction);
+    cardEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        handleAction();
+      }
+    });
+  });
+
+  if (generateBtn && resultSection) {
+    generateBtn.addEventListener("click", () => {
+      openOnlySection(resultSection, null);
+    });
+  }
+});
+</script>
+
+
+<!-- =========================
+FIREBASE AUTH
+========================= -->
+
+<script
+  type="module"
+  src="auth.js"
+></script>
+
+
+<!-- =========================
+BACKEND CONNECTIVITY STATUS
+========================= -->
+
+<script>
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
+    const statusBox =
+      document.getElementById("backendStatus");
+
+    const statusDot =
+      document.getElementById("backendStatusDot");
+
+    const statusText =
+      document.getElementById("backendStatusText");
+
+    const BACKEND_URL =
+      "https://ai-content-agent-3hb3.onrender.com/";
+
+
+    async function checkBackendConnection(){
+
+      if(
+        !statusDot ||
+        !statusText
+      ){
+        return;
+      }
+
+      statusText.textContent =
+        "Connecting...";
+
+      statusDot.style.background =
+        "#f1c40f";
+
+
+      try{
+
+        const controller =
+          new AbortController();
+
+        const timeout =
+          setTimeout(
+            () => controller.abort(),
+            10000
+          );
+
+
+        const response =
+          await fetch(
+            BACKEND_URL,
+            {
+              method:"GET",
+              cache:"no-store",
+              signal:controller.signal
+            }
+          );
+
+
+        clearTimeout(timeout);
+
+
+        if(!response.ok){
+
+          throw new Error(
+            "Backend returned HTTP " +
+            response.status
+          );
+
+        }
+
+
+        statusText.textContent =
+          "Connected";
+
+        statusDot.style.background =
+          "#20c997";
+
+        statusBox.title =
+          "AI backend connected";
+
+
+      }catch(error){
+
+        console.error(
+          "Backend Connectivity Error:",
+          error
+        );
+
+        statusText.textContent =
+          "Disconnected";
+
+        statusDot.style.background =
+          "#ff5c5c";
+
+        statusBox.title =
+          "AI backend is not reachable";
+
+      }
+
+    }
+
+
+    checkBackendConnection();
+
+    setInterval(
+      checkBackendConnection,
+      30000
+    );
+
+  }
+);
+
+</script>
+
+
+<!-- =========================
+QUICK ACTION CHIPS
+Adds 4 chips to the chat welcome screen. Each one only clicks the
+existing sidebar tool buttons (data-ai-tool) built by chat.js.
+========================= -->
+
+<script>
+(function () {
+  var ICONS = {
+    play: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4.5l12 7.5-12 7.5z"/></svg>',
+    image: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 9"/></svg>',
+    doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M9 12h6M9 16h6"/></svg>',
+    bulb: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>'
+  };
+
+  var CHIPS = [
+    { tool: "chat",   video: true, icon: "play",  tone: "blue",   title: "Create a Video" },
+    { tool: "image",  icon: "image", tone: "blue",   title: "Generate Image" },
+    { tool: "script", icon: "doc",   tone: "green",  title: "Write a Script" },
+    { tool: "ideas",  icon: "bulb",  tone: "purple", title: "Get Ideas" }
+  ];
+
+  function buildChips() {
+    var wrap = document.createElement("div");
+    wrap.className = "ai-quick-actions";
+
+    CHIPS.forEach(function (c) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "ai-quick-chip";
+      b.innerHTML =
+        '<span class="ai-chip-icon ai-chip-' + c.tone + '">' + ICONS[c.icon] + '</span>' +
+        '<span>' + c.title + '</span>';
+
+      b.addEventListener("click", function () {
+        var tool = document.querySelector('#aiChatSidebar [data-ai-tool="' + c.tool + '"]');
+        if (tool) tool.click();
+
+        var input = document.getElementById("aiChatInput");
+        if (input) {
+          if (c.video) input.placeholder = "Describe your video idea...";
+          input.focus();
+        }
+      });
+
+      wrap.appendChild(b);
+    });
+
+    return wrap;
+  }
+
+  function ensureChips() {
+    var welcome = document.querySelector("#aiChatMessages .ai-chat-welcome");
+    if (!welcome || welcome.querySelector(".ai-quick-actions")) return;
+    welcome.appendChild(buildChips());
+  }
+
+  function start() {
+    var mount = document.getElementById("aiChatMount");
+    if (!mount) return;
+    new MutationObserver(ensureChips).observe(mount, { childList: true, subtree: true });
+    ensureChips();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", start);
+  } else {
+    start();
+  }
+})();
+</script>
+
+</body>
+</html>

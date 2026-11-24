@@ -1,4 +1,4 @@
-const API_BASE_URL = "https://ai-content-agent-3hb3.onrender.com";
+﻿const API_BASE_URL = "http://localhost:3000";
 
 document.addEventListener("DOMContentLoaded", () => {
     const topicInput = document.getElementById("topicInput");
@@ -106,7 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .replace(/\\_/g, "_")
             .replace(/\\\*/g, "*")
             .replace(/^\s*#{1,6}\s*/gm, "")
-            .replace(/^\s*[•*+]\s+/gm, "")
+            .replace(/^\s*[â€¢*+]\s+/gm, "")
             .replace(/^\s*-\s+(?!\d)/gm, "")
             .replace(/^\s*[-=_]{3,}\s*$/gm, "")
             .trim();
@@ -125,15 +125,15 @@ document.addEventListener("DOMContentLoaded", () => {
             .replace(/\\\*\\\*/g, "")
             .replace(/\*\*/g, "")
             .replace(/__+/g, "")
-            .replace(/^\s*[•*+\-]\s*/g, "")
+            .replace(/^\s*[â€¢*+\-]\s*/g, "")
             .replace(/^\s*\d+\s*[\.\):-]\s*/g, "")
             .replace(/^\s*\d+\s*$/g, "")
             .replace(
-                /\s*(?:✨\s*)?use\s+this\s+idea\s*$/i,
+                /\s*(?:âœ¨\s*)?use\s+this\s+idea\s*$/i,
                 ""
             )
             .replace(
-                /\s*(?:✨\s*)?इस\s+आइडिया\s+का\s+उपयोग\s+करें\s*$/i,
+                /\s*(?:âœ¨\s*)?à¤‡à¤¸\s+à¤†à¤‡à¤¡à¤¿à¤¯à¤¾\s+à¤•à¤¾\s+à¤‰à¤ªà¤¯à¥‹à¤—\s+à¤•à¤°à¥‡à¤‚\s*$/i,
                 ""
             )
             .replace(/\s{2,}/g, " ")
@@ -159,27 +159,27 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
         text = text.replace(
-            /^\s*(?:1\.\s*)?(?:hook|hooks|हुक)\s*[:\-]?\s*/gim,
+            /^\s*(?:1\.\s*)?(?:hook|hooks|à¤¹à¥à¤•)\s*[:\-]?\s*/gim,
             "Hook:\n"
         );
 
         text = text.replace(
-            /^\s*(?:2\.\s*)?(?:script|scripts|video script|स्क्रिप्ट)\s*[:\-]?\s*/gim,
+            /^\s*(?:2\.\s*)?(?:script|scripts|video script|à¤¸à¥à¤•à¥à¤°à¤¿à¤ªà¥à¤Ÿ)\s*[:\-]?\s*/gim,
             "Script:\n"
         );
 
         text = text.replace(
-            /^\s*(?:3\.\s*)?(?:caption|captions|post caption|कैप्शन)\s*[:\-]?\s*/gim,
+            /^\s*(?:3\.\s*)?(?:caption|captions|post caption|à¤•à¥ˆà¤ªà¥à¤¶à¤¨)\s*[:\-]?\s*/gim,
             "Caption:\n"
         );
 
         text = text.replace(
-            /^\s*(?:4\.\s*)?(?:hashtags?|hash tags?|हैशटैग)\s*[:\-]?\s*/gim,
+            /^\s*(?:4\.\s*)?(?:hashtags?|hash tags?|à¤¹à¥ˆà¤¶à¤Ÿà¥ˆà¤—)\s*[:\-]?\s*/gim,
             "Hashtags:\n"
         );
 
         text = text.replace(
-            /^\s*(?:5\.\s*)?(?:cta|call to action|कॉल टू एक्शन)\s*[:\-]?\s*/gim,
+            /^\s*(?:5\.\s*)?(?:cta|call to action|à¤•à¥‰à¤² à¤Ÿà¥‚ à¤à¤•à¥à¤¶à¤¨)\s*[:\-]?\s*/gim,
             "CTA:\n"
         );
 
@@ -218,7 +218,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 lower === name ||
                 lower.startsWith(name + ":") ||
                 lower.startsWith(name + " -") ||
-                lower.startsWith(name + " –")
+                lower.startsWith(name + " â€“")
             );
 
             if (isStart) {
@@ -244,7 +244,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     lower === name ||
                     lower.startsWith(name + ":") ||
                     lower.startsWith(name + " -") ||
-                    lower.startsWith(name + " –")
+                    lower.startsWith(name + " â€“")
                 );
 
                 if (isEnd) {
@@ -292,7 +292,7 @@ document.addEventListener("DOMContentLoaded", () => {
              * Remove punctuation accidentally attached.
              */
             cleanTag = cleanTag.replace(
-                /[.,!?;:।|()[\]{}]+$/g,
+                /[.,!?;:à¥¤|()[\]{}]+$/g,
                 ""
             );
 
@@ -371,11 +371,11 @@ document.addEventListener("DOMContentLoaded", () => {
          * Useful generic Hindi/English tags.
          */
         const commonTags = [
-            "#बचत",
-            "#निवेश",
-            "#बीमा",
-            "#जीवनबीमा",
-            "#वित्तीययोजना",
+            "#à¤¬à¤šà¤¤",
+            "#à¤¨à¤¿à¤µà¥‡à¤¶",
+            "#à¤¬à¥€à¤®à¤¾",
+            "#à¤œà¥€à¤µà¤¨à¤¬à¥€à¤®à¤¾",
+            "#à¤µà¤¿à¤¤à¥à¤¤à¥€à¤¯à¤¯à¥‹à¤œà¤¨à¤¾",
             "#FinancialPlanning",
             "#Savings",
             "#Investment",
@@ -413,31 +413,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
         let hook = findSection(
             text,
-            ["hook", "hooks", "हुक"],
+            ["hook", "hooks", "à¤¹à¥à¤•"],
             ["script", "caption", "hashtags", "cta"]
         );
 
         let script = findSection(
             text,
-            ["script", "scripts", "video script", "स्क्रिप्ट"],
+            ["script", "scripts", "video script", "à¤¸à¥à¤•à¥à¤°à¤¿à¤ªà¥à¤Ÿ"],
             ["caption", "hashtags", "cta"]
         );
 
         let caption = findSection(
             text,
-            ["caption", "captions", "post caption", "कैप्शन"],
+            ["caption", "captions", "post caption", "à¤•à¥ˆà¤ªà¥à¤¶à¤¨"],
             ["hashtags", "cta"]
         );
 
         let hashtags = findSection(
             text,
-            ["hashtags", "hash tags", "हैशटैग"],
+            ["hashtags", "hash tags", "à¤¹à¥ˆà¤¶à¤Ÿà¥ˆà¤—"],
             ["cta"]
         );
 
         let cta = findSection(
             text,
-            ["cta", "call to action", "कॉल टू एक्शन"],
+            ["cta", "call to action", "à¤•à¥‰à¤² à¤Ÿà¥‚ à¤à¤•à¥à¤¶à¤¨"],
             []
         );
 
@@ -735,7 +735,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     cursor:pointer;
                 "
             >
-                📋 Copy
+                ðŸ“‹ Copy
             </button>
 
             <button
@@ -751,7 +751,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     cursor:pointer;
                 "
             >
-                ✨ Rewrite
+                âœ¨ Rewrite
             </button>
 
             <button
@@ -767,7 +767,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     cursor:pointer;
                 "
             >
-                🔄 Regenerate
+                ðŸ”„ Regenerate
             </button>
 
             <button
@@ -783,7 +783,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     cursor:pointer;
                 "
             >
-                📄 TXT
+                ðŸ“„ TXT
             </button>
 
             <button
@@ -799,7 +799,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     cursor:pointer;
                 "
             >
-                📑 PDF
+                ðŸ“‘ PDF
             </button>
         `;
 
@@ -871,7 +871,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     button.textContent;
 
                 button.textContent =
-                    "✓ Copied";
+                    "âœ“ Copied";
 
                 setTimeout(() => {
                     button.textContent =
@@ -906,11 +906,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (button) {
                 button.textContent =
-                    "✓ Copied";
+                    "âœ“ Copied";
 
                 setTimeout(() => {
                     button.textContent =
-                        "📋 Copy";
+                        "ðŸ“‹ Copy";
                 }, 1500);
             }
         }
@@ -1034,8 +1034,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         setButtonLoading(
             button,
-            "🔄 Generating...",
-            "🔄 Regenerate"
+            "ðŸ”„ Generating...",
+            "ðŸ”„ Regenerate"
         );
 
         try {
@@ -1109,8 +1109,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         setButtonLoading(
             button,
-            "✨ Rewriting...",
-            "✨ Rewrite"
+            "âœ¨ Rewriting...",
+            "âœ¨ Rewrite"
         );
 
         if (result) {
@@ -1123,7 +1123,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         font-size:24px;
                         margin-bottom:8px;
                     ">
-                        ✨
+                        âœ¨
                     </div>
 
                     <div>
@@ -1168,7 +1168,7 @@ STRICT HASHTAG RULES:
 - Every hashtag must start with #.
 - Each hashtag must be a COMPLETE meaningful word.
 - Never split a Hindi word into separate characters or fragments.
-- Never create hashtags such as #न, #ज, #भ, #व, #पर when they are incomplete fragments.
+- Never create hashtags such as #à¤¨, #à¤œ, #à¤­, #à¤µ, #à¤ªà¤° when they are incomplete fragments.
 - Hindi hashtags must contain complete Hindi words.
 - English hashtags must contain complete English words.
 - Do not put spaces inside a hashtag.
@@ -1375,12 +1375,12 @@ ${currentText}
         const originalText =
             button
                 ? button.textContent
-                : "📑 PDF";
+                : "ðŸ“‘ PDF";
 
         if (button) {
             button.disabled = true;
             button.textContent =
-                "📑 Creating PDF...";
+                "ðŸ“‘ Creating PDF...";
             button.style.opacity =
                 "0.7";
         }
@@ -1749,8 +1749,8 @@ STRICT HASHTAG RULES:
 - Every hashtag must start with #.
 - Each hashtag must be a COMPLETE meaningful word.
 - NEVER split a Hindi word into individual characters or fragments.
-- NEVER generate broken hashtags such as #न, #ज, #भ, #व, #पर when they are incomplete.
-- Use complete Hindi words such as #बचत, #निवेश, #जीवनबीमा, #भविष्य, #धनसंचय.
+- NEVER generate broken hashtags such as #à¤¨, #à¤œ, #à¤­, #à¤µ, #à¤ªà¤° when they are incomplete.
+- Use complete Hindi words such as #à¤¬à¤šà¤¤, #à¤¨à¤¿à¤µà¥‡à¤¶, #à¤œà¥€à¤µà¤¨à¤¬à¥€à¤®à¤¾, #à¤­à¤µà¤¿à¤·à¥à¤¯, #à¤§à¤¨à¤¸à¤‚à¤šà¤¯.
 - English hashtags must also be complete words.
 - Do not put spaces inside a hashtag.
 - Do not number hashtags.
@@ -1808,8 +1808,8 @@ OTHER STRICT RULES:
 
                 setButtonLoading(
                     generateBtn,
-                    "✨ Generating...",
-                    "✨ Generate Content"
+                    "âœ¨ Generating...",
+                    "âœ¨ Generate Content"
                 );
 
                 if (result) {
@@ -1822,7 +1822,7 @@ OTHER STRICT RULES:
                                 font-size:24px;
                                 margin-bottom:8px;
                             ">
-                                ✨
+                                âœ¨
                             </div>
 
                             <div>
@@ -1926,8 +1926,8 @@ OTHER STRICT RULES:
 
                 setButtonLoading(
                     generateIdeasBtn,
-                    "✨ Generating...",
-                    "✨ Generate Ideas"
+                    "âœ¨ Generating...",
+                    "âœ¨ Generate Ideas"
                 );
 
                 if (ideasResult) {
@@ -1936,7 +1936,7 @@ OTHER STRICT RULES:
                             text-align:center;
                             padding:15px;
                         ">
-                            💡 Generating fresh content ideas...
+                            ðŸ’¡ Generating fresh content ideas...
                         </div>
                     `;
                 }
@@ -2138,7 +2138,7 @@ OTHER STRICT RULES:
                     "button";
 
                 useButton.textContent =
-                    "✨ Use This Idea";
+                    "âœ¨ Use This Idea";
 
                 useButton.style.cssText = `
                     border:none;
@@ -2213,7 +2213,7 @@ OTHER STRICT RULES:
                 button.textContent;
 
             button.textContent =
-                "✓ Added";
+                "âœ“ Added";
 
             button.disabled =
                 true;
@@ -2275,14 +2275,14 @@ OTHER STRICT RULES:
 
                 setButtonLoading(
                     generateImageBtn,
-                    "🎨 Generating Image...",
-                    "✨ Generate Image"
+                    "ðŸŽ¨ Generating Image...",
+                    "âœ¨ Generate Image"
                 );
 
                 if (imageResult) {
                     imageResult.innerHTML = `
                         <div class="image-placeholder">
-                            <span>🎨</span>
+                            <span>ðŸŽ¨</span>
 
                             <p>
                                 Creating your image...
@@ -2432,7 +2432,7 @@ OTHER STRICT RULES:
             "download-image-btn";
 
         downloadButton.textContent =
-            "⬇ Download Image";
+            "â¬‡ Download Image";
 
         downloadButton.addEventListener(
             "click",
