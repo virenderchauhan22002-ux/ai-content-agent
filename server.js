@@ -242,7 +242,7 @@ async function generateWithFallback(prompt) {
 // ===============================
 
 // WEBSITE BUILDER: GEMINI + GROQ FALLBACK
-async function generateWebsiteWithFallback(prompt) {
+async function generateWebsiteWithFallback(prompt, options = {}) {
 
     try {
         console.log("Website Builder: Trying Gemini...");
@@ -273,7 +273,64 @@ async function generateWebsiteWithFallback(prompt) {
                 model: "qwen/qwen3.8-27b",
                 messages: [{ role: "user", content: prompt }],
                 temperature: 0.2,
-                max_tokens: 6000
+                max_tokens: options.responseType === "planning" ? 4000 : 16000,
+                response_format: {
+                    type: "json_schema",
+                    json_schema: {
+                        name: options.responseType === "planning"
+                            ? "website_plan_response"
+                            : "website_project",
+                        strict: true,
+                        schema: options.responseType === "planning"
+                            ? {
+                                type: "object",
+                                properties: {
+                                    assistantMessage: { type: "string" },
+                                    plan: {
+                                        type: "object",
+                                        properties: {
+                                            purpose: { type: "string" },
+                                            targetAudience: { type: "string" },
+                                            pages: { type: "array", items: { type: "string" } },
+                                            sections: { type: "array", items: { type: "string" } },
+                                            design: { type: "string" },
+                                            content: { type: "string" },
+                                            features: { type: "array", items: { type: "string" } },
+                                            adminPanel: { type: "array", items: { type: "string" } },
+                                            additionalRequirements: { type: "array", items: { type: "string" } }
+                                        },
+                                        required: [
+                                            "purpose", "targetAudience", "pages", "sections",
+                                            "design", "content", "features", "adminPanel",
+                                            "additionalRequirements"
+                                        ],
+                                        additionalProperties: false
+                                    },
+                                    readyForApproval: { type: "boolean" }
+                                },
+                                required: ["assistantMessage", "plan", "readyForApproval"],
+                                additionalProperties: false
+                            }
+                            : {
+                                type: "object",
+                                properties: {
+                                    title: { type: "string" },
+                                    files: {
+                                        type: "object",
+                                        properties: {
+                                            html: { type: "string" },
+                                            css: { type: "string" },
+                                            js: { type: "string" }
+                                        },
+                                        required: ["html", "css", "js"],
+                                        additionalProperties: false
+                                    }
+                                },
+                                required: ["title", "files"],
+                                additionalProperties: false
+                            }
+                    }
+                }
             })
         }
     );
@@ -281,8 +338,8 @@ async function generateWebsiteWithFallback(prompt) {
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-        console.error("Groq error:", response.status, data.error?.message);
-        throw new Error("Website Builder AI providers are temporarily unavailable.");
+        console.error("Groq error details:", response.status, JSON.stringify(data.error || data, null, 2));
+        const providerError = data?.error || data; const diagnostic = providerError?.failed_generation || providerError?.message || providerError?.code || JSON.stringify(providerError); throw new Error("Groq HTTP " + response.status + ": " + String(diagnostic).slice(0, 2000));
     }
 
     const result = data?.choices?.[0]?.message?.content;
@@ -824,3 +881,6 @@ server.on(
         );
     }
 );
+
+
+

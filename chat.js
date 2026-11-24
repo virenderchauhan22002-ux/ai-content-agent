@@ -1,4 +1,4 @@
-// ==========================================
+﻿// ==========================================
 // AI CHAT
 // AI CONTENT AGENT
 // ==========================================
@@ -8,7 +8,12 @@
 // ==========================================
 
 const AI_CHAT_API_BASE_URL =
-    "https://ai-content-agent-3hb3.onrender.com";
+    (window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1")
+        ? "http://localhost:3000"
+        : "https://ai-content-agent-3hb3.onrender.com";
+
+window.AI_CONTENT_AGENT_API_BASE_URL = AI_CHAT_API_BASE_URL;
 
 
 // ==========================================
@@ -556,6 +561,7 @@ async function initializeAIChat() {
         <button type="button" class="ai-tool-option" data-ai-tool="ideas">Content Ideas</button>
         <button type="button" class="ai-tool-option" data-ai-tool="image">Image Generation</button>
         <button type="button" class="ai-tool-option" data-ai-tool="script">Script & Caption</button>
+
         <div class="ai-sidebar-heading">Chat History</div>
         <div id="aiChatHistoryList"></div>
     `;
@@ -902,18 +908,24 @@ async function initializeAIChat() {
     `;
     panel.appendChild(profileStyle);
 
+    let activeWebsitePlanId = "";
+    let websitePlanLocked = false;
+
     sidebar.querySelectorAll("[data-ai-tool]").forEach((button) => {
         button.addEventListener("click", () => {
             sidebar.querySelectorAll("[data-ai-tool]").forEach((item) => item.classList.remove("active"));
             button.classList.add("active");
             input.dataset.aiTool = button.dataset.aiTool;
-            input.placeholder = button.dataset.aiTool === "image"
-                ? "Describe the image you want to create..."
-                : button.dataset.aiTool === "ideas"
-                    ? "Enter a topic for content ideas..."
-                    : button.dataset.aiTool === "script"
-                        ? "Describe the script or caption you need..."
-                        : "Message AI...";
+
+            input.placeholder =
+                button.dataset.aiTool === "image"
+                    ? "Describe the image you want to create..."
+                    : button.dataset.aiTool === "ideas"
+                        ? "Enter a topic for content ideas..."
+                        : button.dataset.aiTool === "script"
+                            ? "Describe the script or caption you need..."
+                            : "Message AI...";
+
             input.focus();
         });
     });
@@ -1056,6 +1068,7 @@ async function initializeAIChat() {
     let messages = [];
     let activeChatId = null;
     let activeChatTitle = "New Chat";
+    activeWebsitePlanId = window.AIWebsitePlanning?.getPlanId?.() || "";
 
     let isSending = false;
 
@@ -1650,6 +1663,150 @@ const success = await window.renameAIChatHistory(activeChatId, newTitle);
     }
 
 
+    function addWebsitePlanSummary(plan, readyForApproval, status) {
+        const card = document.createElement("section");
+        card.style.cssText = "margin:12px 0;padding:14px;border:1px solid #dbe3f0;border-radius:12px;background:#f8faff;color:#172033;";
+
+        const heading = document.createElement("strong");
+        heading.textContent = "Website Plan Summary";
+        card.appendChild(heading);
+
+        const fields = [
+            ["Purpose", plan.purpose],
+            ["Target audience", plan.targetAudience],
+            ["Pages", plan.pages],
+            ["Sections", plan.sections],
+            ["Design", plan.design],
+            ["Content", plan.content],
+            ["Features", plan.features],
+            ["Admin panel", plan.adminPanel],
+            ["Additional requirements", plan.additionalRequirements]
+        ];
+
+        fields.forEach(([label, value]) => {
+            const normalized = Array.isArray(value)
+                ? value.filter(Boolean).join(", ")
+                : String(value || "").trim();
+            if (!normalized) return;
+
+            const row = document.createElement("p");
+            row.style.cssText = "margin:8px 0 0;font-size:13px;line-height:1.5;";
+            const strong = document.createElement("b");
+            strong.textContent = label + ": ";
+            const text = document.createElement("span");
+            text.textContent = normalized;
+            row.append(strong, text);
+            card.appendChild(row);
+        });
+
+        const note = document.createElement("p");
+        note.style.cssText = "margin:12px 0 0;color:#64748b;font-size:12px;";
+        note.textContent = status === "approved"
+            ? "Plan approved. You can now generate the website."
+            : readyForApproval
+                ? "Review the plan. Website generation will be available only after your approval."
+                : "More details are needed. Continue the conversation to complete this plan.";
+        card.appendChild(note);
+
+        if (readyForApproval && status !== "approved") {
+            const approveButton = document.createElement("button");
+            approveButton.type = "button";
+            approveButton.textContent = "Approve Website Plan";
+            approveButton.style.cssText = "margin-top:12px;padding:10px 14px;border:0;border-radius:8px;background:#16834b;color:#fff;font-weight:600;cursor:pointer;";
+            approveButton.addEventListener("click", async () => {
+                approveButton.disabled = true;
+                approveButton.textContent = "Approving...";
+                try {
+                    const result = await window.AIWebsitePlanning.approve(activeWebsitePlanId);
+                    card.remove();
+                    addMessage("assistant", result.message || "Website plan approved.");
+                    addWebsitePlanSummary(plan, true, "approved");
+                } catch (error) {
+                    addMessage("assistant", error.message || "Plan approval failed.");
+                    approveButton.disabled = false;
+                    approveButton.textContent = "Approve Website Plan";
+                }
+            });
+            card.appendChild(approveButton);
+        } else if (status === "approved") {
+            const generateButton = document.createElement("button");
+            generateButton.type = "button";
+            generateButton.textContent = "Generate Website";
+            generateButton.style.cssText = "margin-top:12px;padding:10px 14px;border:0;border-radius:8px;background:#5268d8;color:#fff;font-weight:600;cursor:pointer;";
+            generateButton.addEventListener("click", async () => {
+                generateButton.disabled = true;
+                generateButton.textContent = "Generating Website...";
+                try {
+                    const result = await window.AIWebsitePlanning.generate(activeWebsitePlanId);
+                    addMessage("assistant", "Website generated and saved successfully: **" + (result.project?.title || "Website") + "**. Open Website Builder → My Websites to preview and edit it.");
+                    window.AIWebsitePlanning.clearPlanId();
+                    activeWebsitePlanId = "";
+                } catch (error) {
+                    addMessage("assistant", error.message || "Website generation failed.");
+                    generateButton.disabled = false;
+                    generateButton.textContent = "Generate Website";
+                }
+            });
+            card.appendChild(generateButton);
+        }
+
+        messagesBox.appendChild(card);
+        messagesBox.scrollTop = messagesBox.scrollHeight;
+    }
+
+    function isWebsiteCreationRequest(text) {
+        const mentionsWebsite = /(website|web\s*site|landing\s*page|e-?commerce\s*site)/i.test(text);
+
+        const asksToBuild =
+            /(create|build|make|design|develop|want|need|banana|banani|banao|bnao|bnaani|chahiye|bana\s*do|taiyar\s*karo)/i.test(text);
+
+        return mentionsWebsite && asksToBuild;
+    }
+
+    async function sendWebsitePlanningMessage(text) {
+        if (!window.AIWebsitePlanning) {
+            throw new Error("Website Planning module did not load. Refresh the page and try again.");
+        }
+
+        let planIdForRequest = activeWebsitePlanId;
+
+        // A finished (locked) plan must not capture the chat. A new website request starts a fresh plan.
+        if (websitePlanLocked && isWebsiteCreationRequest(text)) {
+            window.AIWebsitePlanning.clearPlanId();
+            activeWebsitePlanId = "";
+            planIdForRequest = "";
+            websitePlanLocked = false;
+        }
+
+        let result;
+        try {
+            result = await window.AIWebsitePlanning.chat(text, planIdForRequest);
+        } catch (error) {
+            if (planIdForRequest && /locked|cannot be edited/i.test(error.message || "")) {
+                websitePlanLocked = true;
+                return false; // not a planning conversation anymore: let normal chat answer
+            }
+            throw error;
+        }
+
+        activeWebsitePlanId = result.planId;
+        window.AIWebsitePlanning.setPlanId(result.planId);
+
+        addMessage("assistant", result.assistantMessage || "Let's refine your website requirements.");
+        messages.push({ role: "assistant", content: result.assistantMessage || "" });
+
+        if (result.plan) {
+            addWebsitePlanSummary(result.plan, result.readyForApproval === true, "draft");
+        }
+
+        if (typeof window.saveAIChatHistory === "function") {
+            const savedId = await window.saveAIChatHistory(messages, activeChatId);
+            if (savedId) activeChatId = savedId;
+        }
+
+        return true;
+    }
+
     // ==========================================
     // SEND MESSAGE
     // ==========================================
@@ -1714,6 +1871,13 @@ const success = await window.renameAIChatHistory(activeChatId, newTitle);
         addTypingIndicator();
 
         try {
+            if ((activeWebsitePlanId && !websitePlanLocked) || isWebsiteCreationRequest(text)) {
+                if ((await sendWebsitePlanningMessage(text)) !== false) {
+                    removeTypingIndicator();
+                    return;
+                }
+            }
+
             const imagePrompt = getImagePromptFromMessage(text);
 
             if (imagePrompt !== null) {
